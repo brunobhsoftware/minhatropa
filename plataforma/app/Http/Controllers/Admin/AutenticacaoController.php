@@ -59,9 +59,9 @@ class AutenticacaoController extends Controller
         }
 
         if (! $usuario->admin_plataforma) {
-            // A área dos Haras ainda não existe: por enquanto só a equipe da plataforma entra.
-            return back()->withInput($request->only('email'))
-                ->withErrors(['email' => 'A área dos Haras ainda está em construção. Por enquanto, só a administração da plataforma tem acesso.']);
+            // Quem não é da equipe da plataforma entra pela área do Haras.
+            return redirect()->route('entrar')->withInput($request->only('email'))
+                ->withErrors(['email' => 'Esta entrada é só da administração. Entre por aqui para acessar o seu Haras.']);
         }
 
         $usuario->forceFill(['tentativas_login' => 0, 'bloqueado_ate' => null, 'ultimo_login_em' => now()])->save();

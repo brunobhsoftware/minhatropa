@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex">
     <meta name="theme-color" content="#101828">
-    <title>@hasSection('titulo')@yield('titulo') · @endif MinhaTropa Administração</title>
+    <title>@hasSection('titulo')@yield('titulo') · @endif @yield('titulo_sufixo', 'MinhaTropa Administração')</title>
     <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
     <link rel="icon" type="image/png" href="{{ asset('img/favicon-32.png') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">

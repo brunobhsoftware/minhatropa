@@ -9,7 +9,10 @@ Projeto irmão (mesma estrutura, mesma conta Hostinger): **foradafila.com.br** (
 ## Regras de texto
 
 - **"Haras" sempre com H**, em títulos, menus, botões e descrições (o kit tem uma versão antiga "aras": não publicar).
-- Não inventar preços, teste grátis ou políticas comerciais no site: só o que o Bruno definir.
+- Não inventar preços ou políticas comerciais no site: só o que o Bruno definir.
+- **Período gratuito (decisão do Bruno, 09/11/2026):** o próprio Haras se cadastra pelo site (`/cadastro`) e usa grátis
+  a configuração do Haras e **1 animal** (`parametro_sistema.animais_gratis`). A partir do 2º animal precisa contratar;
+  com `empresa.licenca_ativa = 1` (liberada pela Administração → Haras → Licença) tudo é liberado. Preço/pagamento: a definir.
 
 ## Onde está cada coisa
 
@@ -50,7 +53,10 @@ Projeto irmão (mesma estrutura, mesma conta Hostinger): **foradafila.com.br** (
   **Haras** (lista com busca/filtro, cadastro com CPF/CNPJ validado, endereço com ViaCEP, situação teste/ativo/suspenso/encerrado
   com motivo, pessoas com acesso e papel), **Contatos do site**, **Administradores** (criar, editar, senha provisória),
   **Atualizações do banco**, **Auditoria**, Minha senha. Itens "em breve": Planos e cobrança, Mercado Pago, E-mails enviados.
-- Usuário que não é administrador não entra ainda (a área dos Haras é a próxima etapa).
+- **Área do Haras** (`/entrar`, `/painel`, middleware `haras` = `App\Http\Middleware\IdentificarHaras` + `App\Support\HarasAtual`
+  na sessão; quem tem vários Haras escolhe em `/painel/escolher`): Início (primeiros passos), Animais (`animal`), Dados do Haras,
+  Licença. Ferramentas bloqueadas (🔒) até a licença. Regra em `App\Support\Licenca`. Sem o V002 a área mostra "em atualização".
+- Testes: `fluxo-admin.js` (24) e depois `fluxo-cadastro.js` (16), contra banco limpo.
 - Toda ação relevante grava em `auditoria` via `App\Support\Auditoria::registrar()` (senhas nunca entram).
 - Datas: banco em UTC; tela em `America/Sao_Paulo` (helpers `data_local`, `para_input_data`, `utc_de_local` em `app/helpers.php`).
 
@@ -90,4 +96,4 @@ Projeto irmão (mesma estrutura, mesma conta Hostinger): **foradafila.com.br** (
 ## Próximas etapas (combinadas com o Bruno)
 
 1. Área dos Haras (login de cada Haras, cadastro de animais, agenda/rotinas, saúde, reprodução, treinos, financeiro, relatórios).
-2. Mercado Pago, planos e cobrança, envio de e-mails (noreply@/atendimento@) — mesma estrutura do Fora da Fila.
+2. Mercado Pago, planos e cobrança (contratação on-line da licença), envio de e-mails (noreply@/atendimento@) — mesma estrutura do Fora da Fila.

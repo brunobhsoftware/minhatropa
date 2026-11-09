@@ -62,6 +62,8 @@ class HarasController extends Controller
         return view('admin.haras.show', [
             'empresa' => $empresa->load('plano'),
             'vinculos' => $empresa->usuarios()->orderBy('nome')->get(),
+            'v002' => \App\Support\Esquema::temV002(),
+            'totalAnimais' => \App\Support\Esquema::temV002() ? \App\Support\Licenca::animais($empresa) : 0,
             'auditoria' => RegistroAuditoria::with('usuario')->where('empresa_id', $empresa->id)->orderByDesc('id')->limit(20)->get(),
         ]);
     }
@@ -94,6 +96,18 @@ class HarasController extends Controller
         Auditoria::registrar('haras.situacao', $empresa, $antes, $empresa->only(['situacao', 'situacao_motivo']));
 
         return back()->with('ok', 'Situação alterada para "'.$empresa->situacaoTexto().'".');
+    }
+
+    /** Libera ou retira a licença do Haras (com ela, todas as ferramentas e animais ilimitados). */
+    public function licenca(Request $request, Empresa $empresa)
+    {
+        abort_unless(\App\Support\Esquema::temV002(), 404);
+        $ativa = $request->boolean('licenca_ativa');
+        $empresa->update(['licenca_ativa' => $ativa, 'licenca_liberada_em' => $ativa ? now() : null, 'licenca_liberada_por' => $ativa ? $request->user()->id : null]
+            + ($ativa && $empresa->situacao === 'teste' ? ['situacao' => 'ativo'] : []));
+        Auditoria::registrar($ativa ? 'haras.licenca_liberar' : 'haras.licenca_retirar', $empresa, null, ['licenca_ativa' => $ativa]);
+
+        return back()->with('ok', $ativa ? 'Licença liberada: o Haras já tem acesso a todas as ferramentas.' : 'Licença retirada: o Haras volta ao limite do período gratuito.');
     }
 
     /** Dá acesso a uma pessoa a este Haras (cria o usuário se ainda não existir). */

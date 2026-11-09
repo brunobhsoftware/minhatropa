@@ -7,6 +7,32 @@ use Illuminate\Support\Facades\Route;
 // ---------- Site público ----------
 Route::get('/', [SiteController::class, 'inicio'])->name('inicio');
 Route::post('/contato', [SiteController::class, 'contato'])->name('contato')->middleware('throttle:5,10,contato');
+Route::get('/cadastro', [\App\Http\Controllers\Site\CadastroController::class, 'create'])->name('cadastro');
+Route::post('/cadastro', [\App\Http\Controllers\Site\CadastroController::class, 'store'])->name('cadastro.enviar')->middleware('throttle:5,10,cadastro');
+
+// ---------- Área do Haras ----------
+Route::middleware('guest')->group(function () {
+    Route::get('/entrar', [\App\Http\Controllers\Auth\EntrarController::class, 'create'])->name('entrar');
+    Route::post('/entrar', [\App\Http\Controllers\Auth\EntrarController::class, 'store'])->name('entrar.enviar')->middleware('throttle:10,1,entrar');
+});
+Route::post('/sair', [\App\Http\Controllers\Auth\EntrarController::class, 'destroy'])->name('sair')->middleware('auth');
+Route::middleware('auth')->prefix('painel')->name('painel.')->group(function () {
+    Route::get('/escolher', [\App\Http\Controllers\Painel\PainelController::class, 'escolher'])->name('escolher');
+    Route::post('/trocar/{empresa}', [\App\Http\Controllers\Painel\PainelController::class, 'trocar'])->name('trocar');
+});
+Route::middleware(['auth', 'haras'])->prefix('painel')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Painel\PainelController::class, 'inicio'])->name('painel');
+    Route::name('painel.')->group(function () {
+        Route::get('/haras', [\App\Http\Controllers\Painel\PainelController::class, 'haras'])->name('haras');
+        Route::put('/haras', [\App\Http\Controllers\Painel\PainelController::class, 'salvarHaras'])->name('haras.salvar');
+        Route::get('/licenca', [\App\Http\Controllers\Painel\PainelController::class, 'licenca'])->name('licenca');
+        Route::get('/animais', [\App\Http\Controllers\Painel\AnimaisController::class, 'index'])->name('animais');
+        Route::get('/animais/novo', [\App\Http\Controllers\Painel\AnimaisController::class, 'create'])->name('animais.novo');
+        Route::post('/animais', [\App\Http\Controllers\Painel\AnimaisController::class, 'store'])->name('animais.criar');
+        Route::get('/animais/{animal}/editar', [\App\Http\Controllers\Painel\AnimaisController::class, 'edit'])->name('animais.editar');
+        Route::put('/animais/{animal}', [\App\Http\Controllers\Painel\AnimaisController::class, 'update'])->name('animais.salvar');
+    });
+});
 
 // ---------- Administração da plataforma (equipe BH Software) ----------
 Route::prefix('admin')->name('admin.')->group(function () {
@@ -29,6 +55,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/haras/{empresa}', [Admin\HarasController::class, 'show'])->name('haras.show');
         Route::get('/haras/{empresa}/editar', [Admin\HarasController::class, 'edit'])->name('haras.editar');
         Route::put('/haras/{empresa}', [Admin\HarasController::class, 'update'])->name('haras.salvar');
+        Route::put('/haras/{empresa}/licenca', [Admin\HarasController::class, 'licenca'])->name('haras.licenca');
         Route::put('/haras/{empresa}/situacao', [Admin\HarasController::class, 'situacao'])->name('haras.situacao');
         Route::post('/haras/{empresa}/usuarios', [Admin\HarasController::class, 'vincularUsuario'])->name('haras.usuarios.vincular');
         Route::put('/haras/{empresa}/usuarios/{vinculo}', [Admin\HarasController::class, 'alterarVinculo'])->name('haras.usuarios.alterar')->whereNumber('vinculo');

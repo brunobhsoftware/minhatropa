@@ -38,8 +38,8 @@
                 <a href="{{ route('inicio') }}#implantacao">Implantação</a>
                 <a href="{{ route('inicio') }}#contato">Contato</a>
                 <span class="topo__acoes">
-                    <a href="{{ route('admin.entrar') }}" class="botao botao--contorno-claro"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg> Entrar</a>
-                    <a href="{{ route('inicio') }}#contato" class="botao botao--amarelo">Quero conhecer <span aria-hidden="true">→</span></a>
+                    <a href="{{ route('entrar') }}" class="botao botao--contorno-claro"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg> Entrar</a>
+                    <a href="{{ route('cadastro') }}" class="botao botao--amarelo">Cadastre seu Haras <span aria-hidden="true">→</span></a>
                 </span>
             </nav>
         </div>
@@ -65,7 +65,8 @@
                 <h2>Acesso</h2>
                 <a href="{{ route('inicio') }}#contato">Fale conosco</a>
                 <a href="mailto:atendimento@minhatropa.com.br">atendimento@minhatropa.com.br</a>
-                <a href="{{ route('admin.entrar') }}">Entrar</a>
+                <a href="{{ route('cadastro') }}">Cadastre seu Haras</a>
+                <a href="{{ route('entrar') }}">Entrar</a>
             </nav>
         </div>
         <div class="rodape__base">
