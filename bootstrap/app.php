@@ -13,10 +13,11 @@ $app = Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdministradorPlataforma::class,
+            'haras' => \App\Http\Middleware\IdentificarHaras::class,
         ]);
-        // Quem não está logado vai para o login da Administração.
-        $middleware->redirectGuestsTo(fn () => route('admin.entrar'));
-        $middleware->redirectUsersTo(fn () => route('admin.inicio'));
+        // Quem não está logado vai para o login da área que tentou abrir.
+        $middleware->redirectGuestsTo(fn ($request) => $request->is('admin*') ? route('admin.entrar') : route('entrar'));
+        $middleware->redirectUsersTo(fn ($request) => $request->user()?->admin_plataforma && $request->is('admin*') ? route('admin.inicio') : route('painel'));
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // Sessão expirada (419): volta ao formulário com o que foi digitado, em vez da página "Page Expired".

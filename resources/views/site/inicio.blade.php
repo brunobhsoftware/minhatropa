@@ -42,9 +42,10 @@
             <h1>Gestão de Haras, cavalos e outras <span class="destaque-amarelo">operações.</span></h1>
             <p>O sistema completo para organizar sua tropa, controlar animais, treinos, saúde, reprodução e toda a rotina do seu Haras.</p>
             <div class="hero__botoes">
-                <a href="#contato" class="botao botao--amarelo botao--grande">Quero conhecer <span aria-hidden="true">→</span></a>
+                <a href="{{ route('cadastro') }}" class="botao botao--amarelo botao--grande">Comece grátis agora <span aria-hidden="true">→</span></a>
                 <a href="#recursos" class="botao botao--contorno-claro botao--grande"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5z" fill="#FFD60A"/></svg> Ver como funciona</a>
             </div>
+            <p class="hero__gratis">Cadastre seu Haras e o 1º animal grátis.</p>
         </div>
     </div>
 </section>
@@ -127,8 +128,8 @@
         </div>
     </div>
     <svg class="tudo__curvas" viewBox="0 0 900 300" preserveAspectRatio="none" aria-hidden="true">
-        <path d="M0 300 C 260 290, 560 230, 900 70 L 900 300 Z" fill="#FFD60A"/>
-        <path d="M120 300 C 380 285, 640 220, 900 120 L 900 300 Z" fill="#02264b"/>
+        <path d="M0 300 C 300 292, 600 220, 900 40 L 900 300 Z" fill="#FFD60A"/>
+        <path d="M150 300 C 420 288, 660 215, 900 105 L 900 300 Z" fill="#02264b"/>
     </svg>
     <div class="tudo__por-do-sol" aria-hidden="true"></div>
 </section>

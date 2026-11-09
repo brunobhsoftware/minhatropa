@@ -154,3 +154,21 @@ input[type=checkbox],input[type=radio]{width:auto}
 .opcao-cartao:has(input:checked){border-color:var(--azul);box-shadow:0 0 0 1px var(--azul)}
 .paginacao{display:flex;justify-content:center;align-items:center;gap:16px;margin:16px 0}
 .paginacao a{font-weight:600}.paginacao .desativado{color:#98a2b3}
+/* Área do Haras */
+.menu-lateral__haras{margin:0 8px 8px;padding:10px 12px;border-radius:10px;background:var(--azul-2);display:grid;gap:2px}
+.menu-lateral__haras small{color:#98a2b3;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em}
+.menu-lateral__haras b{color:#fff}
+.menu-lateral__haras a{color:var(--amarelo);font-size:.85rem}
+.faixa-gratis{display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:#fff8d1;border:1px solid #fde68a;border-radius:var(--raio);padding:16px 20px;margin-bottom:20px}
+.faixa-gratis p{margin:4px 0 0;color:#5c4600;max-width:720px}
+.passos-painel{margin:0;padding-left:22px;display:grid;gap:10px}
+.passos-painel li.feito{color:var(--verde);text-decoration:line-through}
+.passos-painel li.feito::marker{content:"✓  "}
+.cartao--destaque{border-top:4px solid var(--amarelo)}
+.lista-liberar{columns:2;padding-left:20px;margin:12px 0 18px}
+@media(max-width:560px){.lista-liberar{columns:1}}
+.acoes-licenca{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.acesso__alternativa{text-align:center;margin:18px 0 0;color:var(--suave)}
+.lista-escolha{display:grid;gap:10px}
+.lista-escolha .botao{justify-content:space-between}
+.numero b{overflow-wrap:anywhere}

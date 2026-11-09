@@ -178,7 +178,7 @@ a{color:inherit}
 .campo span{font-weight:600;font-size:.9rem}
 .campo input,.campo select,.campo textarea{width:100%;font:inherit;padding:12px 14px;border:1px solid #d0d5dd;border-radius:12px;background:#fff;color:var(--texto)}
 .campo input:focus,.campo select:focus,.campo textarea:focus{outline:3px solid rgba(255,214,10,.5);border-color:var(--amarelo-2)}
-.campos-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.campos-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
 .contato__lgpd{color:#667085;text-align:center}
 .aviso{border-radius:12px;padding:12px 16px;margin-bottom:16px}
 .aviso--ok{background:#ecfdf3;color:#067647;border:1px solid #abefc6}
@@ -206,12 +206,26 @@ a[href^="mailto:"]{overflow-wrap:anywhere}
 .tudo{padding-bottom:0}
 
 
-/* Base da seção como no layout aprovado: pôr do sol pequeno à esquerda (abaixo da lista)
-   e curvas amarela e azul atrás do notebook e do celular. */
+/* Base da seção como no layout aprovado: o pôr do sol corre da esquerda por baixo do notebook
+   e termina sob as curvas amarela e azul, que sobem até a direita. */
 .tudo{padding-bottom:0}
-.tudo__interno{z-index:2}
-.tudo__por-do-sol{position:relative;z-index:1;width:min(48%,700px);aspect-ratio:6/1;margin-top:18px;background:url('../img/por-do-sol.jpg') left bottom/cover no-repeat;
-  -webkit-mask-image:linear-gradient(90deg,#000 70%,transparent),linear-gradient(180deg,transparent,#000 30%);-webkit-mask-composite:source-in;
-  mask-image:linear-gradient(90deg,#000 70%,transparent),linear-gradient(180deg,transparent,#000 30%);mask-composite:intersect}
-.tudo__curvas{position:absolute;right:0;bottom:0;width:62%;height:300px;z-index:0;pointer-events:none}
-@media(max-width:960px){.tudo__por-do-sol{width:100%;margin-top:24px}.tudo__curvas{display:none}}
+.tudo__interno{z-index:2;padding-bottom:150px}
+.tudo__telas{z-index:3}
+.tudo__por-do-sol{position:absolute;left:0;bottom:0;z-index:0;width:100%;height:170px;background:url('../img/por-do-sol.jpg') left bottom/cover no-repeat;
+  -webkit-mask-image:linear-gradient(180deg,transparent 0,#000 38%);mask-image:linear-gradient(180deg,transparent 0,#000 38%)}
+.tudo__curvas{position:absolute;right:0;bottom:0;width:66%;height:290px;z-index:1;pointer-events:none}
+@media(max-width:960px){.tudo__interno{padding-bottom:20px}.tudo__por-do-sol{position:relative;width:100%;height:120px}.tudo__curvas{display:none}}
+/* Cadastro do Haras */
+.hero__gratis{margin:18px 0 0!important;font-size:.98rem!important;color:var(--amarelo)!important;font-weight:600}
+.cadastro{background:var(--cinza);padding:64px 0 80px}
+.cadastro__interno{max-width:var(--largura);margin:0 auto;padding:0 20px;display:grid;grid-template-columns:1fr 1.15fr;gap:48px;align-items:start}
+.cadastro__interno>*{min-width:0}
+.cadastro h1{font-size:clamp(2rem,3.6vw,2.8rem);letter-spacing:-.015em}
+.cadastro__texto p{font-size:1.1rem;color:var(--suave)}
+.cadastro__ja a{font-weight:700;color:var(--azul)}
+.form-titulo{font-size:1.1rem;margin:6px 0 0}
+.campo small{color:#667085;font-size:.8rem}
+.aceite{display:flex;gap:10px;align-items:flex-start;font-size:.92rem;color:var(--suave)}
+.aceite input{margin-top:4px;width:18px;height:18px;flex:none}
+.aviso ul{margin:6px 0 0;padding-left:20px}
+@media(max-width:960px){.cadastro__interno{grid-template-columns:1fr}.cadastro{padding:40px 0 56px}}

@@ -30,11 +30,13 @@ class Empresa extends Model
         'responsavel_nome', 'responsavel_email', 'responsavel_telefone', 'cep', 'logradouro', 'numero', 'complemento', 'bairro',
         'cidade', 'uf', 'area_hectares', 'plano_id', 'observacoes'];
 
-    protected $fillable = [...self::CAMPOS, 'situacao', 'situacao_motivo', 'criado_por'];
+    public const QUANTIDADES = ['Até 20', '21 a 50', '51 a 150', '151 a 500', 'Mais de 500'];
+
+    protected $fillable = [...self::CAMPOS, 'situacao', 'situacao_motivo', 'criado_por', 'quantidade_animais_estimada', 'origem', 'licenca_ativa', 'licenca_liberada_em', 'licenca_liberada_por'];
 
     protected function casts(): array
     {
-        return ['area_hectares' => 'decimal:2', 'excluido_em' => 'datetime'];
+        return ['area_hectares' => 'decimal:2', 'excluido_em' => 'datetime', 'licenca_ativa' => 'boolean', 'licenca_liberada_em' => 'datetime'];
     }
 
     public function scopeNaoExcluidas($query)

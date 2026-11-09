@@ -1,0 +1,21 @@
+<?php
+
+namespace App\Support;
+
+use Illuminate\Support\Facades\Schema;
+
+/** Confere se os scripts de banco mais novos já foram aplicados em produção (telas avisam em vez de dar erro). */
+class Esquema
+{
+    private static array $cache = [];
+
+    /** V002: autocadastro do Haras, licença e animais. */
+    public static function temV002(): bool
+    {
+        try {
+            return self::$cache['v002'] ??= Schema::hasTable('animal') && Schema::hasColumn('empresa', 'licenca_ativa');
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+}

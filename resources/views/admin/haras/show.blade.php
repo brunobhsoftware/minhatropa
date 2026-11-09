@@ -31,6 +31,22 @@
     </section>
 </div>
 
+@if ($v002)
+<section class="cartao cartao--licenca">
+    <div class="cartao__titulo"><h2>Licença</h2>
+        <span class="selo selo--{{ $empresa->licenca_ativa ? 'ativo' : 'teste' }}">{{ $empresa->licenca_ativa ? 'Licença ativa' : 'Período gratuito' }}</span></div>
+    <p class="suave">{{ $totalAnimais }} animal(is) cadastrado(s).
+        @if ($empresa->origem === 'site') Cadastrado pelo próprio Haras no site. @endif
+        Quantidade informada: {{ $empresa->quantidade_animais_estimada ?: '—' }}.
+        @if ($empresa->licenca_ativa && $empresa->licenca_liberada_em) Liberada em {{ data_local($empresa->licenca_liberada_em) }}. @endif</p>
+    <form method="post" action="{{ route('admin.haras.licenca', $empresa) }}" data-confirmar="{{ $empresa->licenca_ativa ? 'Retirar a licença deste Haras?' : 'Liberar a licença (todas as ferramentas) para este Haras?' }}">
+        @csrf @method('put')
+        <input type="hidden" name="licenca_ativa" value="{{ $empresa->licenca_ativa ? 0 : 1 }}">
+        <button class="botao {{ $empresa->licenca_ativa ? 'botao--contorno' : 'botao--primario' }} botao--pequeno">{{ $empresa->licenca_ativa ? 'Retirar licença' : 'Liberar licença' }}</button>
+    </form>
+</section>
+@endif
+
 @if ($empresa->observacoes)
 <section class="cartao"><h2>Observações internas</h2><p class="pre">{{ $empresa->observacoes }}</p></section>
 @endif
