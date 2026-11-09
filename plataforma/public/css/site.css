@@ -88,11 +88,9 @@ a{color:inherit}
 .lista-check{list-style:none;margin:28px 0 0;padding:0;display:grid;gap:14px;font-size:1.1rem}
 .lista-check li{display:flex;align-items:center;gap:14px}
 .lista-check li::before{content:"";flex:none;width:26px;height:26px;border-radius:50%;background:var(--amarelo) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23101828' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E") center/15px no-repeat}
-.tudo__por-do-sol{height:140px;margin-top:-30px;background:url('../img/por-do-sol.jpg') left bottom/auto 100% no-repeat;
-  -webkit-mask-image:linear-gradient(90deg,#000 40%,transparent 62%);mask-image:linear-gradient(90deg,#000 40%,transparent 62%)}
 .tudo__telas{position:relative;padding-bottom:30px}
 .tudo__aviso{position:absolute;right:0;bottom:0;color:#98a2b3;font-size:.75rem}
-@media(max-width:960px){.tudo__interno{grid-template-columns:1fr}.tudo__por-do-sol{margin-top:0;height:110px;-webkit-mask-image:none;mask-image:none;background-size:cover;background-position:center bottom}}
+@media(max-width:960px){.tudo__interno{grid-template-columns:1fr}}
 
 /* Notebook e celular (ilustração em HTML/CSS) */
 .notebook{width:88%}
@@ -123,7 +121,7 @@ a{color:inherit}
 .rosca{flex:none;width:58px;height:58px;border-radius:50%;background:conic-gradient(#FFD60A 0 38%,#2e7d32 0 55%,#f4a100 0 80%,#98a2b3 0);-webkit-mask:radial-gradient(circle,transparent 52%,#000 53%);mask:radial-gradient(circle,transparent 52%,#000 53%)}
 .legenda{list-style:none;margin:0;padding:0;font-size:9px;display:grid;gap:2px}
 .legenda i{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:4px}
-.celular{position:absolute;right:0;bottom:10px;width:27%;min-width:120px;background:#0c111d;border-radius:26px;padding:8px;border:2px solid #344054;box-shadow:0 20px 40px rgba(16,24,40,.25)}
+.celular{position:absolute;right:0;bottom:34px;width:27%;min-width:120px;background:#0c111d;border-radius:26px;padding:8px;border:2px solid #344054;box-shadow:0 20px 40px rgba(16,24,40,.25)}
 .celular__tela{background:var(--azul-hero);border-radius:19px;padding:16px 10px 12px;text-align:center;color:#fff}
 .celular__tela img{width:44px;margin:0 auto}
 .celular__tela b{display:block;font:700 15px var(--titulo);margin:2px 0 10px}
@@ -203,3 +201,8 @@ a{color:inherit}
 /* Grades não estouram a largura no celular (e-mails longos quebram a linha). */
 .contato>*,.rodape__interno>*,.para-quem>*,.tudo__interno>*{min-width:0}
 a[href^="mailto:"]{overflow-wrap:anywhere}
+
+/* Faixa do pôr do sol: abaixo do conteúdo, centralizada, sem sobrepor o texto */
+.tudo{padding-bottom:56px}
+.tudo__por-do-sol{max-width:760px;height:128px;margin:48px auto 0;border-radius:18px;background:url('../img/por-do-sol.jpg') center/cover no-repeat;box-shadow:0 14px 30px rgba(16,24,40,.12)}
+@media(max-width:800px){.tudo__por-do-sol{margin:36px 16px 0;height:96px}}
