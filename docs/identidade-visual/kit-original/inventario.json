@@ -1,0 +1,50 @@
+[
+  {
+    "arquivo": "01_LAYOUT_APROVADO/homepage_referencia_haras_corrigido_v2.png",
+    "dimensoes_px": [
+      1536,
+      1024
+    ],
+    "tipo": "PNG"
+  },
+  {
+    "arquivo": "01_LAYOUT_APROVADO/homepage_referencia_haras_corrigido_v1.png",
+    "dimensoes_px": [
+      1536,
+      1024
+    ],
+    "tipo": "PNG"
+  },
+  {
+    "arquivo": "02_LOGOMARCAS/logo_horizontal_minha_azul_tropa_amarelo_fundo_branco.png",
+    "dimensoes_px": [
+      2172,
+      724
+    ],
+    "tipo": "PNG"
+  },
+  {
+    "arquivo": "02_LOGOMARCAS/logo_alternativa_minhatropa_azul_com_amarelo.png",
+    "dimensoes_px": [
+      1774,
+      887
+    ],
+    "tipo": "PNG"
+  },
+  {
+    "arquivo": "03_IDENTIDADE_VISUAL/prancha_identidade_visual_original.png",
+    "dimensoes_px": [
+      1448,
+      1086
+    ],
+    "tipo": "PNG"
+  },
+  {
+    "arquivo": "04_HISTORICO/homepage_primeira_versao_grafia_antiga.png",
+    "dimensoes_px": [
+      1536,
+      1024
+    ],
+    "tipo": "PNG"
+  }
+]

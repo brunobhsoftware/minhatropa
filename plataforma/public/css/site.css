@@ -1,0 +1,205 @@
+/* MinhaTropa — site público.
+   Identidade: Azul profundo #101828, Amarelo vivo #FFD60A, Branco #FFFFFF, Cinza claro #F3F4F6.
+   Títulos em Space Grotesk, textos em Inter. "Haras" sempre com H. */
+:root{
+  --azul:#101828;--azul-hero:#02264b;--azul-2:#1d2939;--amarelo:#FFD60A;--amarelo-2:#ffc400;--branco:#fff;--cinza:#F3F4F6;--cinza-2:#e4e7ec;
+  --texto:#101828;--suave:#475467;--titulo:'Space Grotesk',system-ui,sans-serif;--fonte:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --largura:1200px;--raio:16px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{margin:0;font:16px/1.6 var(--fonte);color:var(--texto);background:var(--branco);overflow-x:hidden}
+img{max-width:100%;height:auto}
+h1,h2,h3{font-family:var(--titulo);line-height:1.1;margin:0}
+a{color:inherit}
+.pular{position:absolute;left:-999px;top:8px;background:var(--amarelo);color:var(--azul);padding:8px 14px;border-radius:8px;z-index:100}
+.pular:focus{left:8px}
+.oculto{position:absolute!important;left:-9999px;width:1px;height:1px;overflow:hidden}
+
+/* Botões */
+.botao{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:11px 22px;border-radius:999px;font:600 1rem var(--fonte);text-decoration:none;border:2px solid transparent;cursor:pointer;line-height:1.2;transition:transform .15s,background .15s,border-color .15s;white-space:nowrap}
+.botao:hover{transform:translateY(-1px)}
+.botao--amarelo{background:var(--amarelo);color:var(--azul)}
+.botao--amarelo:hover{background:var(--amarelo-2)}
+.botao--contorno-claro{border-color:rgba(255,255,255,.85);color:#fff;background:transparent}
+.botao--contorno-claro:hover{background:rgba(255,255,255,.08)}
+.botao--grande{padding:15px 28px;font-size:1.05rem}
+.botao--largo{width:100%}
+
+/* Topo */
+.topo{background:var(--azul-hero);position:sticky;top:0;z-index:50;border-bottom:1px solid rgba(255,255,255,.06)}
+.topo__interno{max-width:var(--largura);margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:24px}
+.topo__marca img{display:block;width:230px;height:auto}
+.topo__nav{display:flex;align-items:center;gap:30px;margin-left:auto}
+.topo__nav>a{color:#fff;text-decoration:none;font-weight:500}
+.topo__nav>a:hover{color:var(--amarelo)}
+.topo__acoes{display:flex;gap:12px;margin-left:16px}
+.topo__menu{display:none;margin-left:auto;background:none;border:0;padding:8px;cursor:pointer}
+.topo__menu span{display:block;width:26px;height:3px;background:#fff;border-radius:3px;margin:5px 0;transition:transform .2s,opacity .2s}
+.menu-aberto .topo__menu span:nth-child(1){transform:translateY(8px) rotate(45deg)}
+.menu-aberto .topo__menu span:nth-child(2){opacity:0}
+.menu-aberto .topo__menu span:nth-child(3){transform:translateY(-8px) rotate(-45deg)}
+@media(max-width:1060px){
+  .topo__marca img{width:190px}
+  .topo__menu{display:block}
+  .topo__nav{display:none;position:absolute;left:0;right:0;top:100%;background:var(--azul-hero);flex-direction:column;align-items:stretch;gap:0;padding:8px 20px 20px;box-shadow:0 20px 30px rgba(0,0,0,.3)}
+  .menu-aberto .topo__nav{display:flex}
+  .topo__nav>a{padding:12px 0;border-bottom:1px solid rgba(255,255,255,.08)}
+  .topo__acoes{margin:16px 0 0;flex-direction:column}
+}
+
+/* Abertura */
+.hero{position:relative;background:var(--azul-hero);color:#fff;overflow:hidden;min-height:540px}
+.hero__foto{position:absolute;top:0;right:0;bottom:0;width:62%;background:url('../img/hero-cavalo.jpg') left center/cover no-repeat;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 14%);mask-image:linear-gradient(90deg,transparent 0,#000 14%)}
+.hero__interno{position:relative;max-width:var(--largura);margin:0 auto;padding:64px 20px 120px}
+.hero__texto{max-width:560px}
+.hero h1{font-size:clamp(2.3rem,5.2vw,4rem);font-weight:700;letter-spacing:-.02em}
+.destaque-amarelo{color:var(--amarelo);position:relative;display:inline-block;padding-bottom:6px}
+.destaque-amarelo::after{content:"";position:absolute;left:4%;right:6%;bottom:-6px;height:12px;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 12' preserveAspectRatio='none'%3E%3Cpath d='M3 9 C 60 1, 140 1, 197 7' fill='none' stroke='%23FFD60A' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E") center/100% 100% no-repeat}
+.hero p{font-size:1.2rem;max-width:470px;margin:28px 0 32px;color:#eef2f6}
+.hero__botoes{display:flex;gap:16px;flex-wrap:wrap}
+@media(max-width:860px){
+  .hero{min-height:0;display:flex;flex-direction:column-reverse}
+  .hero__foto{position:relative;width:100%;height:300px;-webkit-mask-image:linear-gradient(180deg,transparent 0,#000 18%);mask-image:linear-gradient(180deg,transparent 0,#000 18%);background-position:60% center}
+  .hero__interno{padding:40px 20px 24px;width:100%}
+  .hero p{font-size:1.08rem}
+}
+
+/* Barra de módulos */
+.modulos{position:relative;z-index:2;max-width:calc(var(--largura) - 40px);margin:-64px auto 0;padding:0 20px}
+.modulos__lista{list-style:none;margin:0;padding:18px 12px;background:#fff;border-radius:var(--raio);box-shadow:0 18px 40px rgba(16,24,40,.16);display:grid;grid-template-columns:repeat(7,1fr)}
+.modulos__lista li{display:flex;align-items:center;justify-content:center;gap:10px;padding:6px 10px;font-weight:600;font-size:.92rem;line-height:1.25;color:var(--azul)}
+.modulos__lista li b{display:block;font-weight:600;white-space:nowrap}
+.modulos__lista li+li{border-left:1px solid var(--cinza-2)}
+.icone-modulo{flex:none;color:var(--azul)}
+.icone-modulo .destaque{stroke:var(--amarelo-2)}
+@media(max-width:1100px){.modulos__lista{grid-template-columns:repeat(4,1fr);row-gap:10px}.modulos__lista li:nth-child(5){border-left:0}}
+@media(max-width:860px){.modulos{margin-top:0;padding-top:8px}}
+@media(max-width:620px){.modulos__lista{grid-template-columns:1fr 1fr}.modulos__lista li{border-left:0!important;padding:8px}.modulos__lista li:last-child{grid-column:span 2;justify-content:center}}
+
+/* Tudo o que você precisa */
+.tudo{position:relative;padding:72px 0 0;overflow:hidden;background:linear-gradient(180deg,#fff 0%,#fff 60%,#fdf7e3 100%)}
+.tudo__interno{max-width:var(--largura);margin:0 auto;padding:0 20px;display:grid;grid-template-columns:1fr 1.25fr;gap:40px;align-items:center;position:relative;z-index:1}
+.traco{display:block;width:84px;height:6px;background:var(--amarelo);border-radius:6px;margin-bottom:18px}
+.tudo h2{font-size:clamp(1.9rem,3.4vw,2.6rem);letter-spacing:-.015em}
+.tudo h2 span{display:block;color:var(--amarelo-2)}
+.lista-check{list-style:none;margin:28px 0 0;padding:0;display:grid;gap:14px;font-size:1.1rem}
+.lista-check li{display:flex;align-items:center;gap:14px}
+.lista-check li::before{content:"";flex:none;width:26px;height:26px;border-radius:50%;background:var(--amarelo) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23101828' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E") center/15px no-repeat}
+.tudo__por-do-sol{height:140px;margin-top:-30px;background:url('../img/por-do-sol.jpg') left bottom/auto 100% no-repeat;
+  -webkit-mask-image:linear-gradient(90deg,#000 40%,transparent 62%);mask-image:linear-gradient(90deg,#000 40%,transparent 62%)}
+.tudo__telas{position:relative;padding-bottom:30px}
+.tudo__aviso{position:absolute;right:0;bottom:0;color:#98a2b3;font-size:.75rem}
+@media(max-width:960px){.tudo__interno{grid-template-columns:1fr}.tudo__por-do-sol{margin-top:0;height:110px;-webkit-mask-image:none;mask-image:none;background-size:cover;background-position:center bottom}}
+
+/* Notebook e celular (ilustração em HTML/CSS) */
+.notebook{width:88%}
+.notebook__tela{background:#0c111d;border-radius:14px 14px 0 0;padding:10px;border:2px solid #344054}
+.notebook__base{height:16px;margin:0 -6%;background:linear-gradient(#d0d5dd,#98a2b3);border-radius:0 0 14px 14px;position:relative}
+.notebook__base::after{content:"";position:absolute;left:42%;right:42%;top:0;height:5px;background:#667085;border-radius:0 0 6px 6px}
+.painel-demo{background:var(--cinza);border-radius:6px;overflow:hidden;font-size:11px;line-height:1.3}
+.painel-demo__topo{background:var(--azul-hero);display:flex;align-items:center;justify-content:space-between;padding:7px 10px}
+.painel-demo__topo img{width:96px;height:auto}
+.painel-demo__haras{color:#fff;font-size:10px;background:rgba(255,255,255,.1);padding:3px 8px;border-radius:6px}
+.painel-demo__corpo{display:grid;grid-template-columns:96px 1fr;min-height:230px}
+.painel-demo__menu{list-style:none;margin:0;padding:8px 6px;background:var(--azul-hero);color:#d0d5dd;display:grid;gap:3px;align-content:start}
+.painel-demo__menu li{padding:5px 8px;border-radius:6px}
+.painel-demo__menu li.ativo{background:var(--amarelo);color:var(--azul);font-weight:700}
+.painel-demo__conteudo{padding:10px}
+.painel-demo__titulo{font:700 13px var(--titulo);display:block;margin-bottom:8px}
+.painel-demo__numeros{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.painel-demo__numeros>div{background:#fff;border-radius:6px;padding:6px 7px;display:grid}
+.painel-demo__numeros .icone-modulo{color:var(--amarelo-2)}
+.painel-demo__numeros b{font:700 16px var(--titulo)}
+.painel-demo__numeros small{color:#667085;font-size:9px}
+.painel-demo__graficos{display:grid;grid-template-columns:1.2fr 1fr;gap:6px;margin-top:6px}
+.painel-demo__grafico{background:#fff;border-radius:6px;padding:7px}
+.painel-demo__grafico small{font-weight:600;font-size:9.5px}
+.barras{display:flex;align-items:flex-end;gap:5px;height:70px;margin-top:6px;border-bottom:1px solid var(--cinza-2)}
+.barras i{flex:1;background:linear-gradient(var(--amarelo),var(--amarelo-2));border-radius:3px 3px 0 0}
+.rosca-area{display:flex;align-items:center;gap:8px;margin-top:8px}
+.rosca{flex:none;width:58px;height:58px;border-radius:50%;background:conic-gradient(#FFD60A 0 38%,#2e7d32 0 55%,#f4a100 0 80%,#98a2b3 0);-webkit-mask:radial-gradient(circle,transparent 52%,#000 53%);mask:radial-gradient(circle,transparent 52%,#000 53%)}
+.legenda{list-style:none;margin:0;padding:0;font-size:9px;display:grid;gap:2px}
+.legenda i{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:4px}
+.celular{position:absolute;right:0;bottom:10px;width:27%;min-width:120px;background:#0c111d;border-radius:26px;padding:8px;border:2px solid #344054;box-shadow:0 20px 40px rgba(16,24,40,.25)}
+.celular__tela{background:var(--azul-hero);border-radius:19px;padding:16px 10px 12px;text-align:center;color:#fff}
+.celular__tela img{width:44px;margin:0 auto}
+.celular__tela b{display:block;font:700 15px var(--titulo);margin:2px 0 10px}
+.celular__tela b span{color:var(--amarelo)}
+.celular__tela ul{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.celular__tela li{background:#fff;color:var(--azul);border-radius:8px;padding:7px 8px;display:flex;align-items:center;gap:8px;font-size:11.5px;font-weight:600}
+.celular__tela .icone-modulo{color:var(--amarelo-2)}
+@media(max-width:520px){.painel-demo__corpo{grid-template-columns:1fr}.painel-demo__menu{display:none}.notebook{width:100%}.celular{display:none}}
+
+/* Seções */
+.secao{padding:88px 0}
+.secao--escura{background:var(--azul-hero);color:#fff}
+.secao--cinza{background:var(--cinza)}
+.secao__interno{max-width:var(--largura);margin:0 auto;padding:0 20px}
+.sobretitulo{display:inline-block;font:700 .8rem var(--fonte);letter-spacing:.14em;text-transform:uppercase;color:#946c00;background:rgba(255,214,10,.25);padding:5px 12px;border-radius:999px;margin-bottom:14px}
+.secao--escura .sobretitulo{color:var(--amarelo);background:rgba(255,214,10,.12)}
+.secao__titulo{font-size:clamp(1.8rem,3.2vw,2.5rem);letter-spacing:-.015em;max-width:760px}
+.secao__intro{font-size:1.1rem;color:var(--suave);max-width:700px;margin:16px 0 0}
+.secao--escura .secao__intro{color:#d0d5dd}
+@media(max-width:700px){.secao{padding:64px 0}}
+
+.recursos{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:44px}
+.recurso{background:#fff;border:1px solid var(--cinza-2);border-radius:var(--raio);padding:26px;transition:box-shadow .2s,transform .2s}
+.recurso:hover{box-shadow:0 14px 30px rgba(16,24,40,.1);transform:translateY(-2px)}
+.recurso__icone{width:60px;height:60px;border-radius:14px;background:var(--cinza);display:grid;place-items:center;margin-bottom:16px}
+.recurso h3{font-size:1.2rem;margin-bottom:8px}
+.recurso p{margin:0;color:var(--suave)}
+@media(max-width:960px){.recursos{grid-template-columns:1fr 1fr}}
+@media(max-width:620px){.recursos{grid-template-columns:1fr}}
+
+.para-quem{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
+.publicos{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.publicos li{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-left:4px solid var(--amarelo);border-radius:12px;padding:18px}
+.publicos b{display:block;font:700 1.08rem var(--titulo);margin-bottom:4px}
+.publicos span{color:#d0d5dd;font-size:.95rem}
+@media(max-width:960px){.para-quem{grid-template-columns:1fr}}
+@media(max-width:520px){.publicos{grid-template-columns:1fr}}
+
+.passos{list-style:none;counter-reset:passo;margin:44px 0 0;padding:0;display:grid;grid-template-columns:repeat(4,1fr);gap:22px}
+.passos li{counter-increment:passo;position:relative;padding:58px 22px 22px;background:var(--cinza);border-radius:var(--raio)}
+.passos li::before{content:counter(passo);position:absolute;top:18px;left:22px;width:32px;height:32px;border-radius:50%;background:var(--azul-hero);color:var(--amarelo);display:grid;place-items:center;font:700 1rem var(--titulo)}
+.passos b{display:block;font:700 1.12rem var(--titulo);margin-bottom:6px}
+.passos span{color:var(--suave)}
+@media(max-width:960px){.passos{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.passos{grid-template-columns:1fr}}
+
+/* Contato */
+.contato{display:grid;grid-template-columns:1fr 1.1fr;gap:48px;align-items:start}
+.contato__email{margin:18px 0 0;font-weight:500}.contato__email a{color:var(--azul);font-weight:700}
+.contato__logo{display:block;width:280px;margin-top:36px}
+.contato__form{background:#fff;border-radius:20px;padding:30px;box-shadow:0 18px 40px rgba(16,24,40,.08)}
+.contato__form form{display:grid;gap:14px}
+.campo{display:grid;gap:5px}
+.campo span{font-weight:600;font-size:.9rem}
+.campo input,.campo select,.campo textarea{width:100%;font:inherit;padding:12px 14px;border:1px solid #d0d5dd;border-radius:12px;background:#fff;color:var(--texto)}
+.campo input:focus,.campo select:focus,.campo textarea:focus{outline:3px solid rgba(255,214,10,.5);border-color:var(--amarelo-2)}
+.campos-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.contato__lgpd{color:#667085;text-align:center}
+.aviso{border-radius:12px;padding:12px 16px;margin-bottom:16px}
+.aviso--ok{background:#ecfdf3;color:#067647;border:1px solid #abefc6}
+.aviso--erro{background:#fef3f2;color:#b42318;border:1px solid #fecdca}
+@media(max-width:960px){.contato{grid-template-columns:1fr}.contato__email{margin:18px 0 0;font-weight:500}.contato__email a{color:var(--azul);font-weight:700}
+.contato__logo{display:none}}
+@media(max-width:560px){.campos-2{grid-template-columns:1fr}.contato__form{padding:22px}}
+
+/* Rodapé */
+.rodape{background:var(--azul);color:#d0d5dd}
+.rodape__interno{max-width:var(--largura);margin:0 auto;padding:56px 20px 36px;display:grid;grid-template-columns:2fr 1fr 1fr;gap:32px}
+.rodape__marca img{width:220px}
+.rodape__marca p{max-width:340px;margin:14px 0 0}
+.rodape nav{display:grid;gap:8px;align-content:start}
+.rodape h2{font:700 .85rem var(--fonte);letter-spacing:.1em;text-transform:uppercase;color:var(--amarelo);margin-bottom:6px}
+.rodape nav a{text-decoration:none}
+.rodape nav a:hover{color:#fff}
+.rodape__base{max-width:var(--largura);margin:0 auto;padding:18px 20px;border-top:1px solid rgba(255,255,255,.1);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:.88rem;color:#98a2b3}
+@media(max-width:700px){.rodape__interno{grid-template-columns:1fr 1fr}.rodape__marca{grid-column:span 2}}
+/* Grades não estouram a largura no celular (e-mails longos quebram a linha). */
+.contato>*,.rodape__interno>*,.para-quem>*,.tudo__interno>*{min-width:0}
+a[href^="mailto:"]{overflow-wrap:anywhere}

@@ -1,0 +1,32 @@
+MINHATROPA — KIT DE IDENTIDADE VISUAL
+Domínio: minhatropa.com.br
+
+CONTEXTO
+Este pacote reúne os materiais visuais gerados durante a concepção da marca e da homepage do SaaS MinhaTropa.
+
+01_LAYOUT_APROVADO
+- homepage_referencia_haras_corrigido_v2.png: referência visual mais recente da página principal, com grafia “Haras”.
+- homepage_referencia_haras_corrigido_v1.png: outra geração corrigida da mesma proposta.
+
+02_LOGOMARCAS
+- logo_horizontal_minha_azul_tropa_amarelo_fundo_branco.png: proposta de logomarca isolada, com símbolo de cavalo dentro de estrutura de haras e nome bicolor. É uma alternativa gerada posteriormente e NÃO corresponde exatamente ao símbolo de contorno amarelo presente na homepage.
+- logo_alternativa_minhatropa_azul_com_amarelo.png: outra versão isolada da marca sobre branco.
+
+03_IDENTIDADE_VISUAL
+- prancha_identidade_visual_original.png: estudo de identidade, cores, tipografia, ícones e layouts (referência conceitual, não arte final).
+
+04_HISTORICO
+- homepage_primeira_versao_grafia_antiga.png: estudo anterior que contém “aras” sem H. ARQUIVO HISTÓRICO, NÃO PUBLICAR.
+
+DIRETRIZES
+- Marca: MinhaTropa | minhatropa.com.br
+- “Haras” deve SEMPRE ser grafado com H, inclusive nos títulos e em todos os componentes, menus e descrições.
+- Cores-base de referência: azul profundo #101828, amarelo #FFD60A, branco #FFFFFF. Conferir as cores finais na implementação.
+- Referência de tipografia: títulos Space Grotesk ou similar; textos Inter ou similar.
+
+AVISOS PARA DESENVOLVIMENTO
+Estas imagens são CONCEITOS de design gerados por IA, não arquivos vetoriais editáveis nem telas front-end prontas.
+Recriar elementos de interface em HTML/CSS/componentes responsivos e validar legibilidade e contraste.
+Revisar manualmente todos os textos, ícones, valores numéricos fictícios e proporções dos mockups antes da publicação.
+A logo no cabeçalho da homepage tem desenho distinto das logos isoladas deste kit: antes de produção, escolher e vetorizar uma única versão oficial, e gerar SVG/PNG transparente/favicons a partir dessa arte.
+Não inferir funcionalidades implementadas, preços, teste gratuito ou políticas comerciais a partir dos mockups.

@@ -1,0 +1,8 @@
+{
+  "domain": "minhatropa.com.br",
+  "username": "u839930205",
+  "type": "php",
+  "source_dir": "plataforma",
+  "deploy_branch": "publicacao",
+  "env_file": "/home/u839930205/domains/minhatropa.com.br/.env.minhatropa"
+}
