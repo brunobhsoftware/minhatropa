@@ -126,6 +126,10 @@
             <small class="tudo__aviso">Imagem ilustrativa.</small>
         </div>
     </div>
+    <svg class="tudo__curvas" viewBox="0 0 900 300" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M0 300 C 260 290, 560 230, 900 70 L 900 300 Z" fill="#FFD60A"/>
+        <path d="M120 300 C 380 285, 640 220, 900 120 L 900 300 Z" fill="#02264b"/>
+    </svg>
     <div class="tudo__por-do-sol" aria-hidden="true"></div>
 </section>
 
