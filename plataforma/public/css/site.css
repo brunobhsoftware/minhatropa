@@ -203,6 +203,8 @@ a{color:inherit}
 a[href^="mailto:"]{overflow-wrap:anywhere}
 
 /* Faixa do pôr do sol: abaixo do conteúdo, centralizada, sem sobrepor o texto */
-.tudo{padding-bottom:56px}
-.tudo__por-do-sol{max-width:760px;height:128px;margin:48px auto 0;border-radius:18px;background:url('../img/por-do-sol.jpg') center/cover no-repeat;box-shadow:0 14px 30px rgba(16,24,40,.12)}
-@media(max-width:800px){.tudo__por-do-sol{margin:36px 16px 0;height:96px}}
+.tudo{padding-bottom:0}
+
+/* Pôr do sol de ponta a ponta na base da seção, fundindo com o fundo claro */
+.tudo__por-do-sol{position:relative;width:100%;height:clamp(150px,19vw,330px);margin-top:40px;background:url('../img/por-do-sol.jpg') center 70%/cover no-repeat}
+.tudo__por-do-sol::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,#fdf7e3 0%,rgba(253,247,227,.55) 22%,rgba(253,247,227,0) 50%)}
