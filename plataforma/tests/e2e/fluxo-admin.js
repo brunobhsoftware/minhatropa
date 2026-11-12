@@ -22,9 +22,9 @@ const conf=(c,m)=>{ if(c){ok++;} else {falhas++; console.log('FALHOU:',m);} };
   await p.goto(B+'/admin/instalar'); conf(!p.url().endsWith('/instalar'),'instalar some depois');
   // novo haras
   await p.goto(B+'/admin/haras/novo');
-  await p.fill('[name=nome]','Haras Vista Alegre'); await p.fill('[name=documento]','11.222.333/0001-81');
-  await p.fill('[name=cidade]','Itaúna'); await p.selectOption('[name=uf]','MG'); await p.fill('[name=area_hectares]','1.250,5');
-  await p.fill('[name=responsavel_nome]','João da Silva'); await p.fill('[name=whatsapp]','31999998888');
+  await p.fill('[name=nome]','Haras Vista Alegre'); await p.fill('[name=documento]','11.222.333/0001-81'); await p.fill('[name=area_hectares]','1.250,5');
+  await p.click('[data-aba=contato]'); await p.fill('[name=responsavel_nome]','João da Silva'); await p.fill('[name=whatsapp]','31999998888');
+  await p.click('[data-aba=endereco]'); await p.fill('[name=cidade]','Itaúna'); await p.selectOption('[name=uf]','MG');
   await p.click('button:has-text("Cadastrar Haras")'); await p.waitForLoadState();
   let c=await p.content(); conf(c.includes('cadastrado'),'haras cadastrado'); conf(c.includes('11.222.333/0001-81'),'cnpj formatado'); conf(c.includes('1.250,50 ha'),'area');
   // documento inválido

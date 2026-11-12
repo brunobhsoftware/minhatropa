@@ -18,4 +18,14 @@ class Esquema
             return false;
         }
     }
+
+    /** V003: cadastro completo do Haras (tipo, raças, marchas, marca, subsite, coordenadas). */
+    public static function temV003(): bool
+    {
+        try {
+            return self::$cache['v003'] ??= Schema::hasTable('empresa_raca') && Schema::hasColumn('empresa', 'tipo_propriedade');
+        } catch (\Throwable) {
+            return false;
+        }
+    }
 }

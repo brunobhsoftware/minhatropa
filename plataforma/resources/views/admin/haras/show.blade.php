@@ -11,6 +11,7 @@
     <section class="cartao">
         <h2>Dados do Haras</h2>
         <dl class="dados">
+            @if ($v003 && $empresa->tipo_propriedade)<div><dt>Tipo</dt><dd>{{ $empresa->tipoPropriedadeTexto() }}</dd></div>@endif
             <div><dt>Razão social</dt><dd>{{ $empresa->razao_social ?: '—' }}</dd></div>
             <div><dt>{{ strtoupper($empresa->tipo_documento ?? 'CPF/CNPJ') }}</dt><dd>{{ $empresa->documentoFormatado() }}</dd></div>
             <div><dt>Inscrição estadual</dt><dd>{{ $empresa->inscricao_estadual ?: '—' }}</dd></div>
@@ -26,10 +27,70 @@
             <div><dt>Telefone</dt><dd>{{ $empresa->telefone ?: '—' }}</dd></div>
             <div><dt>WhatsApp</dt><dd>@if ($empresa->whatsapp)<a href="https://wa.me/55{{ preg_replace('/\D/', '', $empresa->whatsapp) }}" target="_blank" rel="noopener">{{ $empresa->whatsapp }}</a>@else — @endif</dd></div>
             <div><dt>Responsável</dt><dd>{{ $empresa->responsavel_nome ?: '—' }}@if ($empresa->responsavel_telefone)<br><small>{{ $empresa->responsavel_telefone }}</small>@endif @if ($empresa->responsavel_email)<br><small>{{ $empresa->responsavel_email }}</small>@endif</dd></div>
-            <div><dt>Endereço</dt><dd>{{ collect([$empresa->logradouro, $empresa->numero, $empresa->complemento, $empresa->bairro])->filter()->implode(', ') ?: '—' }}<br>{{ $empresa->cidadeUf() }} @if ($empresa->cep)· CEP {{ substr($empresa->cep, 0, 5) }}-{{ substr($empresa->cep, 5) }}@endif</dd></div>
+            @if ($v003)
+                @if ($empresa->telefone_residencial)<div><dt>Tel. residencial</dt><dd>{{ $empresa->telefone_residencial }}</dd></div>@endif
+                @if ($empresa->telefone_celular)<div><dt>Celular</dt><dd>{{ $empresa->telefone_celular }}</dd></div>@endif
+                @if ($empresa->telefone_comercial)<div><dt>Tel. comercial</dt><dd>{{ $empresa->telefone_comercial }}</dd></div>@endif
+            @endif
+            <div><dt>Endereço da propriedade</dt><dd>{{ collect([$empresa->logradouro, $empresa->numero, $empresa->complemento, $empresa->bairro])->filter()->implode(', ') ?: '—' }}<br>{{ $empresa->cidadeUf() }} @if ($empresa->cep)· CEP {{ substr($empresa->cep, 0, 5) }}-{{ substr($empresa->cep, 5) }}@endif</dd></div>
+            @if ($v003 && ($empresa->latitude || $empresa->longitude))
+            <div><dt>Coordenadas</dt><dd>{{ $empresa->latitude }}, {{ $empresa->longitude }}
+                <br><a href="https://maps.google.com/?q={{ $empresa->latitude }},{{ $empresa->longitude }}" target="_blank" rel="noopener">Ver no mapa</a></dd></div>
+            @endif
+            @if ($v003 && $empresa->como_chegar)
+            <div><dt>Como chegar</dt><dd>{{ $empresa->como_chegar }}</dd></div>
+            @endif
         </dl>
     </section>
 </div>
+
+@if ($v003 && ($empresa->corresp_logradouro || $empresa->corresp_cidade))
+<section class="cartao">
+    <h2>Endereço do proprietário (correspondência)</h2>
+    <dl class="dados">
+        <div><dt>Endereço</dt><dd>{{ collect([$empresa->corresp_logradouro, $empresa->corresp_numero, $empresa->corresp_complemento, $empresa->corresp_bairro])->filter()->implode(', ') }}<br>{{ $empresa->correspCidadeUf() }} @if ($empresa->corresp_cep)· CEP {{ substr($empresa->corresp_cep, 0, 5) }}-{{ substr($empresa->corresp_cep, 5) }}@endif</dd></div>
+    </dl>
+</section>
+@endif
+
+@if ($v003 && (count($racas) || $empresa->preferencias_marcha || $empresa->finalidades_criacao))
+<div class="grade-3-flex">
+    @if (count($racas))
+    <section class="cartao">
+        <h2>Raças criadas</h2>
+        <div class="lista-tags">@foreach ($racas as $r)<span class="tag">{{ $r }}</span>@endforeach</div>
+    </section>
+    @endif
+    @if ($empresa->preferencias_marcha)
+    <section class="cartao">
+        <h2>Preferências de marcha</h2>
+        <div class="lista-tags">@foreach ($empresa->marchasArray() as $m)<span class="tag">{{ \App\Models\Empresa::MARCHAS[$m] ?? $m }}</span>@endforeach</div>
+    </section>
+    @endif
+    @if ($empresa->finalidades_criacao)
+    <section class="cartao">
+        <h2>Finalidade da criação</h2>
+        <div class="lista-tags">@foreach ($empresa->finalidadesArray() as $f)<span class="tag">{{ \App\Models\Empresa::FINALIDADES[$f] ?? $f }}</span>@endforeach</div>
+    </section>
+    @endif
+</div>
+@endif
+
+@if ($v003 && ($empresa->marca_descricao || $empresa->marca_arquivo || $empresa->site_url || $empresa->subsite_slug))
+<section class="cartao">
+    <h2>Marca e subsite</h2>
+    <div style="display:flex;gap:2rem;align-items:start;flex-wrap:wrap">
+        @if ($empresa->marca_arquivo)
+        <div><img src="{{ asset($empresa->marca_arquivo) }}" alt="Marca do criador" style="max-height:100px;border:1px solid #ddd;border-radius:8px;padding:6px"></div>
+        @endif
+        <dl class="dados" style="flex:1">
+            @if ($empresa->marca_descricao)<div><dt>Descrição da marca</dt><dd>{{ $empresa->marca_descricao }}</dd></div>@endif
+            @if ($empresa->site_url)<div><dt>Site próprio</dt><dd><a href="{{ $empresa->site_url }}" target="_blank" rel="noopener">{{ $empresa->site_url }}</a></dd></div>@endif
+            @if ($empresa->subsite_slug)<div><dt>Subsite</dt><dd>minhatropa.com.br/h/{{ $empresa->subsite_slug }}</dd></div>@endif
+        </dl>
+    </div>
+</section>
+@endif
 
 @if ($v002)
 <section class="cartao cartao--licenca">
@@ -53,7 +114,6 @@
 
 <section class="cartao">
     <h2>Quem acessa este Haras</h2>
-    <p class="suave">A área dos Haras (cadastro de animais, rotinas, saúde…) é a próxima etapa. Já dá para deixar as pessoas cadastradas com o papel de cada uma.</p>
     @if ($vinculos->isNotEmpty())
     <div class="tabela-rolagem"><table class="tabela">
         <thead><tr><th>Nome</th><th>E-mail</th><th>Papel</th><th>Situação</th><th class="num"></th></tr></thead>

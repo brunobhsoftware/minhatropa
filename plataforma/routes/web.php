@@ -59,6 +59,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::put('/haras/{empresa}/situacao', [Admin\HarasController::class, 'situacao'])->name('haras.situacao');
         Route::post('/haras/{empresa}/usuarios', [Admin\HarasController::class, 'vincularUsuario'])->name('haras.usuarios.vincular');
         Route::put('/haras/{empresa}/usuarios/{vinculo}', [Admin\HarasController::class, 'alterarVinculo'])->name('haras.usuarios.alterar')->whereNumber('vinculo');
+        Route::post('/haras/{empresa}/marca', [Admin\HarasController::class, 'uploadMarca'])->name('haras.marca');
 
         Route::get('/usuarios', [Admin\UsuariosController::class, 'index'])->name('usuarios');
         Route::post('/usuarios', [Admin\UsuariosController::class, 'store'])->name('usuarios.criar');

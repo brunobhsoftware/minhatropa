@@ -11,7 +11,9 @@ use App\Models\Usuario;
 use App\Support\Auditoria;
 use App\Support\Documento;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 
@@ -42,7 +44,13 @@ class HarasController extends Controller
 
     public function create()
     {
-        return view('admin.haras.form', ['empresa' => new Empresa(['situacao' => 'teste']), 'ufs' => self::UFS, 'planos' => Plano::where('ativo', 1)->orderBy('ordem')->get()]);
+        return view('admin.haras.form', [
+            'empresa' => new Empresa(['situacao' => 'teste']),
+            'ufs' => self::UFS,
+            'planos' => Plano::where('ativo', 1)->orderBy('ordem')->get(),
+            'v003' => \App\Support\Esquema::temV003(),
+            'racasSelecionadas' => [],
+        ]);
     }
 
     public function store(Request $request)
@@ -50,6 +58,7 @@ class HarasController extends Controller
         $dados = $this->validar($request);
         $dados['situacao'] = $request->validate(['situacao' => ['required', Rule::in(array_keys(Empresa::SITUACOES))]])['situacao'];
         $empresa = Empresa::create($dados + ['criado_por' => $request->user()->id]);
+        $this->salvarRacas($empresa, $request->input('racas', []));
         Auditoria::registrar('haras.criar', $empresa);
 
         return redirect()->route('admin.haras.show', $empresa)->with('ok', "Haras {$empresa->nome} cadastrado.");
@@ -58,12 +67,15 @@ class HarasController extends Controller
     public function show(Empresa $empresa)
     {
         abort_if($empresa->excluido_em, 404);
+        $v003 = \App\Support\Esquema::temV003();
 
         return view('admin.haras.show', [
             'empresa' => $empresa->load('plano'),
             'vinculos' => $empresa->usuarios()->orderBy('nome')->get(),
             'v002' => \App\Support\Esquema::temV002(),
+            'v003' => $v003,
             'totalAnimais' => \App\Support\Esquema::temV002() ? \App\Support\Licenca::animais($empresa) : 0,
+            'racas' => $v003 ? $empresa->racas() : [],
             'auditoria' => RegistroAuditoria::with('usuario')->where('empresa_id', $empresa->id)->orderByDesc('id')->limit(20)->get(),
         ]);
     }
@@ -71,8 +83,15 @@ class HarasController extends Controller
     public function edit(Empresa $empresa)
     {
         abort_if($empresa->excluido_em, 404);
+        $v003 = \App\Support\Esquema::temV003();
 
-        return view('admin.haras.form', ['empresa' => $empresa, 'ufs' => self::UFS, 'planos' => Plano::where('ativo', 1)->orderBy('ordem')->get()]);
+        return view('admin.haras.form', [
+            'empresa' => $empresa,
+            'ufs' => self::UFS,
+            'planos' => Plano::where('ativo', 1)->orderBy('ordem')->get(),
+            'v003' => $v003,
+            'racasSelecionadas' => $v003 ? $empresa->racas() : [],
+        ]);
     }
 
     public function update(Request $request, Empresa $empresa)
@@ -80,6 +99,7 @@ class HarasController extends Controller
         abort_if($empresa->excluido_em, 404);
         $antes = $empresa->getAttributes();
         $empresa->update($this->validar($request, $empresa));
+        $this->salvarRacas($empresa, $request->input('racas', []));
         Auditoria::registrar('haras.editar', $empresa, $antes);
 
         return redirect()->route('admin.haras.show', $empresa)->with('ok', 'Dados do Haras salvos.');
@@ -98,7 +118,6 @@ class HarasController extends Controller
         return back()->with('ok', 'Situação alterada para "'.$empresa->situacaoTexto().'".');
     }
 
-    /** Libera ou retira a licença do Haras (com ela, todas as ferramentas e animais ilimitados). */
     public function licenca(Request $request, Empresa $empresa)
     {
         abort_unless(\App\Support\Esquema::temV002(), 404);
@@ -110,7 +129,6 @@ class HarasController extends Controller
         return back()->with('ok', $ativa ? 'Licença liberada: o Haras já tem acesso a todas as ferramentas.' : 'Licença retirada: o Haras volta ao limite do período gratuito.');
     }
 
-    /** Dá acesso a uma pessoa a este Haras (cria o usuário se ainda não existir). */
     public function vincularUsuario(Request $request, Empresa $empresa)
     {
         $dados = $request->validate([
@@ -153,16 +171,55 @@ class HarasController extends Controller
         return back()->with('ok', 'Acesso atualizado.');
     }
 
+    /** Upload da marca/logomarca do criador. */
+    public function uploadMarca(Request $request, Empresa $empresa)
+    {
+        abort_if($empresa->excluido_em, 404);
+        abort_unless(\App\Support\Esquema::temV003(), 404);
+
+        $request->validate(['marca_arquivo' => ['required', 'image', 'max:2048']]);
+        $dir = public_path('uploads/marcas');
+        if (! is_dir($dir)) {
+            mkdir($dir, 0775, true);
+        }
+        $nome = $empresa->uuid.'_'.time().'.'.$request->file('marca_arquivo')->getClientOriginalExtension();
+        $request->file('marca_arquivo')->move($dir, $nome);
+
+        if ($empresa->marca_arquivo && file_exists(public_path($empresa->marca_arquivo))) {
+            @unlink(public_path($empresa->marca_arquivo));
+        }
+        $empresa->update(['marca_arquivo' => 'uploads/marcas/'.$nome]);
+        Auditoria::registrar('haras.marca_upload', $empresa);
+
+        return back()->with('ok', 'Marca/logomarca enviada.');
+    }
+
+    private function salvarRacas(Empresa $empresa, array $racas): void
+    {
+        if (! \App\Support\Esquema::temV003()) {
+            return;
+        }
+        $validas = array_intersect($racas, Empresa::RACAS);
+        DB::table('empresa_raca')->where('empresa_id', $empresa->id)->delete();
+        foreach ($validas as $raca) {
+            DB::table('empresa_raca')->insert(['empresa_id' => $empresa->id, 'raca' => $raca]);
+        }
+    }
+
     private function validar(Request $request, ?Empresa $empresa = null): array
     {
         $request->merge([
             'documento' => Documento::digitos($request->input('documento')) ?: null,
             'cep' => preg_replace('/\D/', '', (string) $request->input('cep')) ?: null,
+            'corresp_cep' => preg_replace('/\D/', '', (string) $request->input('corresp_cep')) ?: null,
             'uf' => $request->filled('uf') ? mb_strtoupper($request->input('uf')) : null,
+            'corresp_uf' => $request->filled('corresp_uf') ? mb_strtoupper($request->input('corresp_uf')) : null,
             'area_hectares' => $request->filled('area_hectares') ? str_replace(',', '.', str_replace('.', '', (string) $request->input('area_hectares'))) : null,
+            'finalidades_criacao' => $request->has('finalidades') ? implode(',', array_intersect((array) $request->input('finalidades'), array_keys(Empresa::FINALIDADES))) ?: null : null,
+            'preferencias_marcha' => $request->has('marchas') ? implode(',', array_intersect((array) $request->input('marchas'), array_keys(Empresa::MARCHAS))) ?: null : null,
         ]);
 
-        $dados = $request->validate([
+        $regras = [
             'nome' => ['required', 'string', 'max:150'],
             'razao_social' => ['nullable', 'string', 'max:190'],
             'documento' => ['nullable', 'string', function ($attr, $valor, $falha) {
@@ -187,7 +244,37 @@ class HarasController extends Controller
             'area_hectares' => ['nullable', 'numeric', 'min:0', 'max:9999999999'],
             'plano_id' => ['nullable', Rule::exists('plano', 'id')],
             'observacoes' => ['nullable', 'string', 'max:5000'],
-        ], ['documento.unique' => 'Já existe um Haras cadastrado com esse CPF/CNPJ.']);
+        ];
+
+        if (\App\Support\Esquema::temV003()) {
+            $regras += [
+                'tipo_propriedade' => ['nullable', Rule::in(array_keys(Empresa::TIPOS_PROPRIEDADE))],
+                'latitude' => ['nullable', 'numeric', 'between:-90,90'],
+                'longitude' => ['nullable', 'numeric', 'between:-180,180'],
+                'como_chegar' => ['nullable', 'string', 'max:400'],
+                'corresp_cep' => ['nullable', 'digits:8'],
+                'corresp_logradouro' => ['nullable', 'string', 'max:190'],
+                'corresp_numero' => ['nullable', 'string', 'max:20'],
+                'corresp_complemento' => ['nullable', 'string', 'max:100'],
+                'corresp_bairro' => ['nullable', 'string', 'max:100'],
+                'corresp_cidade' => ['nullable', 'string', 'max:100'],
+                'corresp_uf' => ['nullable', Rule::in(self::UFS)],
+                'telefone_residencial' => ['nullable', 'string', 'max:30'],
+                'telefone_celular' => ['nullable', 'string', 'max:30'],
+                'telefone_comercial' => ['nullable', 'string', 'max:30'],
+                'finalidades_criacao' => ['nullable', 'string', 'max:500'],
+                'preferencias_marcha' => ['nullable', 'string', 'max:300'],
+                'marca_descricao' => ['nullable', 'string', 'max:500'],
+                'site_url' => ['nullable', 'url:http,https', 'max:255'],
+                'subsite_slug' => ['nullable', 'string', 'max:60', 'regex:/^[a-z0-9][a-z0-9\-]*$/', Rule::unique('empresa', 'subsite_slug')->ignore($empresa?->id)],
+            ];
+        }
+
+        $dados = $request->validate($regras, [
+            'documento.unique' => 'Já existe um Haras cadastrado com esse CPF/CNPJ.',
+            'subsite_slug.unique' => 'Esse endereço de subsite já está em uso.',
+            'subsite_slug.regex' => 'O slug deve conter apenas letras minúsculas, números e hifens.',
+        ]);
 
         $dados['tipo_documento'] = Documento::tipo($dados['documento'] ?? null);
 
