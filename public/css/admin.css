@@ -172,3 +172,26 @@ input[type=checkbox],input[type=radio]{width:auto}
 .lista-escolha{display:grid;gap:10px}
 .lista-escolha .botao{justify-content:space-between}
 .numero b{overflow-wrap:anywhere}
+
+/* Abas do cadastro completo */
+.abas-cadastro{display:flex;gap:0;border-bottom:2px solid #e5e7eb;margin-bottom:1.5rem;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.aba-cadastro{background:none;border:none;padding:10px 18px;font-size:.9rem;color:var(--suave);cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;margin-bottom:-2px;transition:color .15s,border-color .15s}
+.aba-cadastro:hover{color:var(--texto)}
+.aba-cadastro--ativa{color:var(--primaria);border-bottom-color:var(--primaria);font-weight:600}
+.painel-aba--oculto{display:none}
+
+/* Grade de opções (checkboxes de raças, marchas, finalidades) */
+.grade-opcoes{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px 16px}
+.opcao-check{display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid #e5e7eb;border-radius:var(--raio);cursor:pointer;transition:background .15s,border-color .15s;font-size:.9rem}
+.opcao-check:hover{background:#f9fafb;border-color:#d1d5db}
+.opcao-check input:checked+*{color:var(--primaria)}
+.opcao-check:has(input:checked){background:#eff6ff;border-color:var(--primaria)}
+
+/* Tags na visualização */
+.lista-tags{display:flex;flex-wrap:wrap;gap:6px}
+.tag{display:inline-block;background:#eff6ff;color:var(--primaria);padding:4px 12px;border-radius:20px;font-size:.85rem;font-weight:500}
+
+/* Grade 3 flexível */
+.grade-3-flex{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:var(--gap)}
+
+@media(max-width:640px){.abas-cadastro{gap:0}.aba-cadastro{padding:8px 12px;font-size:.82rem}}
