@@ -310,3 +310,29 @@ input[type=checkbox],input[type=radio]{width:auto}
 .menu-lateral__form{margin:0}
 .menu-lateral__form button{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:10px;color:#d0d5dd;cursor:pointer;font:inherit}
 .menu-lateral__form button:hover{background:rgba(255,255,255,.08);color:#fff}
+
+/* Menu lateral limpo: itens com subitens abrem ao clicar */
+.menu-grupo>summary{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;color:#e4e7ec;font-weight:500;cursor:pointer;list-style:none;user-select:none}
+.menu-grupo>summary::-webkit-details-marker{display:none}
+.menu-grupo>summary::after{content:"";flex:none;width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(-45deg);margin-right:3px;opacity:.6;transition:transform .15s}
+.menu-grupo>summary>span:first-of-type{flex:1}
+.menu-grupo>summary .selo-breve{margin-left:0}
+.menu-grupo[open]>summary::after{transform:rotate(45deg)}
+.menu-grupo>summary:hover{background:var(--azul-2)}
+.menu-grupo>summary:focus-visible{outline:2px solid var(--amarelo);outline-offset:-2px}
+.menu-grupo--fechado>summary{color:#98a2b3}
+.menu-grupo__itens{display:grid;gap:1px;margin:2px 0 8px 22px;padding-left:12px;border-left:1px solid rgba(255,255,255,.14)}
+.menu-lateral nav a.menu-sub,.menu-sub{display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px;padding:7px 10px;border-radius:8px;font-size:.9rem;font-weight:400;color:#d0d5dd;text-decoration:none}
+.menu-lateral nav a.menu-sub.ativo{background:var(--amarelo);color:var(--azul);font-weight:600}
+.menu-sub--breve{color:#667085}
+.menu-lateral nav a.menu-sub--bloqueado{color:#98a2b3}
+.menu-sub .selo-modulo{margin-left:0;display:inline-flex;align-items:center;gap:4px}
+.menu-sub .selo-breve{margin-left:auto}
+.ocorrencias{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.ocorrencia{display:grid;gap:6px;align-content:start;border:1px solid var(--cinza-2);border-radius:14px;padding:18px;text-decoration:none;color:var(--texto);background:#fff}
+a.ocorrencia:hover{border-color:var(--azul-3);box-shadow:0 6px 16px rgba(16,24,40,.08)}
+.ocorrencia b{display:flex;align-items:center;gap:8px;font:700 1.05rem var(--titulo)}
+.ocorrencia__numero{font:700 1.8rem var(--titulo)}
+.ocorrencia--bloqueada{background:var(--cinza);color:var(--suave)}
+.acoes-cabecalho{display:flex;gap:10px;flex-wrap:wrap}
+.selo-breve{white-space:nowrap;flex:none}

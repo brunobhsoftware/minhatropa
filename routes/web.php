@@ -57,6 +57,8 @@ Route::middleware(['auth', 'haras'])->prefix('painel')->group(function () {
         Route::get('/modulos/{modulo}', [$p.'\ModulosController', 'show'])->name('modulos.show');
 
         Route::middleware('permissao:animais')->group(function () use ($p) {
+            // Ocorrências do plantel: nascimentos, cobrições, mortes e transferências num só lugar
+            Route::get('/ocorrencias', [$p.'\PainelController', 'ocorrencias'])->name('ocorrencias');
             Route::get('/animais', [$p.'\AnimaisController', 'index'])->name('animais');
             Route::get('/animais/novo', [$p.'\AnimaisController', 'create'])->name('animais.novo');
             Route::post('/animais', [$p.'\AnimaisController', 'store'])->name('animais.criar');

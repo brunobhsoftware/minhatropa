@@ -22,7 +22,7 @@
 @endif
 
 <div class="numeros">
-    @if (\App\Support\Permissao::pode($papel, 'animais'))<a class="numero" href="{{ route('painel.animais') }}"><x-icone nome="cavalo" /><b>{{ $totalAnimais }}</b><span>Animais ativos no plantel</span></a>@endif
+    @if (\App\Support\Permissao::pode($papel, 'animais'))<a class="numero" href="{{ route('painel.animais') }}"><x-icone nome="cavalo" /><b>{{ $totalAnimais }}</b><span>Animais ativos no Meu Plantel</span></a>@endif
     @if (\App\Support\Permissao::pode($papel, 'propriedade'))<a class="numero" href="{{ route('painel.haras') }}"><x-icone nome="haras" /><b>{{ $haras->cidadeUf() }}</b><span>Dados {{ $haras->doRotulo() }}</span></a>@endif
     @if ($dono)<a class="numero" href="{{ route('painel.plano') }}"><x-icone nome="plano" /><b>{{ $faixa?->nome ?? 'Gratuito' }}</b><span>Plano e módulos</span></a>@endif
 </div>
@@ -43,7 +43,7 @@
 
 @if ($ultimos->isNotEmpty() && \App\Support\Permissao::pode($papel, 'animais'))
 <section class="cartao">
-    <div class="cartao__titulo"><h2>Animais</h2><a href="{{ route('painel.animais') }}">Ver todos</a></div>
+    <div class="cartao__titulo"><h2>Meu Plantel</h2><a href="{{ route('painel.animais') }}">Ver todos</a></div>
     @foreach ($ultimos as $a)
         <a class="linha-lista" href="{{ route('painel.animais.show', $a) }}"><span><b>{{ $a->nome }}</b><small>{{ \App\Models\Animal::CATEGORIAS[$a->categoria] ?? 'Sem categoria' }} · {{ $a->raca ?: 'raça não informada' }}</small></span><small>{{ $a->idade() }}</small></a>
     @endforeach

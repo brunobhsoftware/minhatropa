@@ -4,62 +4,69 @@
     $licenca = (bool) ($haras->licenca_ativa ?? false);
     $papel = $papel ?? 'consulta';
     $dono = $papel === 'proprietario';
-    // Menu base: o item só aparece se o papel da pessoa alcança a área (RBAC).
-    $menu = [
-        ['rota' => 'painel', 'icone' => 'painel', 'texto' => 'Início', 'exato' => true],
-        ['rota' => 'painel.animais', 'icone' => 'cavalo', 'texto' => 'Animais', 'area' => 'animais'],
-        ['rota' => 'painel.cobricoes', 'icone' => 'historico', 'texto' => 'Cobrições', 'area' => 'reproducao', 'licenca' => true],
-        ['rota' => 'painel.nascimentos', 'icone' => 'mais', 'texto' => 'Nascimentos', 'area' => 'reproducao', 'licenca' => true],
-        ['rota' => 'painel.transferencias', 'icone' => 'site', 'texto' => 'Transferências', 'area' => 'transferencias', 'licenca' => true],
-        ['rota' => 'painel.profissionais', 'icone' => 'usuarios', 'texto' => 'Criador e equipe', 'area' => 'equipe'],
-        ['rota' => 'painel.haras', 'icone' => 'haras', 'texto' => 'Dados '.$haras->doRotulo(), 'area' => 'propriedade'],
-        ['rota' => 'painel.plano', 'icone' => 'plano', 'texto' => 'Plano e módulos', 'area' => 'assinatura'],
-    ];
-    $modulosMenu = \App\Support\Modulos::todos();
+    $pode = fn (string $area, bool $escrita = false) => \App\Support\Permissao::pode($papel, $area, $escrita);
     $modulosHaras = $modulosHaras ?? [];
-    $emBreve = ['Agenda e rotinas', 'Treinos e desempenho', 'Custos e financeiro', 'Relatórios'];
+    $modulos = \App\Support\Modulos::todos()->keyBy('codigo');
+    $rota = fn (string ...$padroes) => request()->routeIs(...$padroes);
+    $moduloAtual = request()->routeIs('painel.modulos.show') ? request()->route('modulo')?->codigo : null;
+
+    // Item de módulo adicional: liberado abre a ferramenta; não contratado mostra o cadeado e leva à tela de benefícios.
+    $modulo = function (string $texto, string $codigo) use ($modulos, $modulosHaras, $moduloAtual) {
+        if (! $modulos->has($codigo)) {
+            return ['texto' => $texto, 'breve' => true];
+        }
+
+        return ['texto' => $texto, 'url' => route('painel.modulos.show', $codigo), 'modulo' => $codigo,
+            'liberado' => ($modulosHaras[$codigo] ?? null) === 'ativo', 'ativo' => $moduloAtual === $codigo];
+    };
+    $breve = fn (string $texto) => ['texto' => $texto, 'breve' => true];
+
+    /*
+     * Menu lateral: poucos itens na primeira linha; clicar em um item com subitens abre a lista dele.
+     * Cada subitem é: link (url), módulo adicional (cadeado até contratar) ou "em breve" (planejado, ainda sem tela).
+     * 'ver' = false esconde o que o papel da pessoa não alcança (RBAC).
+     */
+    $menu = [
+        ['texto' => 'Início', 'icone' => 'painel', 'url' => route('painel'), 'ativo' => $rota('painel')],
+        ['texto' => 'Meu Plantel', 'icone' => 'cavalo', 'ver' => $pode('animais'), 'itens' => [
+            ['texto' => 'Animais do plantel', 'url' => route('painel.animais'), 'ativo' => $rota('painel.animais*') && ! $rota('painel.animais.novo')],
+            ['texto' => 'Cadastrar animal', 'url' => route('painel.animais.novo'), 'ativo' => $rota('painel.animais.novo'), 'ver' => $pode('animais', true)],
+            $breve('Organograma do plantel'),
+        ]],
+        ['texto' => 'Ocorrências', 'icone' => 'historico', 'itens' => [
+            ['texto' => 'Ocorrências do plantel', 'url' => route('painel.ocorrencias'), 'ver' => $pode('animais'),
+                'ativo' => $rota('painel.ocorrencias', 'painel.cobricoes*', 'painel.nascimentos*', 'painel.transferencias*')],
+            $breve('Ocorrências '.$haras->doRotulo()),
+        ]],
+        ['texto' => 'Reprodução', 'icone' => 'mais', 'itens' => [$breve('Solicitação de coleta'), $breve('Pedido de sêmen'), $breve('Acompanhamento de embrião'), $breve('Notificação ao sócio')]],
+        ['texto' => 'Comércio', 'icone' => 'site', 'itens' => [$breve('Pregão on-line'), $breve('Venda permanente de coberturas'), $breve('Classificados')]],
+        ['texto' => 'Clínica veterinária', 'icone' => 'saude', 'itens' => [$modulo('Manejo sanitário', 'manejo'), $modulo('Vermifugação', 'saude'), $modulo('Medicação', 'saude')]],
+        ['texto' => 'Controle de estoque', 'icone' => 'nutricao', 'itens' => [$modulo('Ração, medicamentos, ferramentas', 'nutricao'), $breve('Leitura de nota fiscal')]],
+        ['texto' => 'Financeiro', 'icone' => 'plano', 'itens' => [$breve('Contratos'), $breve('Boletos a receber e a pagar'), $breve('Gráficos de custos')]],
+        ['texto' => 'RH', 'icone' => 'usuarios', 'itens' => [
+            ['texto' => 'Cadastro da equipe', 'url' => route('painel.profissionais'), 'ativo' => $rota('painel.profissionais*'), 'ver' => $pode('equipe')],
+            $modulo('Acesso externo da equipe', 'equipe') + ['ver' => $dono || (($modulosHaras['equipe'] ?? null) !== 'ativo')],
+            $breve('Escala'),
+        ]],
+        ['texto' => 'Agenda de eventos', 'icone' => 'historico', 'breve' => true],
+    ];
+    $configuracao = [
+        ['texto' => 'Dados '.$haras->doRotulo(), 'icone' => 'haras', 'ver' => $pode('propriedade'), 'itens' => [
+            ['texto' => 'Cadastro completo', 'url' => route('painel.haras'), 'ativo' => $rota('painel.haras*')],
+            ['texto' => 'Página, logomarca e cores', 'url' => route('painel.haras').'#pagina', 'ver' => \App\Support\Esquema::temV008() && $pode('propriedade', true)],
+        ]],
+        ['texto' => 'Plano e módulos', 'icone' => 'plano', 'url' => route('painel.plano'), 'ativo' => $rota('painel.plano*'), 'ver' => $pode('assinatura')],
+    ];
     $outros = isset($haras) ? \App\Support\HarasAtual::disponiveis(auth()->user())->count() > 1 : false;
-    $areaModulo = ['equipe' => 'equipe', 'saude' => 'saude', 'manejo' => 'manejo', 'nutricao' => 'nutricao'];
 @endphp
 @section('corpo')
 <div class="app">
     <aside class="menu-lateral" id="menu-lateral" aria-label="Menu {{ $haras->doRotulo() }}">
         <a href="{{ route('painel') }}" class="menu-lateral__marca"><img src="{{ asset('img/logo-minhatropa-branca.png') }}" alt="MinhaTropa" width="190" height="42"></a>
         <div class="menu-lateral__haras"><small>{{ $haras->rotulo() }}</small><b>{{ $haras->nome }}</b>@if ($outros)<a href="{{ route('painel.escolher') }}">Trocar</a>@endif</div>
-        <nav>
-            @foreach ($menu as $item)
-                @continue(isset($item['area']) && ! \App\Support\Permissao::pode($papel, $item['area']))
-                @if (($item['licenca'] ?? false) && ! $licenca)
-                    <a href="{{ $dono ? route('painel.plano') : '#' }}" class="desativado" title="Disponível nos planos pagos">🔒 {{ $item['texto'] }}</a>
-                @else
-                    @php $ativo = ($item['exato'] ?? false) ? request()->routeIs($item['rota']) : request()->routeIs($item['rota'].'*'); @endphp
-                    <a href="{{ route($item['rota']) }}" class="{{ $ativo ? 'ativo' : '' }}" @if ($ativo) aria-current="page" @endif><x-icone :nome="$item['icone']" /> {{ $item['texto'] }}</a>
-                @endif
-            @endforeach
-        </nav>
-        @if ($modulosMenu->isNotEmpty())
-        <div class="menu-lateral__grupo">Módulos adicionais</div>
-        <nav data-modulos>
-            @foreach ($modulosMenu as $m)
-                @php
-                    $liberado = ($modulosHaras[$m->codigo] ?? null) === 'ativo';
-                    $ativo = request()->routeIs('painel.modulos.show') && request()->route('modulo')?->codigo === $m->codigo;
-                @endphp
-                @continue($liberado && ! \App\Support\Permissao::pode($papel, $areaModulo[$m->codigo] ?? 'propriedade'))
-                @continue($liberado && $m->codigo === 'equipe') {{-- ativo, o módulo de equipe vive em "Criador e equipe" --}}
-                <a href="{{ route('painel.modulos.show', $m) }}" class="{{ $ativo ? 'ativo' : '' }} {{ $liberado ? '' : 'menu-modulo--bloqueado' }}" data-modulo="{{ $m->codigo }}" data-liberado="{{ $liberado ? 1 : 0 }}" @if ($ativo) aria-current="page" @endif>
-                    <x-icone :nome="$liberado ? ($m->icone ?: 'check') : 'cadeado'" /> <span>{{ $m->nome }}</span>
-                    @unless ($liberado)<span class="selo-modulo">Módulo adicional</span>@endunless
-                </a>
-            @endforeach
-        </nav>
-        @endif
-        <div class="menu-lateral__grupo">Em breve</div>
-        <nav>
-            @foreach ($emBreve as $texto)
-                <a href="#" aria-disabled="true" onclick="return false" class="desativado">{{ $texto }} <span class="selo-breve">em breve</span></a>
-            @endforeach
-        </nav>
+        @include('painel.partes.menu', ['itensMenu' => $menu])
+        <div class="menu-lateral__grupo">Configuração</div>
+        @include('painel.partes.menu', ['itensMenu' => $configuracao])
         <div class="menu-lateral__fim">
             <a href="{{ route('profissional.inicio') }}"><x-icone nome="usuarios" /> Ambiente do profissional</a>
             @if (auth()->user()->admin_plataforma)<a href="{{ route('admin.inicio') }}"><x-icone nome="chave" /> Administração</a>@endif
