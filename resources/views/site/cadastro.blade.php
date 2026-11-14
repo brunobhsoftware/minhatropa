@@ -26,7 +26,7 @@
             @else
             @if (session('ok'))<div class="aviso aviso--ok" role="status">{{ session('ok') }}</div>@endif
             @if ($errors->any())<div class="aviso aviso--erro" role="alert">@if ($errors->count() === 1){{ $errors->first() }}@else Confira os campos destacados: <ul>@foreach ($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul>@endif
-                @if (session('cadastrar_profissional'))<p style="margin:10px 0 0"><a class="botao botao--amarelo" href="{{ session('cadastrar_profissional') }}">Fazer meu cadastro de Profissional</a></p>@endif</div>@endif
+</div>@endif
             @include('site.partes.escolha-cadastro', ['atual' => 'propriedade'])
             <form method="post" action="{{ route('cadastro.enviar') }}" novalidate id="formCadastro" data-consulta="{{ route('cadastro.consultar-cpf') }}">
                 @csrf
@@ -66,10 +66,11 @@
                     <label class="campo"><span>Quantidade de animais *</span><select name="quantidade_animais" required><option value="">Selecione</option>@foreach (\App\Models\Empresa::QUANTIDADES as $q)<option @selected(old('quantidade_animais') === $q)>{{ $q }}</option>@endforeach</select></label>
 
                     <h2 class="form-titulo">3. Seus dados de acesso</h2>
-                    <div data-so="cnpj" @if ($tit !== 'cnpj') hidden @endif>
-                        <label class="campo"><span>Seu nome (responsável) *</span><input name="nome" value="{{ old('nome') }}" maxlength="150" autocomplete="name"></label>
+                    {{-- O nome é pedido para Pessoa Jurídica e para CPF que ainda não está na base; CPF já cadastrado puxa o nome. --}}
+                    <div id="blocoNome" @if ($tit !== 'cnpj' && ! old('nome')) hidden @endif>
+                        <label class="campo"><span id="rotuloPessoa">{{ $tit === 'cnpj' ? 'Seu nome (responsável) *' : 'Seu nome completo *' }}</span><input name="nome" value="{{ old('nome') }}" maxlength="150" autocomplete="name"></label>
                     </div>
-                    <p class="suave-form" data-so="cpf" @if ($tit !== 'cpf') hidden @endif>Seu nome e seus dados vêm do cadastro de Profissional do CPF informado. Confirme o e-mail e crie a senha de acesso.</p>
+                    <p class="suave-form" id="avisoPuxado" hidden>Seu nome e seus dados vêm do seu cadastro no MinhaTropa. Confirme o e-mail e crie a senha de acesso.</p>
                     <div class="campos-2">
                         <label class="campo"><span>E-mail *</span><input type="email" name="email" value="{{ old('email') }}" required maxlength="190" autocomplete="email"></label>
                         <label class="campo"><span>WhatsApp *</span><input type="tel" name="telefone" value="{{ old('telefone') }}" required maxlength="30" autocomplete="tel"></label>
@@ -106,6 +107,12 @@ document.addEventListener('DOMContentLoaded', function () {
   var mostrar = function (tipo, html) { caixa.className = 'consulta-cpf consulta-cpf--' + tipo; caixa.innerHTML = html; caixa.hidden = false; };
   var texto = function (t) { var d = document.createElement('div'); d.textContent = t == null ? '' : t; return d.innerHTML; };
   var liberar = function (sim) { document.getElementById('blocoRestante').hidden = !sim; };
+  // nome: 'pedir' mostra o campo (Pessoa Jurídica ou CPF novo); 'puxado' esconde, porque vem do cadastro existente
+  var pessoa = function (modo) {
+    document.getElementById('blocoNome').hidden = modo !== 'pedir';
+    document.getElementById('avisoPuxado').hidden = modo !== 'puxado';
+    document.getElementById('rotuloPessoa').textContent = titular() === 'cnpj' ? 'Seu nome (responsável) *' : 'Seu nome completo *';
+  };
   var consultado = '';
 
   function ajustar() {
@@ -117,7 +124,7 @@ document.addEventListener('DOMContentLoaded', function () {
     caixa.hidden = true; consultado = '';
     mascarar();
     // Pessoa Jurídica segue direto; Pessoa Física só depois de o CPF ser encontrado na base de Profissionais.
-    liberar(t === 'cnpj');
+    liberar(t === 'cnpj'); pessoa(t === 'cnpj' ? 'pedir' : '');
     if (t === 'cpf' && digitos(doc.value).length === 11) consultar();
   }
   function consultar() {
@@ -137,13 +144,13 @@ document.addEventListener('DOMContentLoaded', function () {
           var e = f.querySelector('[name=email]'), tel = f.querySelector('[name=telefone]');
           if (d.email_completo && !e.value) e.value = d.email_completo;
           if (d.telefone && !tel.value) tel.value = d.telefone;
-          liberar(true);
+          pessoa('puxado'); liberar(true);
         } else if (d.situacao === 'tem_conta') {
           mostrar('bloqueio', '<b>Esse CPF já tem conta</b><br>' + texto(d.mensagem) + '<br><a class="botao botao--amarelo" href="' + texto(d.url) + '">Entrar como profissional</a>');
           liberar(false);
-        } else if (d.situacao === 'nao_encontrado') {
-          mostrar('bloqueio', '<b>Cadastro de Profissional não encontrado</b><br>' + texto(d.mensagem) + '<br><a class="botao botao--amarelo" href="' + texto(d.url) + '">Fazer meu cadastro de Profissional</a>');
-          liberar(false);
+        } else if (d.situacao === 'novo') {
+          // CPF ainda não cadastrado: segue direto. O formulário pede o nome e o envio cria a pessoa e a propriedade, já vinculadas.
+          caixa.hidden = true; pessoa('pedir'); liberar(true);
         } else {
           mostrar('erro', texto(d.mensagem)); liberar(false);
         }
