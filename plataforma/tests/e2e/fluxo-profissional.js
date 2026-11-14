@@ -122,6 +122,29 @@ fs.writeFileSync(PNG, Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kA
   const z = await pagina(b); await z.goto(B + '/entrar?ambiente=profissional'); await z.fill('[name=email]', 'ze@serraazul.com.br'); await z.fill('[name=senha]', 'senha1234'); await z.click('button:has-text("Entrar")'); await z.waitForLoadState();
   h = await z.content(); conf(z.url().endsWith('/profissional') && await z.locator('[data-sem-profissional]').count() === 1 && h.includes('Haras Serra Azul'), 'conta sem cadastro de profissional é convidada a completar e vê as propriedades');
 
+  // ---------- Cortesia: a Administração libera tudo gratuitamente para quem está testando ----------
+  await z.goto(B + '/painel'); h = await z.content();
+  conf(h.includes('Plano Gratuito') && await z.locator('[data-modulo][data-liberado="1"]').count() === 0 && (await z.goto(B + '/painel/cobricoes')).status() === 403, 'antes da cortesia: plano gratuito, módulos e cobrições bloqueados');
+  const a = await pagina(b); await a.goto(B + '/admin/entrar'); await a.fill('[name=email]', 'bruno@bhsoftware.com.br'); await a.fill('[name=senha]', 'OutraSenha456'); await a.click('button:has-text("Entrar")'); await a.waitForLoadState();
+  await a.goto(B + '/admin/haras?busca=Serra'); await a.click('text=Haras Serra Azul'); await a.waitForLoadState();
+  conf((await a.textContent('#cortesia')).includes('Sem cortesia') && await a.isChecked('#cortesia [name=cortesia_plantel]'), 'ficha da propriedade tem a rotina de cortesia');
+  await a.fill('#cortesia [name=cortesia_obs]', 'Amigo testando o sistema'); await a.click('button:has-text("Liberar tudo gratuitamente")'); await a.waitForLoadState();
+  h = await a.content(); conf(h.includes('Cortesia liberada') && h.includes('Cortesia ativa') && h.includes('Amigo testando o sistema'), 'cortesia liberada pela Administração');
+  conf(h.includes('Plano Gratuito') && h.includes('Não contratado'), 'faixa e módulos contratados não mudam com a cortesia');
+  await a.screenshot({ path: '/tmp/mt-admin-cortesia.png', fullPage: true });
+  await a.goto(B + '/admin/haras?cortesia=1'); h = await a.content(); conf(h.includes('Haras Serra Azul') && !h.includes('Haras Três Rios') && h.includes('>Cortesia<'), 'lista filtra as propriedades em cortesia');
+  await z.goto(B + '/painel'); h = await z.content();
+  conf(h.includes('Cortesia · tudo liberado') && await z.locator('[data-modulo][data-liberado="0"]').count() === 0 && await z.locator('[data-modulo][data-liberado="1"]').count() === 5, 'painel em cortesia: todos os módulos liberados');
+  conf((await z.goto(B + '/painel/cobricoes')).status() === 200 && (await z.goto(B + '/painel/modulos/saude')).status() === 200 && (await z.content()).includes('Módulo ativo'), 'cobrições e módulos abrem em cortesia');
+  await z.goto(B + '/painel/plano'); h = await z.content(); conf(await z.locator('[data-cortesia]').count() === 1 && h.includes('não tem limite de plantel'), 'plano mostra a cortesia e o plantel sem limite');
+  let seis = true; for (const n of ['A1', 'A2', 'A3', 'A4', 'A5', 'A6']) { await z.goto(B + '/painel/animais/novo'); await z.fill('[name=nome]', n); await z.click('button:has-text("Cadastrar animal")'); await z.waitForLoadState(); seis = seis && (await z.content()).includes(n + ' cadastrado'); }
+  conf(seis, 'em cortesia cadastra mais de 5 animais sem mudar de faixa');
+  await a.goto(B + '/admin/haras?busca=Serra'); await a.click('text=Haras Serra Azul'); await a.waitForLoadState(); await a.click('button:has-text("Retirar cortesia")'); await a.waitForLoadState();
+  conf((await a.content()).includes('Cortesia retirada'), 'cortesia retirada');
+  await z.goto(B + '/painel'); h = await z.content();
+  conf(h.includes('Plano Gratuito') && await z.locator('[data-modulo][data-liberado="1"]').count() === 0 && (await z.goto(B + '/painel/cobricoes')).status() === 403, 'sem cortesia volta ao contratado');
+  await z.goto(B + '/painel/animais/novo'); conf(z.url().endsWith('/painel/animais') && await z.locator('#modalLimite').count() === 1 && (await z.content()).includes('A6'), 'limite da faixa volta a valer, sem apagar os animais cadastrados');
+
   // celular
   const m = await pagina(b, { viewport: { width: 390, height: 844 } }); await m.context().addCookies(await p.context().cookies());
   for (const u of ['/profissional', '/profissional/dados', '/painel/haras', '/cadastro']) { await m.goto(B + u); conf(await m.evaluate(() => document.documentElement.scrollWidth <= 390), 'sem rolagem lateral no celular: ' + u); }

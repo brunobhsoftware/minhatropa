@@ -80,6 +80,10 @@ class Licenca
     /** Quantos animais ativos a faixa em vigor permite. NULL = ilimitado. */
     public static function limite(Empresa $empresa): ?int
     {
+        // Cortesia com plantel liberado: sem limite, qualquer que seja a faixa contratada.
+        if ($empresa->emCortesia() && $empresa->cortesia_plantel) {
+            return null;
+        }
         $faixa = self::faixaAtual($empresa);
         if (! $faixa) {
             return $empresa->licenca_ativa ? null : self::animaisGratis();
@@ -88,10 +92,21 @@ class Licenca
         return $faixa->limite_max;
     }
 
-    /** A propriedade está numa faixa paga (libera também as ferramentas do plano contratado). */
+    /** Ferramentas do plano liberadas: a propriedade está numa faixa paga ou em cortesia (tudo liberado para teste). */
     public static function ativa(Empresa $empresa): bool
     {
-        return (bool) $empresa->licenca_ativa;
+        return (bool) $empresa->licenca_ativa || $empresa->emCortesia();
+    }
+
+    /**
+     * Cortesia: a Administração libera gratuitamente todos os módulos e as ferramentas do plano e, opcionalmente,
+     * o plantel sem limite. É uma marca por cima do contratado: ao retirar, volta a valer a faixa e os módulos de antes.
+     */
+    public static function cortesia(Empresa $empresa, bool $ligar, bool $plantel, ?string $obs, ?int $usuarioId): void
+    {
+        $empresa->forceFill($ligar
+            ? ['cortesia' => true, 'cortesia_plantel' => $plantel, 'cortesia_em' => now('UTC'), 'cortesia_por' => $usuarioId, 'cortesia_obs' => $obs]
+            : ['cortesia' => false, 'cortesia_plantel' => false])->save();
     }
 
     public static function podeCadastrarAnimal(Empresa $empresa): bool

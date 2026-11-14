@@ -41,7 +41,10 @@ class HarasController extends Controller
         $uf = strtoupper((string) $request->query('uf'));
         $municipioId = (int) $request->query('municipio_id');
 
+        $soCortesia = $request->boolean('cortesia') && \App\Support\Esquema::temV009();
+
         $haras = Empresa::naoExcluidas()->withCount('usuarios')
+            ->when($soCortesia, fn ($q) => $q->where('cortesia', 1))
             ->when(in_array($uf, Geografia::siglas(), true), fn ($q) => $q->where('uf', $uf))
             ->when($municipioId > 0, fn ($q) => $q->where('municipio_id', $municipioId))
             ->when($busca !== '', fn ($q) => $q->where(function ($q) use ($busca, $digitos) {
@@ -54,7 +57,8 @@ class HarasController extends Controller
             ->when(isset(Empresa::SITUACOES[$situacao]), fn ($q) => $q->where('situacao', $situacao))
             ->orderBy('nome')->paginate(25)->withQueryString();
 
-        return view('admin.haras.index', compact('haras', 'busca', 'situacao', 'uf', 'municipioId') + [
+        return view('admin.haras.index', compact('haras', 'busca', 'situacao', 'uf', 'municipioId', 'soCortesia') + [
+            'temCortesia' => \App\Support\Esquema::temV009(),
             'cidadeFiltro' => $municipioId ? \App\Models\Municipio::find($municipioId)?->nome : null,
             'documentosRepetidos' => Empresa::naoExcluidas()->whereNotNull('documento')->groupBy('documento')->havingRaw('COUNT(*) > 1')->pluck('documento'),
             'semDocumento' => Empresa::naoExcluidas()->whereNull('documento')->count(),
@@ -99,7 +103,8 @@ class HarasController extends Controller
             'faixaSolicitada' => Licenca::faixaSolicitada($empresa),
             'faixas' => PlanoPlantel::orderBy('limite_min')->get(),
             'modulos' => ModuloSistema::orderBy('ordem')->get(),
-            'modulosHaras' => Modulos::daEmpresa($empresa),
+            'modulosHaras' => Modulos::contratados($empresa),
+            'temCortesia' => \App\Support\Esquema::temV009(),
             'titular' => $empresa->titular,
             'equipe' => DB::table('empresa_profissional as ep')->join('profissional as p', 'p.id', '=', 'ep.profissional_id')->where('ep.empresa_id', $empresa->id)
                 ->orderByDesc('ep.titular')->orderBy('p.nome')->get(['p.uuid', 'p.nome', 'p.cpf', 'ep.funcao', 'ep.titular', 'ep.acesso_sistema', 'ep.papel_acesso', 'ep.situacao']),
@@ -161,6 +166,24 @@ class HarasController extends Controller
         Auditoria::registrar('haras.faixa_definir', $empresa, $antes, ['faixa' => $faixa->nome]);
 
         return back()->with('ok', "Faixa de plantel definida: {$faixa->nome} ({$faixa->faixaTexto()}).");
+    }
+
+    /**
+     * Cortesia: libera (ou retira) gratuitamente todos os módulos e as ferramentas do plano para a propriedade,
+     * para quem está testando o sistema. Não muda a faixa nem os módulos contratados: é só uma marca por cima.
+     */
+    public function cortesia(Request $request, Empresa $empresa)
+    {
+        abort_unless(\App\Support\Esquema::temV009(), 404);
+        $dados = $request->validate(['cortesia_obs' => ['nullable', 'string', 'max:255']]);
+        $ligar = $request->boolean('cortesia');
+        Licenca::cortesia($empresa, $ligar, $request->boolean('cortesia_plantel'), $dados['cortesia_obs'] ?? null, $request->user()->id);
+        Auditoria::registrar($ligar ? 'haras.cortesia_liberar' : 'haras.cortesia_retirar', $empresa, null,
+            $ligar ? ['plantel_sem_limite' => $request->boolean('cortesia_plantel'), 'obs' => $dados['cortesia_obs'] ?? null] : null);
+
+        return back()->with('ok', $ligar
+            ? "Cortesia liberada: {$empresa->nome} usa todos os módulos gratuitamente".($request->boolean('cortesia_plantel') ? ', com plantel sem limite.' : '.')
+            : "Cortesia retirada: {$empresa->nome} volta à faixa e aos módulos contratados.");
     }
 
     /** Liga ou desliga um módulo adicional para a propriedade. */

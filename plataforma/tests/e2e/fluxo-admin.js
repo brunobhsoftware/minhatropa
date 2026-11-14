@@ -22,7 +22,7 @@ const CPF_JOAO = cpf(111222333);
   await p.goto(B + '/admin/haras'); conf(p.url().endsWith('/admin/banco') && (await p.content()).includes('Aplique as atualizações'), 'Haras sem banco atual manda aplicar');
   const v = await pagina(b); await v.goto(B + '/cadastro'); conf((await v.content()).includes('sendo ativado'), 'cadastro sem banco atual avisa');
   const aplicados = await aplicarBanco(p);
-  conf(aplicados.length === 7, 'V002 a V008 aplicados pela tela: ' + aplicados.join(','));
+  conf(aplicados.length === 8, 'V002 a V009 aplicados pela tela: ' + aplicados.join(','));
   await p.goto(B + '/admin/banco'); let c = await p.content(); conf(!c.includes('Pendente'), 'nenhum script pendente');
   await p.click('form:has(input[value^="V006"]) button'); await p.waitForLoadState();
   conf((await p.content()).includes('aplicado ('), 'reaplicar V006 é idempotente');

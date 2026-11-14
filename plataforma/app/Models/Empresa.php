@@ -103,7 +103,7 @@ class Empresa extends Model
 
     protected function casts(): array
     {
-        return ['area_hectares' => 'decimal:2', 'latitude' => 'decimal:12', 'longitude' => 'decimal:12', 'excluido_em' => 'datetime', 'licenca_ativa' => 'boolean', 'pagina_ativa' => 'boolean', 'pagina_mostrar_contato' => 'boolean', 'pagina_mostrar_endereco' => 'boolean', 'licenca_liberada_em' => 'datetime'];
+        return ['area_hectares' => 'decimal:2', 'latitude' => 'decimal:12', 'longitude' => 'decimal:12', 'excluido_em' => 'datetime', 'licenca_ativa' => 'boolean', 'cortesia' => 'boolean', 'cortesia_plantel' => 'boolean', 'cortesia_em' => 'datetime', 'pagina_ativa' => 'boolean', 'pagina_mostrar_contato' => 'boolean', 'pagina_mostrar_endereco' => 'boolean', 'licenca_liberada_em' => 'datetime'];
     }
 
     public function scopeNaoExcluidas($query)
@@ -174,6 +174,12 @@ class Empresa extends Model
     public function paginaUrl(): ?string
     {
         return ($this->pagina_ativa ?? false) && $this->subsite_slug ? route('propriedade.pagina', $this->subsite_slug) : null;
+    }
+
+    /** Em cortesia: a Administração liberou tudo gratuitamente (propriedade em teste). */
+    public function emCortesia(): bool
+    {
+        return (bool) ($this->cortesia ?? false);
     }
 
     public function pessoaFisica(): bool

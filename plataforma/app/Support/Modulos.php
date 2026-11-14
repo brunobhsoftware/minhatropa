@@ -35,8 +35,22 @@ class Modulos
         return self::$todos ??= ModuloSistema::where('ativo', 1)->orderBy('ordem')->get();
     }
 
-    /** @return array<string, string> código do módulo => situação (solicitado, ativo, desativado) */
+    /**
+     * O que vale para a propriedade usar. Em cortesia, todos os módulos oferecidos contam como ativos.
+     *
+     * @return array<string, string> código do módulo => situação (solicitado, ativo, desativado)
+     */
     public static function daEmpresa(Empresa $empresa): array
+    {
+        if ($empresa->emCortesia()) {
+            return self::todos()->mapWithKeys(fn ($m) => [$m->codigo => 'ativo'])->all();
+        }
+
+        return self::contratados($empresa);
+    }
+
+    /** O que a propriedade realmente pediu ou contratou, sem contar a cortesia (para a Administração). */
+    public static function contratados(Empresa $empresa): array
     {
         if (! Esquema::temV006()) {
             return [];
@@ -59,7 +73,7 @@ class Modulos
 
     public static function solicitar(Empresa $empresa, ModuloSistema $modulo, ?int $usuarioId): void
     {
-        if (self::ativo($empresa, $modulo->codigo)) {
+        if ((self::contratados($empresa)[$modulo->codigo] ?? null) === 'ativo') {
             return;
         }
         DB::table('empresa_modulo')->updateOrInsert(['empresa_id' => $empresa->id, 'modulo_id' => $modulo->id],

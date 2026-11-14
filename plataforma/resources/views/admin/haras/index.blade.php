@@ -8,6 +8,7 @@
 <form class="filtros" method="get">
     <input type="search" name="busca" value="{{ $busca }}" placeholder="Nome, CPF/CNPJ ou responsável">
     <span class="filtro-geo"><x-uf-municipio :uf="$uf" :municipio-id="$municipioId ?: null" :cidade="$cidadeFiltro" filtro /></span>
+    @if ($temCortesia)<label class="opcao" style="white-space:nowrap"><input type="checkbox" name="cortesia" value="1" @checked($soCortesia) onchange="this.form.submit()"> Só em cortesia</label>@endif
     <select name="situacao"><option value="">Todas as situações</option>
         @foreach (\App\Models\Empresa::SITUACOES as $valor => $texto)<option value="{{ $valor }}" @selected($situacao === $valor)>{{ $texto }}</option>@endforeach
     </select>
@@ -25,7 +26,7 @@
         <tbody>
         @forelse ($haras as $h)
             <tr class="clicavel" data-href="{{ route('admin.haras.show', $h) }}">
-                <td><a href="{{ route('admin.haras.show', $h) }}"><b>{{ $h->nome }}</b></a> <small class="suave">{{ $h->rotulo() }}</small>@if ($h->razao_social)<br><small class="suave">{{ $h->razao_social }}</small>@endif</td>
+                <td><a href="{{ route('admin.haras.show', $h) }}"><b>{{ $h->nome }}</b></a> <small class="suave">{{ $h->rotulo() }}</small>@if ($h->emCortesia()) <span class="selo selo--ativo">Cortesia</span>@endif @if ($h->razao_social)<br><small class="suave">{{ $h->razao_social }}</small>@endif</td>
                 <td>{{ $h->documentoFormatado() }}</td>
                 <td>{{ $h->cidadeUf() }}</td>
                 <td>{{ $h->responsavel_nome ?: '—' }}</td>

@@ -79,6 +79,16 @@ class Esquema
         }
     }
 
+    /** V009: cortesia (tudo liberado gratuitamente para propriedades em teste). Opcional. */
+    public static function temV009(): bool
+    {
+        try {
+            return self::$cache['v009'] ??= Schema::hasColumn('empresa', 'cortesia');
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
     /** O banco tem tudo o que as telas atuais usam (até o V007)? */
     public static function atual(): bool
     {
