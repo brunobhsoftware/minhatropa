@@ -39,6 +39,11 @@
                 'ativo' => $rota('painel.ocorrencias', 'painel.cobricoes*', 'painel.nascimentos*', 'painel.transferencias*')],
             $breve('Ocorrências '.$haras->doRotulo()),
         ]],
+        ['texto' => 'Agenda e rotinas', 'icone' => 'calendario', 'itens' => [
+            ['texto' => 'Hoje', 'url' => route('painel.agenda.hoje'), 'ativo' => $rota('painel.agenda.hoje')],
+            ['texto' => 'Calendário', 'url' => route('painel.agenda'), 'ativo' => $rota('painel.agenda') && ! $rota('painel.agenda.hoje')],
+            ['texto' => 'Rotinas', 'url' => route('painel.rotinas'), 'ativo' => $rota('painel.rotinas*')],
+        ]],
         ['texto' => 'Reprodução', 'icone' => 'mais', 'itens' => [$breve('Solicitação de coleta'), $breve('Pedido de sêmen'), $breve('Acompanhamento de embrião'), $breve('Notificação ao sócio')]],
         ['texto' => 'Comércio', 'icone' => 'site', 'itens' => [$breve('Pregão on-line'), $breve('Venda permanente de coberturas'), $breve('Classificados')]],
         ['texto' => 'Clínica veterinária', 'icone' => 'saude', 'itens' => [$modulo('Manejo sanitário', 'manejo'), $modulo('Vermifugação', 'saude'), $modulo('Medicação', 'saude')]],

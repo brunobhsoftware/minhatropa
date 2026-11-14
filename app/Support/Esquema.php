@@ -89,6 +89,16 @@ class Esquema
         }
     }
 
+    /** V010: agenda e rotinas. */
+    public static function temV010(): bool
+    {
+        try {
+            return self::$cache['v010'] ??= Schema::hasTable('rotina') && Schema::hasTable('execucao_rotina');
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
     /** O banco tem tudo o que as telas atuais usam (até o V007)? */
     public static function atual(): bool
     {

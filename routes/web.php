@@ -92,6 +92,17 @@ Route::middleware(['auth', 'haras'])->prefix('painel')->group(function () {
             Route::get('/transferencias-buscar-haras', [$p.'\TransferenciasController', 'buscarHaras'])->name('transferencias.buscar-haras');
         });
 
+        // Agenda e rotinas
+        Route::get('/agenda', [$p.'\AgendaController', 'index'])->name('agenda');
+        Route::get('/agenda/hoje', [$p.'\AgendaController', 'hoje'])->name('agenda.hoje');
+        Route::post('/agenda/{execucao}/registrar', [$p.'\AgendaController', 'registrar'])->name('agenda.registrar');
+        Route::get('/rotinas', [$p.'\AgendaController', 'rotinas'])->name('rotinas');
+        Route::get('/rotinas/nova', [$p.'\AgendaController', 'criarRotina'])->name('rotinas.nova');
+        Route::post('/rotinas', [$p.'\AgendaController', 'salvarRotina'])->name('rotinas.salvar');
+        Route::get('/rotinas/{rotina}/editar', [$p.'\AgendaController', 'editarRotina'])->name('rotinas.editar');
+        Route::put('/rotinas/{rotina}', [$p.'\AgendaController', 'atualizarRotina'])->name('rotinas.atualizar');
+        Route::delete('/rotinas/{rotina}', [$p.'\AgendaController', 'excluirRotina'])->name('rotinas.excluir');
+
         // Equipe: vínculo de profissionais pelo CPF (base global) e acesso externo (módulo de equipe)
         Route::middleware('permissao:equipe')->group(function () use ($p) {
             Route::get('/profissionais', [$p.'\ProfissionaisController', 'index'])->name('profissionais');
