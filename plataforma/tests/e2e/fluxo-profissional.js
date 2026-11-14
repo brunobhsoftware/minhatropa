@@ -118,9 +118,16 @@ fs.writeFileSync(PNG, Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kA
   };
   await p.goto(B + '/painel/animais/novo'); await p.fill('[name=nome]', 'Imperador');
   conf((await p.locator('.abas-cadastro .aba-cadastro').allTextContents()).map((t) => t.trim()).includes('Sociedade'), 'cadastro de animal tem a seção Sociedade');
-  await p.click('[data-aba=sociedade]');
-  conf(await p.isChecked('[name=sociedade][value=propria]') && await p.locator('#blocoSocios').isHidden(), 'por padrão o animal é 100% da propriedade');
-  await p.check('[name=sociedade][value=socios]');
+  await p.click('#btnProximoNumero'); await p.waitForFunction(() => document.getElementById('campoNumeroPlantel').value !== '');
+  conf(await p.inputValue('#campoNumeroPlantel') === '1', 'nº plantel: o botão busca o primeiro número da sequência');
+  await p.fill('#campoNumeroPlantel', '0041');
+  await p.click('[data-aba=aquisicao]');
+  conf(await p.inputValue('#selSociedade') === 'propria' && await p.locator('#botaoSociedade').isHidden(), 'por padrão o percentual é 100% e a seção Sociedade não aparece');
+  await p.selectOption('#selSociedade', 'socios');
+  conf(await p.locator('#botaoSociedade').isVisible() && await p.locator('#atalhoSociedade').isVisible(), 'percentual Personalizado libera a seção Sociedade');
+  await p.selectOption('#selSociedade', 'propria'); const some = await p.locator('#botaoSociedade').isHidden(); await p.selectOption('#selSociedade', 'socios');
+  conf(some, 'voltando para 100% a seção Sociedade some de novo');
+  await p.click('#linkSociedade');
   let l0 = await socio(0, CPF_ANA, '20');
   conf(await l0.locator('[data-socio-nome]').inputValue() === 'Ana Proprietária' && (await l0.locator('[data-socio-aviso]').textContent()).includes('Profissional com cadastro'), 'sócio por CPF: acha o profissional e traz o nome');
   await p.click('#btnAddSocio'); const l1 = await socio(1, '11222333000181', '50');
@@ -155,8 +162,10 @@ fs.writeFileSync(PNG, Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kA
   const an = await pagina(b); await an.goto(B + '/entrar?ambiente=profissional'); await an.fill('[name=email]', 'ana@fazendaboa.com.br'); await an.fill('[name=senha]', 'senha1234'); await an.click('button:has-text("Entrar")'); await an.waitForLoadState();
   h = await an.content(); conf(await an.locator('[data-sociedades]').count() === 1 && h.includes('Imperador') && h.includes('20%'), 'sócia que já tinha cadastro vê o animal no painel profissional');
   // voltar a 100% da propriedade
-  await p.click('#sociedade >> text=Alterar'); await p.waitForLoadState(); await p.check('[name=sociedade][value=propria]'); await p.click('button:has-text("Salvar")'); await p.waitForLoadState();
+  await p.click('#sociedade >> text=Alterar'); await p.waitForLoadState(); await p.click('[data-aba=aquisicao]'); await p.selectOption('#selSociedade', 'propria'); await p.click('button:has-text("Salvar")'); await p.waitForLoadState();
   conf((await p.textContent('#sociedade')).includes('100% de Haras Três Rios'), 'animal volta a ser 100% da propriedade');
+  await p.goto(B + '/painel/animais/novo'); await p.click('#btnProximoNumero'); await p.waitForFunction(() => document.getElementById('campoNumeroPlantel').value !== '');
+  conf(await p.inputValue('#campoNumeroPlantel') === '0042', 'nº plantel: próximo número segue o maior já usado e mantém os zeros');
 
   // ---------- Profissional cadastrado por um Haras ativa o próprio acesso ----------
   await p.goto(B + '/painel/profissionais/novo?cpf=' + CPF_CARLA);
