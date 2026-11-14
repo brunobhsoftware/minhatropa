@@ -109,6 +109,16 @@ class Esquema
         }
     }
 
+    /** V012: clínica veterinária (eventos de saúde). */
+    public static function temV012(): bool
+    {
+        try {
+            return self::$cache['v012'] ??= Schema::hasTable('evento_saude');
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
     /** O banco tem tudo o que as telas atuais usam (até o V007)? */
     public static function atual(): bool
     {
