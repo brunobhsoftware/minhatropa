@@ -19,11 +19,21 @@ class Esquema
         }
     }
 
-    /** V003: cadastro completo do Haras (tipo, raças, marchas, marca, subsite, coordenadas). */
+    /** V003: cadastro completo do Haras. */
     public static function temV003(): bool
     {
         try {
             return self::$cache['v003'] ??= Schema::hasTable('empresa_raca') && Schema::hasColumn('empresa', 'tipo_propriedade');
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    /** V004: profissionais da plataforma. */
+    public static function temV004(): bool
+    {
+        try {
+            return self::$cache['v004'] ??= Schema::hasTable('profissional') && Schema::hasTable('empresa_profissional');
         } catch (\Throwable) {
             return false;
         }

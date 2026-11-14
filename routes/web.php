@@ -31,6 +31,12 @@ Route::middleware(['auth', 'haras'])->prefix('painel')->group(function () {
         Route::post('/animais', [\App\Http\Controllers\Painel\AnimaisController::class, 'store'])->name('animais.criar');
         Route::get('/animais/{animal}/editar', [\App\Http\Controllers\Painel\AnimaisController::class, 'edit'])->name('animais.editar');
         Route::put('/animais/{animal}', [\App\Http\Controllers\Painel\AnimaisController::class, 'update'])->name('animais.salvar');
+
+        Route::get('/profissionais', [\App\Http\Controllers\Painel\ProfissionaisController::class, 'index'])->name('profissionais');
+        Route::get('/profissionais/novo', [\App\Http\Controllers\Painel\ProfissionaisController::class, 'create'])->name('profissionais.novo');
+        Route::post('/profissionais', [\App\Http\Controllers\Painel\ProfissionaisController::class, 'store'])->name('profissionais.criar');
+        Route::put('/profissionais/{vinculo}', [\App\Http\Controllers\Painel\ProfissionaisController::class, 'editar'])->name('profissionais.editar')->whereNumber('vinculo');
+        Route::get('/profissionais/buscar', [\App\Http\Controllers\Painel\ProfissionaisController::class, 'buscar'])->name('profissionais.buscar');
     });
 });
 
@@ -67,6 +73,15 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::put('/usuarios/{usuario}/senha', [Admin\UsuariosController::class, 'definirSenha'])->name('usuarios.senha');
         Route::get('/minha-senha', [Admin\UsuariosController::class, 'minhaSenha'])->name('minha-senha');
         Route::put('/minha-senha', [Admin\UsuariosController::class, 'salvarMinhaSenha'])->name('minha-senha.salvar');
+
+        Route::get('/profissionais', [Admin\ProfissionaisController::class, 'index'])->name('profissionais');
+        Route::get('/profissionais/novo', [Admin\ProfissionaisController::class, 'create'])->name('profissionais.novo');
+        Route::post('/profissionais', [Admin\ProfissionaisController::class, 'store'])->name('profissionais.criar');
+        Route::get('/profissionais/{profissional}', [Admin\ProfissionaisController::class, 'show'])->name('profissionais.show');
+        Route::get('/profissionais/{profissional}/editar', [Admin\ProfissionaisController::class, 'edit'])->name('profissionais.editar');
+        Route::put('/profissionais/{profissional}', [Admin\ProfissionaisController::class, 'update'])->name('profissionais.salvar');
+        Route::put('/profissionais/{profissional}/situacao', [Admin\ProfissionaisController::class, 'situacao'])->name('profissionais.situacao');
+        Route::get('/profissionais-buscar', [Admin\ProfissionaisController::class, 'buscar'])->name('profissionais.buscar');
 
         Route::get('/contatos', [Admin\ContatosController::class, 'index'])->name('contatos');
         Route::post('/contatos/{contato}/lido', [Admin\ContatosController::class, 'lido'])->name('contatos.lido')->whereNumber('contato');

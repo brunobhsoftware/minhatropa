@@ -5,9 +5,10 @@
     $menu = [
         ['rota' => 'painel', 'icone' => 'painel', 'texto' => 'Início', 'exato' => true],
         ['rota' => 'painel.animais', 'icone' => 'cavalo', 'texto' => 'Animais'],
+        ['rota' => 'painel.profissionais', 'icone' => 'usuarios', 'texto' => 'Equipe'],
         ['rota' => 'painel.haras', 'icone' => 'haras', 'texto' => 'Dados do Haras'],
     ];
-    $bloqueados = ['Agenda e rotinas', 'Saúde veterinária', 'Reprodução e genética', 'Treinos e desempenho', 'Custos e financeiro', 'Relatórios', 'Equipe'];
+    $bloqueados = ['Agenda e rotinas', 'Saúde veterinária', 'Reprodução e genética', 'Treinos e desempenho', 'Custos e financeiro', 'Relatórios'];
     $outros = isset($haras) ? \App\Support\HarasAtual::disponiveis(auth()->user())->count() > 1 : false;
 @endphp
 @section('corpo')
