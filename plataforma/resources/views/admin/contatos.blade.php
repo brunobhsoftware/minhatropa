@@ -15,7 +15,7 @@
                 <form method="post" action="{{ route('admin.contatos.lido', $c->id) }}">@csrf<button class="botao botao--contorno botao--pequeno">{{ $c->lido_em ? 'Voltar para novos' : 'Marcar como atendido' }}</button></form>
             </div>
             <dl class="dados">
-                @if ($c->haras)<div><dt>Haras</dt><dd>{{ $c->haras }}</dd></div>@endif
+                @if ($c->haras)<div><dt>Haras / Fazenda</dt><dd>{{ $c->haras }}</dd></div>@endif
                 @if ($c->cidade_uf)<div><dt>Cidade/UF</dt><dd>{{ $c->cidade_uf }}</dd></div>@endif
                 @if ($c->quantidade_animais)<div><dt>Animais</dt><dd>{{ $c->quantidade_animais }}</dd></div>@endif
                 @if ($c->email)<div><dt>E-mail</dt><dd><a href="mailto:{{ $c->email }}">{{ $c->email }}</a></dd></div>@endif

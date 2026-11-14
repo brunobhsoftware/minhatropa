@@ -229,3 +229,40 @@ a[href^="mailto:"]{overflow-wrap:anywhere}
 .aceite input{margin-top:4px;width:18px;height:18px;flex:none}
 .aviso ul{margin:6px 0 0;padding-left:20px}
 @media(max-width:960px){.cadastro__interno{grid-template-columns:1fr}.cadastro{padding:40px 0 56px}}
+
+/* UF → Município em cascata (IBGE) */
+.geo{display:contents}
+.geo__municipio{position:relative}
+.geo__municipio input[disabled]{background:var(--cinza);color:#667085;cursor:not-allowed}
+.geo__lista{position:absolute;z-index:30;top:100%;left:0;right:0;margin:4px 0 0;padding:4px;list-style:none;background:#fff;border:1px solid #d0d5dd;border-radius:12px;box-shadow:0 12px 24px rgba(16,24,40,.16);max-height:260px;overflow:auto;text-align:left}
+.geo__lista li{padding:9px 12px;border-radius:8px;cursor:pointer;color:var(--texto)}
+.geo__lista li[role=option]:hover,.geo__lista li.marcado{background:#fff8d1}
+.geo__lista li[aria-selected=true]{font-weight:600}
+.geo__lista .geo__vazio{color:#667085;cursor:default;font-size:.88rem}
+
+/* Cadastro: tipo de propriedade, titularidade e consulta do CPF */
+.escolha{border:0;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.escolha legend{font-weight:600;font-size:.9rem;margin-bottom:6px;padding:0}
+.escolha__opcao{display:flex;align-items:center;gap:10px;border:1px solid #d0d5dd;border-radius:12px;padding:12px 14px;cursor:pointer;font-weight:600;background:#fff}
+.escolha__opcao input{width:18px;height:18px;flex:none;accent-color:var(--azul)}
+.escolha__opcao:has(input:checked){border-color:var(--azul);box-shadow:0 0 0 1px var(--azul);background:#fffbe6}
+.campo-acao{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end}
+.botao--contorno-escuro{border-color:var(--azul);color:var(--azul);background:#fff;padding:12px 16px}
+.botao--contorno-escuro:hover{background:var(--cinza)}
+.consulta-cpf{border-radius:12px;padding:12px 16px;margin-top:10px;font-size:.95rem;border:1px solid #d0d5dd;background:#f9fafb;color:var(--suave)}
+.consulta-cpf--ok{background:#ecfdf3;border-color:#abefc6;color:#05603a}
+.consulta-cpf--bloqueio{background:#fffaeb;border-color:#fedf89;color:#93370d}
+.consulta-cpf--erro{background:#fef3f2;border-color:#fecdca;color:#b42318}
+.consulta-cpf .botao{margin-top:10px}
+.consulta-cpf dl{margin:8px 0 0;display:grid;gap:2px;font-size:.9rem}
+.consulta-cpf dl div{display:flex;gap:8px}
+.consulta-cpf dt{font-weight:600;min-width:70px}
+.consulta-cpf dd{margin:0}
+.suave-form{margin:0;color:var(--suave);font-size:.92rem}
+.funcoes{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;font-size:.92rem}
+.funcoes__opcao{display:flex;align-items:center;gap:8px}
+.funcoes__opcao input{width:17px;height:17px;flex:none}
+#blocoDocumento,#blocoRestante,#blocoRestante>div[data-so]{display:grid;gap:14px}
+#blocoDocumento[hidden],#blocoRestante[hidden],#blocoRestante>div[hidden]{display:none}
+@media(max-width:560px){.escolha,.funcoes{grid-template-columns:1fr}.campo-acao{grid-template-columns:1fr}}
+[hidden]{display:none!important}

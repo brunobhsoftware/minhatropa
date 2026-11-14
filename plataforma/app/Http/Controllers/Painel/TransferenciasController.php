@@ -77,6 +77,11 @@ class TransferenciasController extends Controller
 
         $request->validate(['resposta' => ['required', Rule::in(['aceita', 'recusada'])], 'motivo_recusa' => ['nullable', 'string', 'max:255']]);
 
+        // Receber o animal aumenta o plantel ativo: respeita o limite da faixa de quem recebe.
+        if ($request->input('resposta') === 'aceita' && ! Licenca::podeCadastrarAnimal($empresa)) {
+            return redirect()->route('painel.transferencias.show', $transferencia)->with('limite_plantel', true);
+        }
+
         $antes = $transferencia->getAttributes();
         $transferencia->update([
             'situacao' => $request->input('resposta'),

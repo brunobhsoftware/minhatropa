@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Site;
 
 use App\Http\Controllers\Controller;
 use App\Models\Contato;
+use App\Support\Esquema;
+use App\Support\Geografia;
 use Illuminate\Http\Request;
 
 class SiteController extends Controller
@@ -26,13 +28,16 @@ class SiteController extends Controller
             'email' => ['nullable', 'required_without:telefone', 'email:filter', 'max:190'],
             'telefone' => ['nullable', 'required_without:email', 'string', 'max:30'],
             'haras' => ['nullable', 'string', 'max:150'],
-            'cidade_uf' => ['nullable', 'string', 'max:120'],
             'quantidade_animais' => ['nullable', 'string', 'max:30'],
             'mensagem' => ['nullable', 'string', 'max:3000'],
-        ], [
+        ] + (Esquema::temV007() ? Geografia::regras($request) : []), [
             'email.required_without' => 'Informe um e-mail ou um telefone para o retorno.',
             'telefone.required_without' => 'Informe um telefone ou um e-mail para o retorno.',
-        ]);
+        ] + Geografia::mensagens());
+        // Localização escolhida nas listas (UF → município); o contato guarda "Município/UF".
+        $local = Esquema::temV007() ? Geografia::colunas($dados) : [];
+        $dados['cidade_uf'] = filled($local['cidade'] ?? null) ? $local['cidade'].'/'.$local['uf'] : ($local['uf'] ?? null);
+        unset($dados['uf'], $dados['municipio_id']);
 
         try {
             Contato::create($dados + ['origem' => 'site', 'ip' => $request->ip()]);

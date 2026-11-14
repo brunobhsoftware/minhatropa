@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-/** Um Haras cliente da plataforma. */
+/** Uma propriedade (Haras / Fazenda) cliente da plataforma, identificada por CPF ou CNPJ único. */
 class Empresa extends Model
 {
     use TemUuid;
@@ -35,6 +35,14 @@ class Empresa extends Model
         'chacara' => 'Chácara',
         'outro' => 'Outro',
     ];
+
+    /** Tipos oferecidos no cadastro pelo site (os demais ficam disponíveis na Administração). */
+    public const TIPOS_CADASTRO = ['haras' => 'Haras', 'fazenda' => 'Fazenda'];
+
+    /** Como o sistema chama a propriedade quando não sabe o tipo. */
+    public const GENERICO = 'Haras / Fazenda';
+
+    public const TITULARIDADES = ['cpf' => 'Pessoa Física (CPF)', 'cnpj' => 'Pessoa Jurídica (CNPJ)'];
 
     public const RACAS = [
         'Mangalarga Marchador',
@@ -81,11 +89,11 @@ class Empresa extends Model
 
     public const CAMPOS = ['nome', 'tipo_propriedade', 'razao_social', 'tipo_documento', 'documento', 'inscricao_estadual', 'email', 'telefone', 'whatsapp',
         'responsavel_nome', 'responsavel_email', 'responsavel_telefone', 'telefone_residencial', 'telefone_celular', 'telefone_comercial',
-        'cep', 'logradouro', 'numero', 'complemento', 'bairro', 'cidade', 'uf', 'latitude', 'longitude', 'como_chegar',
-        'corresp_cep', 'corresp_logradouro', 'corresp_numero', 'corresp_complemento', 'corresp_bairro', 'corresp_cidade', 'corresp_uf',
+        'cep', 'logradouro', 'numero', 'complemento', 'bairro', 'cidade', 'uf', 'estado_id', 'municipio_id', 'latitude', 'longitude', 'como_chegar',
+        'corresp_cep', 'corresp_logradouro', 'corresp_numero', 'corresp_complemento', 'corresp_bairro', 'corresp_cidade', 'corresp_uf', 'corresp_estado_id', 'corresp_municipio_id',
         'area_hectares', 'finalidades_criacao', 'preferencias_marcha',
         'marca_descricao', 'marca_arquivo', 'site_url', 'subsite_slug',
-        'plano_id', 'observacoes'];
+        'plano_id', 'observacoes', 'titular_profissional_id'];
 
     public const QUANTIDADES = ['Até 20', '21 a 50', '51 a 150', '151 a 500', 'Mais de 500'];
 
@@ -109,6 +117,34 @@ class Empresa extends Model
     public function usuarios(): BelongsToMany
     {
         return $this->belongsToMany(Usuario::class, 'empresa_usuario')->withPivot(['id', 'papel', 'status', 'criado_em']);
+    }
+
+    /** Pessoa física titular (proprietário / criador), da base de Profissionais. */
+    public function titular(): BelongsTo
+    {
+        return $this->belongsTo(Profissional::class, 'titular_profissional_id');
+    }
+
+    /** "Haras", "Fazenda"… conforme o tipo escolhido no cadastro. */
+    public function rotulo(): string
+    {
+        return self::TIPOS_PROPRIEDADE[$this->tipo_propriedade] ?? 'Haras';
+    }
+
+    /** "do Haras", "da Fazenda", "do Sítio"… para os textos das telas. */
+    public function doRotulo(): string
+    {
+        $feminino = in_array($this->tipo_propriedade, ['fazenda', 'estancia', 'chacara'], true);
+        if ($this->tipo_propriedade === 'outro') {
+            return 'da propriedade';
+        }
+
+        return ($feminino ? 'da ' : 'do ').$this->rotulo();
+    }
+
+    public function pessoaFisica(): bool
+    {
+        return $this->tipo_documento === 'cpf';
     }
 
     public function documentoFormatado(): string

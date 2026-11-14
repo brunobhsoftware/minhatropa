@@ -1,6 +1,6 @@
 # MinhaTropa
 
-Gestão inteligente para Haras — [minhatropa.com.br](https://minhatropa.com.br).
+Gestão inteligente para Haras / Fazendas — [minhatropa.com.br](https://minhatropa.com.br).
 
 - `plataforma/` — aplicação Laravel 12 (site público e Administração em `/admin`).
 - `plataforma/database/atualizacoes/` — scripts versionados do banco, aplicados pela Administração.

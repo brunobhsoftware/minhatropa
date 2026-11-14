@@ -205,7 +205,7 @@ function buscarGenitor(sexo, inputId, resultId, hiddenId, selId) {
         .then(function(r) { return r.json(); })
         .then(function(dados) {
             if (!dados.length) { div.innerHTML = '<p class="suave">Nenhum encontrado. Preencha o nome abaixo.</p>'; return; }
-            var html = '<div class="tabela-rolagem"><table class="tabela"><thead><tr><th>Nome</th><th>Raça</th><th>Registro</th><th>Haras</th><th></th></tr></thead><tbody>';
+            var html = '<div class="tabela-rolagem"><table class="tabela"><thead><tr><th>Nome</th><th>Raça</th><th>Registro</th><th>Haras / Fazenda</th><th></th></tr></thead><tbody>';
             dados.forEach(function(a) {
                 html += '<tr><td><b>' + a.nome + '</b></td><td>' + a.raca + '</td><td>' + a.registro + '</td><td>' + a.haras + '</td>';
                 html += '<td><button type="button" class="botao botao--primario botao--pequeno" onclick="selecionarGenitor(\'' + hiddenId + '\',\'' + selId + '\',' + a.id + ',\'' + a.nome.replace(/'/g, "\\'") + '\')">Selecionar</button></td></tr>';

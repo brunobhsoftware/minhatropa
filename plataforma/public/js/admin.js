@@ -44,6 +44,8 @@
       if (v.length <= 11) return v.replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2');
       return v.replace(/^(\d{2})(\d)/, '$1.$2').replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3').replace(/\.(\d{3})(\d)/, '.$1/$2').replace(/(\d{4})(\d)/, '$1-$2');
     },
+    cpf: function (v) { return v.replace(/\D/g, '').slice(0, 11).replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2'); },
+    cnpj: function (v) { return v.replace(/\D/g, '').slice(0, 14).replace(/^(\d{2})(\d)/, '$1.$2').replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3').replace(/\.(\d{3})(\d)/, '.$1/$2').replace(/(\d{4})(\d)/, '$1-$2'); },
     telefone: function (v) {
       v = v.replace(/\D/g, '').slice(0, 11);
       if (v.length > 10) return v.replace(/^(\d{2})(\d{5})(\d{0,4}).*/, '($1) $2-$3');
@@ -68,7 +70,10 @@
         if (d.erro) return;
         var f = i.form;
         var preencher = function (nome, valor) { var c = f.querySelector('[name=' + nome + ']'); if (c && !c.value && valor) c.value = valor; };
-        preencher('logradouro', d.logradouro); preencher('bairro', d.bairro); preencher('cidade', d.localidade); preencher('uf', d.uf);
+        preencher('logradouro', d.logradouro); preencher('bairro', d.bairro);
+        // UF e município: seleciona nas listas do IBGE (o ViaCEP devolve o código IBGE do município)
+        var geo = (i.closest('.grade-2, .grade-3, section, form') || f).querySelector('[data-geo]');
+        if (geo && geo.geoDefinir && !geo.querySelector('[data-geo-id]').value) geo.geoDefinir(d.uf, d.ibge);
       }).catch(function () {});
     });
   });

@@ -22,8 +22,8 @@
         </div>
     </section>
     <section class="cartao">
-        <h2>Especialidades</h2>
-        <p class="suave" style="margin-bottom:1rem">Selecione as áreas de atuação do profissional.</p>
+        <h2>Funções</h2>
+        <p class="suave" style="margin-bottom:1rem">Selecione todas as funções do profissional. A mesma pessoa pode acumular várias (ex.: Proprietário de Haras/Fazenda e Veterinário).</p>
         <div class="grade-opcoes">
             @foreach (\App\Models\Profissional::ESPECIALIDADES as $valor => $texto)
             <label class="opcao-check"><input type="checkbox" name="especialidades[]" value="{{ $valor }}" @checked(in_array($valor, (array) old('especialidades', $especialidadesSelecionadas)))> {{ $texto }}</label>
@@ -38,8 +38,7 @@
             <label class="campo"><span>Número</span><input name="numero" value="{{ $v('numero') }}" maxlength="20"></label>
             <label class="campo"><span>Complemento</span><input name="complemento" value="{{ $v('complemento') }}" maxlength="100"></label>
             <label class="campo"><span>Bairro</span><input name="bairro" value="{{ $v('bairro') }}" maxlength="100"></label>
-            <label class="campo"><span>Cidade</span><input name="cidade" value="{{ $v('cidade') }}" maxlength="100"></label>
-            <label class="campo"><span>UF</span><select name="uf"><option value=""></option>@foreach ($ufs as $uf)<option @selected($v('uf') === $uf)>{{ $uf }}</option>@endforeach</select></label>
+            <x-uf-municipio :uf="$profissional->uf" :municipio-id="$profissional->municipio_id" :cidade="$profissional->cidade" />
         </div>
     </section>
     <section class="cartao">

@@ -15,6 +15,7 @@
 </head>
 <body class="@yield('classe_body')">
     @yield('corpo')
+    <script src="{{ asset('js/geo.js') }}?v={{ filemtime(public_path('js/geo.js')) }}" defer></script>
     <script src="{{ asset('js/admin.js') }}?v={{ filemtime(public_path('js/admin.js')) }}" defer></script>
 </body>
 </html>

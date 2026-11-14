@@ -10,9 +10,18 @@ Projeto irmão (mesma estrutura, mesma conta Hostinger): **foradafila.com.br** (
 
 - **"Haras" sempre com H**, em títulos, menus, botões e descrições (o kit tem uma versão antiga "aras": não publicar).
 - Não inventar preços ou políticas comerciais no site: só o que o Bruno definir.
-- **Período gratuito (decisão do Bruno, 09/11/2026):** o próprio Haras se cadastra pelo site (`/cadastro`) e usa grátis
-  a configuração do Haras e **1 animal** (`parametro_sistema.animais_gratis`). A partir do 2º animal precisa contratar;
-  com `empresa.licenca_ativa = 1` (liberada pela Administração → Haras → Licença) tudo é liberado. Preço/pagamento: a definir.
+- **Haras / Fazenda (13/11/2026):** a propriedade pode ser Haras ou Fazenda (`empresa.tipo_propriedade`). Texto genérico usa
+  "Haras / Fazenda"; dentro do painel o nome acompanha o tipo (`$haras->rotulo()`, `$haras->doRotulo()` → "da Fazenda").
+- **Plano por tamanho de plantel (13/11/2026, substitui o "1º animal grátis"):** a faixa vem da quantidade de animais **ativos**
+  (vendido, transferido e morto não contam). Faixas na tabela `plano_plantel`: Gratuito até 5, Faixa 1 (6–10), Faixa 2 (11–20),
+  21–50, 51–100 e ilimitado. Criar/alterar faixa é em Administração → Planos e módulos, sem mexer no código.
+  No limite, o cadastro é bloqueado e aparece o aviso (modal) com a oferta da próxima faixa. Regra em `App\Support\Licenca`.
+- **Preços:** `valor_mensal` das faixas e módulos está NULL = "Sob consulta". Só o Bruno define valores (Planos e módulos).
+- **Módulos adicionais (add-ons):** `modulo_sistema` + `empresa_modulo`: `equipe` (acesso externo), `saude`, `manejo`, `nutricao`.
+  Independentes da faixa. Não contratado aparece no menu com cadeado e "Módulo adicional" e abre a tela de benefícios com
+  "Solicitar ativação"; a Administração ativa na ficha da propriedade. Regra em `App\Support\Modulos`.
+  Saúde, Manejo e Nutrição têm só a estrutura (menu, rota, liberação): as telas de cada um ainda serão construídas.
+- Cobrições, nascimentos e transferências continuam exigindo faixa paga (`empresa.licenca_ativa`, ligada ao definir a faixa).
 
 ## Onde está cada coisa
 
@@ -20,7 +29,7 @@ Projeto irmão (mesma estrutura, mesma conta Hostinger): **foradafila.com.br** (
 | --- | --- |
 | `plataforma/` | Aplicação **Laravel 12** (site público + `/admin`). Publicada pela Action na branch `publicacao` |
 | `plataforma/database/atualizacoes/V0xx__*.sql` | Scripts versionados do banco (idempotentes). Aplicados pela tela `/admin/banco` |
-| `plataforma/tests/e2e/fluxo-admin.js` | Teste de ponta a ponta (Playwright, 24 conferências) contra banco limpo + `php artisan serve` |
+| `plataforma/tests/e2e/` | Testes de ponta a ponta (Playwright) contra banco limpo + `php artisan serve`: `fluxo-admin.js` (54) e depois `fluxo-cadastro.js` (74); apoio em `apoio.js` |
 | `docs/identidade-visual/` | Logos recortadas (PNG transparente) e o kit original enviado pelo Bruno em `kit-original/` |
 | `.github/workflows/build-plataforma.yml` | Publicação: `composer install --no-dev` e grava em `publicacao` |
 | `.hostinger/site.json` | Alvo da publicação na Hostinger |
@@ -47,16 +56,31 @@ Projeto irmão (mesma estrutura, mesma conta Hostinger): **foradafila.com.br** (
 - **Instalação sem phpMyAdmin** (`/admin/instalar`): só existe enquanto não há administrador com senha. Pede a senha do
   banco (do `.env` do servidor) como prova de dono, aplica o V001 e cria o administrador. Depois some (redireciona ao login).
 - **Atualizações do banco** (`/admin/banco`, `App\Support\AtualizacaoBanco`): lista os `V0xx`, aplica comando por comando
-  (ignora SELECT/SHOW de conferência), registra em `parametro_sistema` (`banco:V0xx`) e na auditoria. Sem DELIMITER/triggers.
+  (ignora SELECT/SHOW de conferência), registra em `parametro_sistema` (`banco:V0xx`) e na auditoria. Sem DELIMITER/triggers
+  (nem a palavra DELIMITER em comentário). Variável: `SET @x = (SELECT ...)`, nunca `SELECT ... INTO`; no PREPARE usar `DO 0`, não `SELECT 1`.
   Cabeçalho obrigatório na 1ª linha do script: `-- MinhaTropa — V0xx: descrição`. **Toda mudança de banco = novo script V0xx idempotente.**
 - Administração (`/admin`, middleware `admin` = `usuario.admin_plataforma`; os demais recebem 404): Início (números),
   **Haras** (lista com busca/filtro, cadastro com CPF/CNPJ validado, endereço com ViaCEP, situação teste/ativo/suspenso/encerrado
   com motivo, pessoas com acesso e papel), **Contatos do site**, **Administradores** (criar, editar, senha provisória),
-  **Atualizações do banco**, **Auditoria**, Minha senha. Itens "em breve": Planos e cobrança, Mercado Pago, E-mails enviados.
+  **Planos e módulos** (faixas de plantel, módulos, pedidos de upgrade/ativação), **Atualizações do banco**, **Auditoria**, Minha senha.
+  Itens "em breve": Cobrança on-line, Mercado Pago, E-mails enviados.
 - **Área do Haras** (`/entrar`, `/painel`, middleware `haras` = `App\Http\Middleware\IdentificarHaras` + `App\Support\HarasAtual`
-  na sessão; quem tem vários Haras escolhe em `/painel/escolher`): Início (primeiros passos), Animais (`animal`), Dados do Haras,
-  Licença. Ferramentas bloqueadas (🔒) até a licença. Regra em `App\Support\Licenca`. Sem o V002 a área mostra "em atualização".
-- Testes: `fluxo-admin.js` (24) e depois `fluxo-cadastro.js` (16), contra banco limpo.
+  na sessão; quem tem vários Haras escolhe em `/painel/escolher`): Início, Animais, Cobrições, Nascimentos, Transferências,
+  Criador e equipe, Dados da propriedade, Plano e módulos, e os módulos adicionais.
+- Testes: `fluxo-admin.js` (54) e depois `fluxo-cadastro.js` (74), contra banco limpo (`NODE_PATH` com o playwright; `SENHA_BANCO` = senha do `.env`).
+- **Identificação única:** `empresa.documento` (CPF ou CNPJ) é obrigatório e único (`uk_empresa_documento`). Cadastro começa pela
+  titularidade (PF/PJ). **Pessoa Física só cadastra se o CPF tiver cadastro ativo em `profissional`**: os dados são puxados e a pessoa
+  vira titular (`empresa.titular_profissional_id`, `empresa_profissional.titular`). Sem cadastro, o site leva a `/cadastro/profissional`.
+  A consulta pública de CPF devolve nome/e-mail mascarados e exige o mesmo e-mail do cadastro (não expor dados pessoais).
+- **Profissionais** (`profissional`, CPF único) é a base de pessoas físicas; funções em `profissional_especialidade`
+  (inclui "Proprietário de Haras/Fazenda"; acumula várias). Vínculo N:N em `empresa_profissional` (funções, titular, acesso).
+  No painel ("Criador e equipe") e na aba "Criador / proprietário" da Administração, **o primeiro campo é sempre a busca por CPF**.
+- **UF → Município:** nunca usar texto livre para cidade/estado. Usar `<x-uf-municipio>` (+ `public/js/geo.js`) e
+  `App\Support\Geografia` (regras, `colunas()`); tabelas `estado` e `municipio` (IBGE, 5.571 municípios, V007). As colunas
+  `cidade`/`uf` continuam gravadas como cópia do nome oficial.
+- **RBAC:** `App\Support\Permissao` (papel de `empresa_usuario` × área) + middleware `permissao:área` nas rotas do painel.
+  Só o proprietário vê "Plano e módulos". Acesso externo da equipe exige o módulo `equipe`.
+- Sem o banco até o V007, o painel mostra "em atualização" e as telas de Haras/Profissionais/Planos da Administração mandam para `/admin/banco`.
 - Toda ação relevante grava em `auditoria` via `App\Support\Auditoria::registrar()` (senhas nunca entram).
 - Datas: banco em UTC; tela em `America/Sao_Paulo` (helpers `data_local`, `para_input_data`, `utc_de_local` em `app/helpers.php`).
 

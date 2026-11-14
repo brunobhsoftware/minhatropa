@@ -45,7 +45,7 @@
                 <a href="{{ route('cadastro') }}" class="botao botao--amarelo botao--grande">Comece grátis agora <span aria-hidden="true">→</span></a>
                 <a href="#recursos" class="botao botao--contorno-claro botao--grande"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5z" fill="#FFD60A"/></svg> Ver como funciona</a>
             </div>
-            <p class="hero__gratis">Cadastre seu Haras e o 1º animal grátis.</p>
+            <p class="hero__gratis">Cadastre seu Haras / Fazenda e comece grátis{{ ($g = \App\Support\Licenca::faixas()->first()?->limite_max) ? ", com até {$g} animais" : "" }}.</p>
         </div>
     </div>
 </section>
@@ -209,15 +209,19 @@
                     <label class="campo"><span>WhatsApp / telefone</span><input type="tel" name="telefone" value="{{ old('telefone') }}" maxlength="30" autocomplete="tel"></label>
                 </div>
                 <div class="campos-2">
-                    <label class="campo"><span>Nome do Haras</span><input name="haras" value="{{ old('haras') }}" maxlength="150"></label>
-                    <label class="campo"><span>Cidade/UF</span><input name="cidade_uf" value="{{ old('cidade_uf') }}" maxlength="120"></label>
+                    <label class="campo"><span>Nome do Haras / Fazenda</span><input name="haras" value="{{ old('haras') }}" maxlength="150"></label>
+                    <label class="campo"><span>Quantos animais, aproximadamente?</span>
+                        <select name="quantidade_animais">
+                            <option value="">Selecione</option>
+                            @foreach (['Até 20', '21 a 50', '51 a 150', '151 a 500', 'Mais de 500'] as $faixa)<option @selected(old('quantidade_animais') === $faixa)>{{ $faixa }}</option>@endforeach
+                        </select></label>
                 </div>
-                <label class="campo"><span>Quantos animais, aproximadamente?</span>
-                    <select name="quantidade_animais">
-                        <option value="">Selecione</option>
-                        @foreach (['Até 20', '21 a 50', '51 a 150', '151 a 500', 'Mais de 500'] as $faixa)<option @selected(old('quantidade_animais') === $faixa)>{{ $faixa }}</option>@endforeach
-                    </select></label>
-                <label class="campo"><span>Mensagem</span><textarea name="mensagem" rows="3" maxlength="3000" placeholder="Conte um pouco sobre o seu Haras (opcional)">{{ old('mensagem') }}</textarea></label>
+                @if (\App\Support\Esquema::temV007())
+                <div class="campos-2">
+                    <x-uf-municipio />
+                </div>
+                @endif
+                <label class="campo"><span>Mensagem</span><textarea name="mensagem" rows="3" maxlength="3000" placeholder="Conte um pouco sobre a sua propriedade (opcional)">{{ old('mensagem') }}</textarea></label>
                 <button class="botao botao--amarelo botao--grande botao--largo">Quero conhecer o MinhaTropa <span aria-hidden="true">→</span></button>
                 <small class="contato__lgpd">Usamos seus dados só para responder ao seu contato.</small>
             </form>

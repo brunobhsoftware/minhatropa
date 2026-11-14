@@ -17,7 +17,7 @@
         </dl>
     </section>
     <section class="cartao">
-        <h2>Animal e Haras</h2>
+        <h2>Animal e propriedades</h2>
         <dl class="dados">
             <div><dt>Animal</dt><dd>@if ($transferencia->animal)<a href="{{ route('painel.animais.show', $transferencia->animal) }}"><b>{{ $transferencia->animal->nome }}</b></a>@else — @endif</dd></div>
             <div><dt>Origem</dt><dd>{{ $transferencia->origem?->nome ?? '—' }}</dd></div>

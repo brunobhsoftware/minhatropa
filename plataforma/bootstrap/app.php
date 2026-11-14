@@ -14,6 +14,8 @@ $app = Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdministradorPlataforma::class,
             'haras' => \App\Http\Middleware\IdentificarHaras::class,
+            'permissao' => \App\Http\Middleware\VerificarPermissao::class,
+            'banco-atual' => \App\Http\Middleware\BancoAtualizado::class,
         ]);
         // Quem não está logado vai para o login da área que tentou abrir.
         $middleware->redirectGuestsTo(fn ($request) => $request->is('admin*') ? route('admin.entrar') : route('entrar'));

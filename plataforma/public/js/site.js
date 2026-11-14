@@ -11,6 +11,11 @@
       a.addEventListener('click', function () { document.body.classList.remove('menu-aberto'); botao.setAttribute('aria-expanded', 'false'); });
     });
   }
+  // Máscara de CPF
+  document.querySelectorAll('[data-mascara=cpf]').forEach(function (i) {
+    var m = function () { i.value = i.value.replace(/\D/g, '').slice(0, 11).replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2'); };
+    i.addEventListener('input', m); m();
+  });
   // Máscara de telefone no formulário de contato
   document.querySelectorAll('input[type=tel]').forEach(function (i) {
     i.addEventListener('input', function () {

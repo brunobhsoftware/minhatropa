@@ -50,13 +50,17 @@ class AnimaisController extends Controller
             'animais' => $animais,
             'totais' => $totais,
             'podeCadastrar' => Licenca::podeCadastrarAnimal($empresa),
+            'ativosPlantel' => Licenca::animais($empresa),
+            'limite' => Licenca::limite($empresa),
+            'faixa' => Licenca::faixaAtual($empresa),
         ]);
     }
 
     public function create(Request $request)
     {
+        // Trava de limite: no limite da faixa, o cadastro é bloqueado e a tela mostra o aviso com a oferta de upgrade.
         if (! Licenca::podeCadastrarAnimal($request->attributes->get('haras'))) {
-            return redirect()->route('painel.licenca');
+            return redirect()->route('painel.animais')->with('limite_plantel', true);
         }
 
         return view('painel.animais.form', ['animal' => new Animal]);
@@ -65,10 +69,12 @@ class AnimaisController extends Controller
     public function store(Request $request)
     {
         $empresa = $request->attributes->get('haras');
-        if (! Licenca::podeCadastrarAnimal($empresa)) {
-            return redirect()->route('painel.licenca');
-        }
         $dados = $this->validar($request);
+        // Só animal que entra no plantel ativo conta para a faixa (vendido, transferido e morto ficam de fora).
+        $contaNoPlantel = ! in_array($dados['situacao'] ?? 'ativo', Licenca::FORA_DO_PLANTEL, true);
+        if ($contaNoPlantel && ! Licenca::podeCadastrarAnimal($empresa)) {
+            return redirect()->route('painel.animais')->with('limite_plantel', true);
+        }
         $animal = Animal::create($dados + ['empresa_id' => $empresa->id, 'criado_por' => $request->user()->id]);
         Auditoria::registrar('animal.criar', $animal);
 
@@ -96,7 +102,14 @@ class AnimaisController extends Controller
     {
         $this->doHaras($request, $animal);
         $antes = $animal->getAttributes();
-        $animal->update($this->validar($request));
+        $dados = $this->validar($request);
+        // Voltar um animal ao plantel ativo também respeita o limite da faixa.
+        $estavaFora = in_array($animal->situacao, Licenca::FORA_DO_PLANTEL, true);
+        $ficaDentro = ! in_array($dados['situacao'] ?? $animal->situacao, Licenca::FORA_DO_PLANTEL, true);
+        if ($estavaFora && $ficaDentro && ! Licenca::podeCadastrarAnimal($request->attributes->get('haras'))) {
+            return redirect()->route('painel.animais')->with('limite_plantel', true);
+        }
+        $animal->update($dados);
         Auditoria::registrar('animal.editar', $animal, $antes);
 
         return redirect()->route('painel.animais.show', $animal)->with('ok', "Dados de {$animal->nome} salvos.");
