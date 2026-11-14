@@ -15,6 +15,10 @@ Route::post('/cadastro/profissional', [\App\Http\Controllers\Site\CadastroContro
 // Municípios de uma UF (IBGE) para o seletor em cascata UF → Município
 Route::get('/geo/municipios/{uf}', \App\Http\Controllers\Geo\MunicipiosController::class)->name('geo.municipios')->where('uf', '[A-Za-z]{2}');
 
+// Convite do sócio de um animal: cadastro simples pelo link
+Route::get('/convite/{token}', [\App\Http\Controllers\Site\ConviteController::class, 'mostrar'])->name('convite.socio')->where('token', '[A-Za-z0-9]{40}');
+Route::post('/convite/{token}', [\App\Http\Controllers\Site\ConviteController::class, 'aceitar'])->name('convite.socio.aceitar')->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:10,10,convite');
+
 // Página pública de cada Haras / Fazenda e as imagens dela (logomarca, capa, marca)
 Route::get('/h/{slug}', [\App\Http\Controllers\Site\PropriedadeController::class, 'pagina'])->name('propriedade.pagina')->where('slug', '[a-z0-9][a-z0-9\-]*');
 Route::get('/midia/p/{uuid}/{tipo}', [\App\Http\Controllers\Site\PropriedadeController::class, 'imagem'])->name('midia.propriedade')->whereUuid('uuid')->whereIn('tipo', ['logo', 'capa', 'marca']);
@@ -67,6 +71,7 @@ Route::middleware(['auth', 'haras'])->prefix('painel')->group(function () {
             Route::put('/animais/{animal}', [$p.'\AnimaisController', 'update'])->name('animais.salvar');
             Route::put('/animais/{animal}/morte', [$p.'\AnimaisController', 'morte'])->name('animais.morte');
             Route::get('/animais-buscar-genitor', [$p.'\AnimaisController', 'buscarGenitor'])->name('animais.buscar-genitor');
+            Route::get('/animais-buscar-socio', [$p.'\AnimaisController', 'buscarSocio'])->name('animais.buscar-socio');
         });
 
         Route::middleware('permissao:reproducao')->group(function () use ($p) {

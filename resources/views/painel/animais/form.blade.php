@@ -43,6 +43,7 @@
         <button type="button" class="aba-cadastro" data-aba="registro">Registro</button>
         <button type="button" class="aba-cadastro" data-aba="aquisicao">Aquisição</button>
         <button type="button" class="aba-cadastro" data-aba="genealogia">Genealogia</button>
+        @if (\App\Support\Sociedade::disponivel())<button type="button" class="aba-cadastro" data-aba="sociedade">Sociedade</button>@endif
         <button type="button" class="aba-cadastro" data-aba="observacoes">Observações</button>
     </div>
 
@@ -182,6 +183,44 @@
         </section>
     </div>
 
+    {{-- Sociedade: 100% da propriedade ou com sócios (CPF = pessoa; CNPJ = outro Haras / Fazenda) --}}
+    @if (\App\Support\Sociedade::disponivel())
+    @php
+        $linhasSocios = old('socios') !== null
+            ? collect(old('socios'))->map(fn ($l) => ['documento' => $l['documento'] ?? '', 'nome' => $l['nome'] ?? '', 'percentual' => $l['percentual'] ?? ''])->values()
+            : $socios->map(fn ($s) => ['documento' => \App\Support\Documento::formatar($s->documento), 'nome' => $s->nome_atual, 'percentual' => rtrim(rtrim(number_format((float) $s->percentual, 2, ',', ''), '0'), ',')])->values();
+        $comSocios = old('sociedade', $socios->isNotEmpty() ? 'socios' : 'propria') === 'socios';
+    @endphp
+    <div class="painel-aba painel-aba--oculto" id="aba-sociedade">
+        <section class="cartao"><h2>Sociedade</h2>
+            <p class="suave" style="margin-bottom:1rem">Diga se o animal é todo {{ $haras->doRotulo() }} ou se tem sócios. Sócio pessoa entra pelo CPF; sócio Haras / Fazenda, pelo CNPJ.</p>
+            <div class="opcoes-situacao">
+                <label class="opcao-cartao"><input type="radio" name="sociedade" value="propria" @checked(! $comSocios)> 100% de {{ $haras->nome }}</label>
+                <label class="opcao-cartao"><input type="radio" name="sociedade" value="socios" @checked($comSocios)> Tem sócios</label>
+            </div>
+            <div id="blocoSocios" data-busca="{{ route('painel.animais.buscar-socio') }}" @if (! $comSocios) hidden @endif style="margin-top:16px">
+                <div id="listaSocios" class="socios">
+                    @foreach ($linhasSocios->isEmpty() ? [['documento' => '', 'nome' => '', 'percentual' => '']] : $linhasSocios as $i => $l)
+                    <div class="socio" data-socio>
+                        <label class="campo"><span>CPF ou CNPJ do sócio</span><input name="socios[{{ $i }}][documento]" value="{{ $l['documento'] }}" data-socio-doc inputmode="numeric" maxlength="18" autocomplete="off" placeholder="Digite e o sistema procura"></label>
+                        <label class="campo"><span>Nome</span><input name="socios[{{ $i }}][nome]" value="{{ $l['nome'] }}" data-socio-nome maxlength="150" placeholder="Aparece ao achar o cadastro"></label>
+                        <label class="campo socio__pct"><span>Parte (%)</span><input name="socios[{{ $i }}][percentual]" value="{{ $l['percentual'] }}" data-socio-pct inputmode="decimal" maxlength="6" placeholder="0"></label>
+                        <button type="button" class="botao botao--contorno botao--pequeno socio__tirar" data-socio-tirar aria-label="Tirar este sócio">Tirar</button>
+                        <small class="socio__aviso" data-socio-aviso></small>
+                    </div>
+                    @endforeach
+                </div>
+                <button type="button" class="botao botao--contorno botao--pequeno" id="btnAddSocio"><x-icone nome="mais" :tamanho="16" /> Adicionar sócio</button>
+                <div class="socios-resumo" id="resumoSocios" aria-live="polite">
+                    <span>Sócios: <b data-total-socios>0%</b></span>
+                    <span>{{ $haras->nome }}: <b data-total-proprio>100%</b></span>
+                </div>
+                <p class="suave"><small>A parte {{ $haras->doRotulo() }} é o que sobra dos sócios. Sócio sem cadastro no MinhaTropa recebe um link de convite, que aparece na ficha do animal depois de salvar.</small></p>
+            </div>
+        </section>
+    </div>
+    @endif
+
     {{-- Observações --}}
     <div class="painel-aba painel-aba--oculto" id="aba-observacoes">
         <section class="cartao"><h2>Observações</h2>
@@ -202,7 +241,73 @@
     };
     botoes.forEach(function (b) { b.addEventListener('click', function () { abrir(b.dataset.aba); }); });
     var erros = @json($errors->keys());
+    if (!erros.length && location.hash && document.getElementById('aba-' + location.hash.slice(1))) abrir(location.hash.slice(1));
+    if (erros.some(function (n) { return n === 'sociedade' || n.indexOf('socios.') === 0; })) { abrir('sociedade'); return; }
     erros.some(function (nome) { var c = document.querySelector('.formulario [name="' + nome + '"]'); var p = c && c.closest('.painel-aba'); if (p) { abrir(p.id.replace('aba-', '')); return true; } return false; });
+})();
+
+// Sociedade: linhas de sócios com busca pelo CPF/CNPJ e soma dos percentuais
+(function () {
+    var bloco = document.getElementById('blocoSocios'); if (!bloco) return;
+    var lista = document.getElementById('listaSocios');
+    var digitos = function (v) { return v.replace(/\D/g, ''); };
+    var mascara = function (v) {
+        v = digitos(v).slice(0, 14);
+        if (v.length > 11) return v.replace(/^(\d{2})(\d)/, '$1.$2').replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3').replace(/\.(\d{3})(\d)/, '.$1/$2').replace(/(\d{4})(\d)/, '$1-$2');
+        return v.replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    };
+    var numero = function (v) { var n = parseFloat(String(v).replace(',', '.')); return isNaN(n) ? 0 : n; };
+    var texto = function (n) { return (Math.round(n * 100) / 100).toString().replace('.', ',') + '%'; };
+    var somar = function () {
+        var total = 0; lista.querySelectorAll('[data-socio-pct]').forEach(function (i) { total += numero(i.value); });
+        bloco.querySelector('[data-total-socios]').textContent = texto(total);
+        bloco.querySelector('[data-total-proprio]').textContent = texto(Math.max(0, 100 - total));
+        document.getElementById('resumoSocios').classList.toggle('socios-resumo--erro', total > 100.001);
+    };
+    var buscar = function (linha) {
+        var doc = linha.querySelector('[data-socio-doc]'), nome = linha.querySelector('[data-socio-nome]'), aviso = linha.querySelector('[data-socio-aviso]');
+        var d = digitos(doc.value);
+        if (d.length !== 11 && d.length !== 14) { aviso.textContent = ''; aviso.className = 'socio__aviso'; nome.readOnly = false; return; }
+        if (linha.dataset.buscado === d) return;
+        aviso.textContent = 'Procurando…'; aviso.className = 'socio__aviso';
+        fetch(bloco.dataset.busca + '?documento=' + d, { headers: { Accept: 'application/json' } }).then(function (r) { return r.json(); }).then(function (r) {
+            if (digitos(doc.value) !== d) return;
+            linha.dataset.buscado = d;
+            if (r.situacao === 'encontrado') {
+                nome.value = r.nome; nome.readOnly = true;
+                aviso.textContent = '✓ ' + (r.tipo === 'propriedade' ? 'Haras / Fazenda' : 'Profissional') + ' com cadastro no MinhaTropa' + (r.detalhe ? ' · ' + r.detalhe : '');
+                aviso.className = 'socio__aviso socio__aviso--ok';
+            } else if (r.situacao === 'novo') {
+                nome.readOnly = false;
+                aviso.textContent = (r.tipo === 'propriedade' ? 'CNPJ' : 'CPF') + ' ainda sem cadastro: informe o nome. Depois de salvar, a ficha do animal traz o link de convite para enviar.';
+                aviso.className = 'socio__aviso socio__aviso--novo';
+                if (!nome.value) nome.focus();
+            } else {
+                nome.readOnly = false; aviso.textContent = r.mensagem || 'Documento inválido.'; aviso.className = 'socio__aviso socio__aviso--erro';
+            }
+        }).catch(function () { aviso.textContent = 'Não foi possível procurar agora.'; aviso.className = 'socio__aviso socio__aviso--erro'; });
+    };
+    var ligar = function (linha) {
+        var doc = linha.querySelector('[data-socio-doc]');
+        doc.addEventListener('input', function () { doc.value = mascara(doc.value); linha.dataset.buscado = ''; if (digitos(doc.value).length === 14) buscar(linha); });
+        doc.addEventListener('blur', function () { buscar(linha); });
+        linha.querySelector('[data-socio-pct]').addEventListener('input', somar);
+        linha.querySelector('[data-socio-tirar]').addEventListener('click', function () {
+            if (lista.querySelectorAll('[data-socio]').length > 1) { linha.remove(); } else { linha.querySelectorAll('input').forEach(function (i) { i.value = ''; i.readOnly = false; }); linha.querySelector('[data-socio-aviso]').textContent = ''; linha.dataset.buscado = ''; }
+            somar();
+        });
+        if (digitos(doc.value).length >= 11) buscar(linha);
+    };
+    lista.querySelectorAll('[data-socio]').forEach(ligar);
+    document.getElementById('btnAddSocio').addEventListener('click', function () {
+        var modelo = lista.querySelector('[data-socio]'), nova = modelo.cloneNode(true), n = Date.now();
+        nova.dataset.buscado = '';
+        nova.querySelectorAll('input').forEach(function (i) { i.value = ''; i.readOnly = false; i.name = i.name.replace(/socios\[[^\]]+\]/, 'socios[' + n + ']'); });
+        nova.querySelector('[data-socio-aviso]').textContent = ''; nova.querySelector('[data-socio-aviso]').className = 'socio__aviso';
+        lista.appendChild(nova); ligar(nova); nova.querySelector('[data-socio-doc]').focus();
+    });
+    document.querySelectorAll('[name=sociedade]').forEach(function (r) { r.addEventListener('change', function () { bloco.hidden = r.value !== 'socios' || !r.checked; }); });
+    somar();
 })();
 
 // Raça: lista pronta; "Outra (digitar)" mostra o campo de texto. O valor enviado é sempre o do campo "raca".

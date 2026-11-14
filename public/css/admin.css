@@ -369,3 +369,15 @@ a.ocorrencia:hover{border-color:var(--azul-3);box-shadow:0 6px 16px rgba(16,24,4
 .selo--pequeno{font-size:.7rem;padding:1px 6px}
 .grade-4{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--gap,1rem)}
 @media(max-width:640px){.calendario--semana .calendario__corpo{grid-template-columns:1fr}.calendario__cabecalho{display:none}.grade-4{grid-template-columns:repeat(2,1fr)}}
+
+/* Sociedade do animal: linhas de sócios, resumo e convite */
+.socios{display:grid;gap:12px;margin-bottom:12px}
+.socio{display:grid;grid-template-columns:minmax(170px,1.1fr) minmax(170px,1.6fr) 110px auto;gap:10px;align-items:end;border:1px solid var(--cinza-2);border-radius:12px;padding:12px}
+.socio__aviso{grid-column:1/-1;color:var(--suave);font-size:.85rem;min-height:1.1em}
+.socio__aviso--ok{color:var(--verde)}.socio__aviso--novo{color:#93370d}.socio__aviso--erro{color:var(--vermelho)}
+.socio input[readonly]{background:var(--cinza)}
+.socios-resumo{display:flex;gap:20px;flex-wrap:wrap;margin:14px 0 8px;padding:10px 14px;border-radius:10px;background:var(--verde-claro)}
+.socios-resumo--erro{background:#fef3f2;color:var(--vermelho)}
+.convite{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;align-items:center}
+.convite input{flex:1;min-width:180px;font-size:.82rem;padding:6px 8px;background:var(--cinza)}
+@media(max-width:720px){.socio{grid-template-columns:1fr 1fr}.socio>.campo:first-child,.socio>.campo:nth-child(2){grid-column:1/-1}}

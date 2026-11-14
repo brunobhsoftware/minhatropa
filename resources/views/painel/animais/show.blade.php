@@ -3,7 +3,7 @@
 @section('conteudo')
 <div class="cabecalho">
     <div>
-        <p class="migalha"><a href="{{ route('painel.animais') }}">Animais</a> ›</p>
+        <p class="migalha"><a href="{{ route('painel.animais') }}">Meu Plantel</a> ›</p>
         <h1>{{ $animal->nome }} <span class="selo selo--{{ $animal->situacao }}">{{ $animal->situacaoTexto() }}</span></h1>
         <p>{{ $animal->especieTexto() }} · {{ $animal->categoriaTexto() }} · {{ $animal->raca ?: 'Sem raça' }} · {{ $animal->pelagemTexto() }} · {{ $animal->idade() }}</p>
     </div>
@@ -11,6 +11,42 @@
         <a href="{{ route('painel.animais.editar', $animal) }}" class="botao botao--primario"><x-icone nome="editar" :tamanho="16" /> Editar</a>
     </div>
 </div>
+
+@if (\App\Support\Sociedade::disponivel())
+<section class="cartao" id="sociedade">
+    <div class="cartao__titulo"><h2>Sociedade</h2><a href="{{ route('painel.animais.editar', $animal) }}#sociedade">Alterar</a></div>
+    @if ($socios->isEmpty())
+        <p><b>100% de {{ $haras->nome }}.</b> <span class="suave">Sem sócios.</span></p>
+    @else
+    <div class="tabela-rolagem"><table class="tabela">
+        <thead><tr><th>Sócio</th><th>CPF / CNPJ</th><th class="num">Parte</th><th>Cadastro no MinhaTropa</th></tr></thead>
+        <tbody>
+            <tr><td><b>{{ $haras->nome }}</b> <small class="suave">esta propriedade</small></td><td>{{ $haras->documentoFormatado() }}</td><td class="num"><b>{{ \App\Support\Sociedade::pct($parteDaPropriedade) }}</b></td><td>—</td></tr>
+            @foreach ($socios as $s)
+            <tr data-socio-doc="{{ $s->documento }}">
+                <td><b>{{ $s->nome_atual }}</b>@if ($s->detalhe)<br><small class="suave">{{ $s->detalhe }}</small>@endif</td>
+                <td>{{ \App\Support\Documento::formatar($s->documento) }}</td>
+                <td class="num"><b>{{ \App\Support\Sociedade::pct($s->percentual) }}</b></td>
+                <td>
+                    @if ($s->com_conta)
+                        <span class="selo selo--ativo">Cadastrado</span>
+                    @else
+                        <span class="selo selo--solicitado">{{ $s->cadastrado ? 'Cadastrado, sem acesso' : 'Aguardando cadastro' }}</span>
+                        <div class="convite">
+                            <input readonly value="{{ $s->convite_url }}" aria-label="Link de convite de {{ $s->nome_atual }}" onfocus="this.select()">
+                            <button type="button" class="botao botao--contorno botao--pequeno" data-copiar="{{ $s->convite_url }}">Copiar link</button>
+                            <a class="botao botao--contorno botao--pequeno" target="_blank" rel="noopener" href="https://wa.me/?text={{ rawurlencode('Olá, '.strtok($s->nome_atual, ' ').'! Você foi lançado(a) como sócio(a) do animal '.$animal->nome.' ('.\App\Support\Sociedade::pct($s->percentual).') em '.$haras->nome.', no MinhaTropa. Faça seu cadastro por este link: '.$s->convite_url) }}">WhatsApp</a>
+                        </div>
+                    @endif
+                </td>
+            </tr>
+            @endforeach
+        </tbody>
+    </table></div>
+    <p class="suave" style="margin-top:10px"><small>Envie o link de convite a quem ainda não tem cadastro: é um cadastro simples, e depois dele o sócio vê o animal no painel profissional.</small></p>
+    @endif
+</section>
+@endif
 
 <div class="grade-2">
     <section class="cartao">

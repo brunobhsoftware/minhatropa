@@ -50,4 +50,19 @@
         </tbody>
     </table></div>
 </section>
+@if ($sociedades->isNotEmpty())
+<section class="cartao" style="margin-top:1.5rem" data-sociedades>
+    <h2>Animais em sociedade em outras propriedades</h2>
+    <p class="suave" style="margin-bottom:.75rem">{{ $haras->nome }} tem parte nestes animais, cadastrados em outra propriedade. Eles não contam no seu plantel.</p>
+    <div class="tabela-rolagem"><table class="tabela">
+        <thead><tr><th>Animal</th><th>Onde está cadastrado</th><th class="num">Nossa parte</th></tr></thead>
+        <tbody>
+        @foreach ($sociedades as $s)
+            <tr><td><b>{{ $s->nome }}</b> <small class="suave">{{ $s->raca }}</small></td><td>{{ $s->propriedade }} <small class="suave">{{ $s->cidade ? $s->cidade.'/'.$s->uf : '' }}</small></td>
+                <td class="num"><b>{{ \App\Support\Sociedade::pct($s->percentual) }}</b></td></tr>
+        @endforeach
+        </tbody>
+    </table></div>
+</section>
+@endif
 @endsection
