@@ -53,7 +53,26 @@ const mascara = (d) => d.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
 
   // ---------- Faixas de plantel: 5 grátis, trava no 6º, upgrade ----------
   const animal = async (nome) => { await c.goto(B + '/painel/animais/novo'); if (!c.url().endsWith('/novo')) return false; await c.fill('[name=nome]', nome); await c.click('button:has-text("Cadastrar animal")'); await c.waitForLoadState(); return (await c.content()).includes(nome + ' cadastrado'); };
-  let cinco = true; for (const n of ['Estrela', 'Trovão', 'Faísca', 'Pérola', 'Zorro']) cinco = (await animal(n)) && cinco;
+  // cadastro de animal já vem o mais preenchido possível
+  await c.goto(B + '/painel/haras'); await c.click('[data-aba=criacao]'); await c.check('[name="racas[]"][value="Campolina"]'); await c.click('button:has-text("Salvar")'); await c.waitForLoadState();
+  await c.goto(B + '/painel/animais/novo');
+  conf((await c.locator('.abas-cadastro .aba-cadastro').allTextContents()).map((t) => t.trim()).includes('Registro') && !(await c.textContent('.abas-cadastro')).includes('Registro e saúde'), 'botão "Registro" no cadastro de animal');
+  conf(await c.locator('#aba-identificacao').isVisible() && await c.locator('#aba-registro').isHidden(), 'cadastro de animal mostra uma seção por vez');
+  await c.click('[data-aba=registro]'); conf(await c.locator('#aba-registro').isVisible() && await c.locator('#aba-identificacao').isHidden(), 'botão Registro troca a seção');
+  await c.click('[data-aba=identificacao]');
+  conf(await c.inputValue('[name=especie]') === 'equino' && await c.inputValue('[name=sexo]') === '', 'espécie já vem Equino; sexo fica para preencher');
+  conf(await c.inputValue('#selRaca') === 'Campolina' && await c.inputValue('[name=raca]') === 'Campolina' && (await c.locator('#selRaca optgroup').first().getAttribute('label')).includes('Fazenda'), 'raça em lista, com a raça da propriedade já escolhida');
+  await c.fill('[name=nome]', 'Estrela Dalva do Sul');
+  conf(await c.inputValue('[name=nome_registro]') === 'Estrela Dalva do Sul' && await c.inputValue('[name=apelido]') === 'Estrela', 'nome de registro copia o nome e o apelido recebe o primeiro nome');
+  await c.fill('[name=apelido]', 'Dalvinha'); await c.fill('[name=nome]', 'Estrela Dalva');
+  conf(await c.inputValue('[name=apelido]') === 'Dalvinha' && await c.inputValue('[name=nome_registro]') === 'Estrela Dalva', 'o que foi digitado à mão não é sobrescrito');
+  await c.selectOption('#selRaca', '__outra'); conf(await c.locator('[name=raca]').isVisible() && await c.inputValue('[name=raca]') === '', '"Outra" libera a digitação da raça');
+  await c.fill('[name=raca]', 'Bretão'); await c.selectOption('#selPelagem', 'outra'); conf((await c.textContent('#rotuloPelagemComp')) === 'Qual pelagem?', 'pelagem "Outra" pede qual é');
+  await c.fill('[name=pelagem_complemento]', 'Isabel'); await c.fill('[name=nome]', 'Estrela');
+  await c.screenshot({ path: '/tmp/mt-animal-form.png', fullPage: true });
+  await c.click('button:has-text("Cadastrar animal")'); await c.waitForLoadState();
+  h = await c.content(); conf(h.includes('Estrela cadastrado') && h.includes('Bretão') && h.includes('Isabel'), 'animal salvo com raça e pelagem digitadas');
+  let cinco = true; for (const n of ['Trovão', 'Faísca', 'Pérola', 'Zorro']) cinco = (await animal(n)) && cinco;
   conf(cinco, '5 animais cadastrados no plano gratuito');
   conf((await c.content()).includes('5 de 5'), 'contador 5 de 5');
   await c.goto(B + '/painel/animais/novo');

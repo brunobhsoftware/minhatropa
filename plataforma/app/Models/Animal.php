@@ -220,6 +220,10 @@ class Animal extends Model
 
     public function pelagemTexto(): string
     {
+        // Pelagem "Outra": o que vale é o que a pessoa digitou.
+        if ($this->pelagem === 'outra' && $this->pelagem_complemento) {
+            return $this->pelagem_complemento;
+        }
         $p = self::PELAGENS[$this->pelagem] ?? $this->pelagem ?? '';
         if ($this->pelagem_complemento) {
             $p .= ' ('.$this->pelagem_complemento.')';
