@@ -69,6 +69,16 @@ class Esquema
         }
     }
 
+    /** V008: página pública da propriedade (logomarca, capa, cores). Opcional: sem ele, só essa parte fica escondida. */
+    public static function temV008(): bool
+    {
+        try {
+            return self::$cache['v008'] ??= Schema::hasColumn('empresa', 'pagina_ativa');
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
     /** O banco tem tudo o que as telas atuais usam (até o V007)? */
     public static function atual(): bool
     {

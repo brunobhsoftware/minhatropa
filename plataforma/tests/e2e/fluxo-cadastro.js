@@ -12,7 +12,9 @@ const mascara = (d) => d.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
 
   // ---------- Onboarding: Pessoa Física ----------
   const c = await pagina(b, { viewport: { width: 1366, height: 900 } });
-  await c.goto(B + '/'); await c.click('.topo__acoes >> text=Cadastre seu Haras / Fazenda'); await c.waitForLoadState();
+  await c.goto(B + '/'); await c.click('[data-opcoes=cadastrar] summary');
+  conf(await c.locator('[data-opcoes=cadastrar] a').count() === 2, 'cadastrar: Haras / Fazenda ou Profissional');
+  await c.click('[data-opcoes=cadastrar] >> text=Cadastrar Haras / Fazenda'); await c.waitForLoadState();
   let h = await c.content();
   conf(!h.includes('1º animal') && !h.includes('2º animal'), 'sem a regra antiga do 1º animal grátis');
   conf(h.includes('Até 5 animais grátis'), 'plano gratuito de até 5 animais');
@@ -26,26 +28,26 @@ const mascara = (d) => d.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
   conf(c.url().includes('/cadastro/profissional') && (await c.inputValue('[name=cpf]')) === mascara(CPF_ANA), 'direciona ao cadastro de Profissional com o CPF');
   conf(await c.isChecked('[name="especialidades[]"][value=proprietario]'), 'função Proprietário de Haras/Fazenda já marcada');
   await c.fill('[name=nome]', 'Ana Proprietária'); await c.fill('[name=email]', 'ana@fazendaboa.com.br'); await c.fill('[name=telefone]', '35999990000');
-  await c.check('[name="especialidades[]"][value=treinador]');
+  await c.check('[name="especialidades[]"][value=treinador]'); await c.fill('[name=senha]', 'senha1234'); await c.fill('[name=senha_confirmation]', 'senha1234');
   await c.click('button:has-text("Concluir e continuar")'); await c.waitForLoadState();
   conf((await c.content()).includes('Selecione a UF'), 'UF e município obrigatórios no cadastro de Profissional');
-  await local(c, 'MG', 'Lavras'); await c.click('button:has-text("Concluir e continuar")'); await c.waitForLoadState();
-  conf(c.url().includes('/cadastro?cpf=') && (await c.content()).includes('Cadastro de Profissional concluído'), 'volta ao cadastro da propriedade');
-  await c.waitForSelector('.consulta-cpf--ok');
-  conf((await c.textContent('#resultadoCpf')).includes('Ana Proprietária'), 'dados do profissional puxados pelo CPF');
-  conf(await c.inputValue('[name=email]') === 'ana@fazendaboa.com.br' && (await c.inputValue('[name=telefone]')).replace(/\D/g, '') === '35999990000', 'e-mail e telefone preenchidos sem redigitação');
-  conf(await c.locator('[name=nome]').isHidden(), 'PF não redigita o nome');
-  conf((await c.textContent('#rotuloNome')).includes('Fazenda') || await c.isChecked('[name=tipo_propriedade][value=haras]'), 'rótulo acompanha o tipo');
+  await local(c, 'MG', 'Lavras'); await c.fill('[name=senha]', 'senha1234'); await c.fill('[name=senha_confirmation]', 'senha1234');
+  await c.click('button:has-text("Concluir e continuar")'); await c.waitForLoadState();
+  conf(c.url().endsWith('/cadastro') && (await c.content()).includes('Cadastro de Profissional concluído'), 'volta ao cadastro da propriedade, já com a conta criada');
+  h = await c.content();
+  conf(h.includes('Ana Proprietária') && h.includes(mascara(CPF_ANA)) && h.includes('proprietário titular'), 'dados do profissional puxados pelo CPF');
+  conf(await c.locator('[name=email]').count() === 0 && await c.locator('[name=senha]').count() === 0 && await c.locator('[name=nome]').count() === 0, 'sem redigitar nome, e-mail e senha');
+  conf(await c.isChecked('[name=titularidade][value=cpf]'), 'Pessoa Física já selecionada com o CPF do profissional');
   await c.check('[name=tipo_propriedade][value=fazenda]');
+  conf((await c.textContent('#rotuloNome')).includes('Fazenda'), 'rótulo acompanha o tipo');
   await c.fill('[name=haras]', 'Fazenda Boa Esperança');
   conf(await c.locator('[data-geo-busca]').isDisabled(), 'município desabilitado até a UF');
-  await c.selectOption('[name=quantidade_animais]', '21 a 50'); await c.fill('[name=senha]', 'senha1234'); await c.fill('[name=senha_confirmation]', 'senha1234'); await c.check('[name=aceite]');
-  await c.click('button:has-text("Criar minha conta")'); await c.waitForLoadState();
+  await c.selectOption('[name=quantidade_animais]', '21 a 50'); await c.check('[name=aceite]');
+  await c.click('button:has-text("Cadastrar meu Haras / Fazenda")'); await c.waitForLoadState();
   conf((await c.content()).includes('Selecione a UF'), 'UF/município obrigatórios no cadastro da propriedade');
-  await c.waitForSelector('.consulta-cpf--ok'); await local(c, 'MG', 'Lavras');
-  await c.fill('[name=senha]', 'senha1234'); await c.fill('[name=senha_confirmation]', 'senha1234'); await c.check('[name=aceite]');
+  await local(c, 'MG', 'Lavras'); await c.check('[name=aceite]');
   await c.screenshot({ path: '/tmp/mt-cadastro.png', fullPage: true });
-  await c.click('button:has-text("Criar minha conta")'); await c.waitForLoadState();
+  await c.click('button:has-text("Cadastrar meu Haras / Fazenda")'); await c.waitForLoadState();
   conf(c.url() === B + '/painel', 'entrou no painel: ' + c.url());
   h = await c.content();
   conf(h.includes('Dados da Fazenda') && h.includes('painel da Fazenda'), 'interface chama a propriedade de Fazenda');
@@ -55,7 +57,7 @@ const mascara = (d) => d.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
   conf(h.includes('Ana Proprietária') && h.includes('Criador / proprietário titular'), 'profissional vinculado como proprietário titular');
   await c.goto(B + '/painel/haras'); h = await c.content();
   conf(h.includes(mascara(CPF_ANA)) && h.includes('Pessoa Física (CPF)'), 'propriedade indexada pelo CPF');
-  await c.waitForFunction(() => document.querySelector('[data-geo-busca]').value === 'Lavras');
+  await c.click('[data-aba=endereco]'); await c.waitForFunction(() => document.querySelector('[data-geo-busca]').value === 'Lavras');
   await c.fill('[name=logradouro]', 'Estrada Velha, km 5'); await c.fill('[name=cep]', '37200000'); await c.click('button:has-text("Salvar")'); await c.waitForLoadState();
   conf((await c.content()).includes('Dados da Fazenda salvos'), 'dados da propriedade salvos');
 
@@ -137,7 +139,7 @@ const mascara = (d) => d.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
   conf((await t.goto(B + '/painel/modulos/nutricao')).status() === 200 && (await t.content()).includes('Peça ao proprietário'), 'módulo bloqueado para a equipe: pede ao proprietário');
   // retirar acesso
   await c.goto(B + '/painel/profissionais'); const l2 = c.locator('details:has-text("acesso de Pedro")'); await l2.locator('summary').click(); await l2.locator('button:has-text("Retirar acesso")').click(); await c.waitForLoadState();
-  conf((await t.goto(B + '/painel')).status() === 403, 'acesso retirado vale na hora');
+  await t.goto(B + '/painel'); conf(t.url().endsWith('/profissional') && (await t.content()).includes('Sem acesso ao painel'), 'acesso retirado vale na hora (vai para o ambiente do profissional)');
 
   // ---------- Onboarding: Pessoa Jurídica e documento único ----------
   const d = await pagina(b); await d.goto(B + '/cadastro');
@@ -156,8 +158,10 @@ const mascara = (d) => d.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
   await d.goto(B + '/cadastro'); await d.check('[name=titularidade][value=cpf]'); await d.fill('#documento', CPF_ANA); await d.waitForSelector('.consulta-cpf--erro');
   conf((await d.textContent('#resultadoCpf')).includes('Já existe um Haras / Fazenda cadastrado com esse CPF'), 'CPF repetido recusado');
   // consulta pública do CPF não expõe dados pessoais
-  await d.fill('#documento', ''); await d.fill('#documento', CPF_PEDRO); await d.waitForSelector('.consulta-cpf--ok'); h = await d.textContent('#resultadoCpf');
-  conf(h.includes('Pedro T.') && !h.includes('Pedro Tratador') && !h.includes('pedro@exemplo.com.br'), 'consulta pública mostra o nome mascarado');
+  await d.fill('#documento', ''); await d.fill('#documento', CPF_PEDRO); await d.waitForSelector('.consulta-cpf--bloqueio'); h = await d.textContent('#resultadoCpf');
+  conf(h.includes('já tem conta') && !h.includes('Pedro') && !h.includes('pedro@exemplo.com.br'), 'CPF com conta: manda entrar, sem expor dados');
+  await d.fill('#documento', ''); await d.fill('#documento', CPF_JOAO); await d.waitForSelector('.consulta-cpf--erro'); h = await d.textContent('#resultadoCpf');
+  conf(h.includes('Já existe um Haras / Fazenda') && !h.includes('João'), 'consulta pública não mostra o nome de quem já tem propriedade');
 
   // sair / entrar / admin 404 / celular
   await c.click('button:has-text("Sair")'); await c.waitForLoadState(); conf(c.url().endsWith('/entrar'), 'saiu');

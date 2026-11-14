@@ -280,3 +280,33 @@ input[type=checkbox],input[type=radio]{width:auto}
 .selo--solicitado{background:#fff8d1;color:#7a5d00}
 .acesso-form{display:grid;gap:10px;margin-top:10px;max-width:520px}
 [hidden]{display:none!important}
+
+/* Página da propriedade: imagens, cores e prévia */
+.campo-prefixo{display:flex;align-items:center;border:1px solid var(--cinza-2);border-radius:var(--raio);background:#fff;overflow:hidden}
+.campo-prefixo>span{padding:0 4px 0 12px;color:var(--suave);white-space:nowrap;font-size:.9rem}
+.campo-prefixo input{border:0!important;box-shadow:none!important;flex:1;min-width:80px;padding-left:2px}
+.imagem-campo__atual{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.imagem-campo__atual img{max-height:96px;max-width:200px;border:1px solid var(--cinza-2);border-radius:10px;padding:6px;background:#fff;object-fit:contain}
+.imagem-campo input[type=file]{padding:8px;border:1px dashed var(--cinza-2);border-radius:var(--raio);background:#fff;width:100%}
+.cores-campo{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-top:16px;align-items:start}
+.cor-campo{display:flex;align-items:center;gap:10px}
+.cor-campo input[type=color]{width:56px;height:40px;padding:2px;border:1px solid var(--cinza-2);border-radius:8px;background:#fff;cursor:pointer}
+.cor-campo output{font-variant-numeric:tabular-nums;color:var(--suave)}
+.cores-previa{border:1px solid var(--cinza-2);border-radius:12px;overflow:hidden;font-size:.88rem}
+.cores-previa__topo{background:var(--p);color:var(--sp,#fff);padding:14px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.cores-previa__topo span{background:var(--sp,#fff);color:var(--p);border-radius:999px;padding:3px 12px;font-weight:600}
+.cores-previa__corpo{background:var(--f);color:var(--sf,#101828);padding:14px}
+.abas-cadastro{overflow-x:auto}
+
+/* Entrar: Haras / Fazenda ou Profissional; menu do ambiente do profissional */
+.escolha-ambiente{border:0;padding:0;margin:0;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.escolha-ambiente label{position:relative;cursor:pointer}
+.escolha-ambiente input{position:absolute;opacity:0;inset:0;cursor:pointer}
+.escolha-ambiente span{display:grid;gap:1px;border:1px solid var(--cinza-2);border-radius:12px;padding:10px 12px;background:#fff}
+.escolha-ambiente small{color:var(--suave);font-size:.78rem;line-height:1.3}
+.escolha-ambiente input:checked+span{border-color:var(--azul);box-shadow:0 0 0 1px var(--azul);background:#fff8d1}
+.escolha-ambiente input:focus-visible+span{outline:2px solid var(--azul-3);outline-offset:2px}
+.oculto-visual{position:absolute;left:-9999px}
+.menu-lateral__form{margin:0}
+.menu-lateral__form button{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:10px;color:#d0d5dd;cursor:pointer;font:inherit}
+.menu-lateral__form button:hover{background:rgba(255,255,255,.08);color:#fff}

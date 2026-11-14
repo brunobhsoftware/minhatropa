@@ -37,7 +37,7 @@ return [
         */
         'midia' => [
             'driver' => 'local',
-            'root' => env('MT_ARMAZENAMENTO', storage_path('app/midia')),
+            'root' => env('MT_ARMAZENAMENTO') ?: storage_path('app/midia'), // vazio no .env também cai no padrão
             'visibility' => 'private',
             'throw' => true,
             'report' => false,

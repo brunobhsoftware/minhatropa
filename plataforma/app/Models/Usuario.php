@@ -48,6 +48,12 @@ class Usuario extends Authenticatable
         return $this->belongsToMany(Empresa::class, 'empresa_usuario')->withPivot(['id', 'papel', 'status']);
     }
 
+    /** Cadastro de Profissional (pessoa física) desta conta, quando existe. */
+    public function profissional(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(Profissional::class, 'usuario_id')->whereNull('excluido_em');
+    }
+
     public function primeiroNome(): string
     {
         return strtok($this->nome, ' ') ?: $this->nome;

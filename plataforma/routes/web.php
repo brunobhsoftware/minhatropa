@@ -15,6 +15,10 @@ Route::post('/cadastro/profissional', [\App\Http\Controllers\Site\CadastroContro
 // Municípios de uma UF (IBGE) para o seletor em cascata UF → Município
 Route::get('/geo/municipios/{uf}', \App\Http\Controllers\Geo\MunicipiosController::class)->name('geo.municipios')->where('uf', '[A-Za-z]{2}');
 
+// Página pública de cada Haras / Fazenda e as imagens dela (logomarca, capa, marca)
+Route::get('/h/{slug}', [\App\Http\Controllers\Site\PropriedadeController::class, 'pagina'])->name('propriedade.pagina')->where('slug', '[a-z0-9][a-z0-9\-]*');
+Route::get('/midia/p/{uuid}/{tipo}', [\App\Http\Controllers\Site\PropriedadeController::class, 'imagem'])->name('midia.propriedade')->whereUuid('uuid')->whereIn('tipo', ['logo', 'capa', 'marca']);
+
 // ---------- Área do Haras ----------
 Route::middleware('guest')->group(function () {
     Route::get('/entrar', [\App\Http\Controllers\Auth\EntrarController::class, 'create'])->name('entrar');
@@ -25,6 +29,13 @@ Route::middleware('auth')->prefix('painel')->name('painel.')->group(function () 
     Route::get('/escolher', [\App\Http\Controllers\Painel\PainelController::class, 'escolher'])->name('escolher');
     Route::post('/trocar/{empresa}', [\App\Http\Controllers\Painel\PainelController::class, 'trocar'])->name('trocar');
 });
+// ---------- Ambiente do profissional ----------
+Route::middleware('auth')->prefix('profissional')->name('profissional.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Profissional\AreaController::class, 'inicio'])->name('inicio');
+    Route::get('/dados', [\App\Http\Controllers\Profissional\AreaController::class, 'dados'])->name('dados');
+    Route::put('/dados', [\App\Http\Controllers\Profissional\AreaController::class, 'salvar'])->name('dados.salvar');
+});
+
 Route::middleware(['auth', 'haras'])->prefix('painel')->group(function () {
     $p = '\App\Http\Controllers\Painel';
     Route::get('/', [$p.'\PainelController', 'inicio'])->name('painel');

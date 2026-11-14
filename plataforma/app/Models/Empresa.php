@@ -93,6 +93,8 @@ class Empresa extends Model
         'corresp_cep', 'corresp_logradouro', 'corresp_numero', 'corresp_complemento', 'corresp_bairro', 'corresp_cidade', 'corresp_uf', 'corresp_estado_id', 'corresp_municipio_id',
         'area_hectares', 'finalidades_criacao', 'preferencias_marcha',
         'marca_descricao', 'marca_arquivo', 'site_url', 'subsite_slug',
+        'logo_arquivo', 'capa_arquivo', 'cor_primaria', 'cor_fundo', 'pagina_ativa', 'pagina_slogan', 'pagina_apresentacao',
+        'pagina_mostrar_contato', 'pagina_mostrar_endereco', 'instagram', 'facebook',
         'plano_id', 'observacoes', 'titular_profissional_id'];
 
     public const QUANTIDADES = ['Até 20', '21 a 50', '51 a 150', '151 a 500', 'Mais de 500'];
@@ -101,7 +103,7 @@ class Empresa extends Model
 
     protected function casts(): array
     {
-        return ['area_hectares' => 'decimal:2', 'latitude' => 'decimal:12', 'longitude' => 'decimal:12', 'excluido_em' => 'datetime', 'licenca_ativa' => 'boolean', 'licenca_liberada_em' => 'datetime'];
+        return ['area_hectares' => 'decimal:2', 'latitude' => 'decimal:12', 'longitude' => 'decimal:12', 'excluido_em' => 'datetime', 'licenca_ativa' => 'boolean', 'pagina_ativa' => 'boolean', 'pagina_mostrar_contato' => 'boolean', 'pagina_mostrar_endereco' => 'boolean', 'licenca_liberada_em' => 'datetime'];
     }
 
     public function scopeNaoExcluidas($query)
@@ -140,6 +142,38 @@ class Empresa extends Model
         }
 
         return ($feminino ? 'da ' : 'do ').$this->rotulo();
+    }
+
+    /** Troca as raças criadas pela propriedade (só as da lista). */
+    public function definirRacas(array $racas): void
+    {
+        $validas = array_values(array_unique(array_intersect($racas, self::RACAS)));
+        \Illuminate\Support\Facades\DB::table('empresa_raca')->where('empresa_id', $this->id)->delete();
+        foreach ($validas as $raca) {
+            \Illuminate\Support\Facades\DB::table('empresa_raca')->insert(['empresa_id' => $this->id, 'raca' => $raca]);
+        }
+    }
+
+    /** Endereço público de uma imagem da propriedade (logo, capa ou marca), ou null se não houver. */
+    public function imagemUrl(string $tipo): ?string
+    {
+        $arquivo = $this->{$tipo.'_arquivo'} ?? null;
+
+        if (! $arquivo) {
+            return null;
+        }
+        // Marca enviada pelo modo antigo ficava dentro de public/uploads.
+        if (! str_starts_with($arquivo, 'propriedades/')) {
+            return asset($arquivo);
+        }
+
+        return route('midia.propriedade', ['uuid' => $this->uuid, 'tipo' => $tipo]).'?v='.substr(md5($arquivo), 0, 8);
+    }
+
+    /** Endereço da página pública, se estiver no ar. */
+    public function paginaUrl(): ?string
+    {
+        return ($this->pagina_ativa ?? false) && $this->subsite_slug ? route('propriedade.pagina', $this->subsite_slug) : null;
     }
 
     public function pessoaFisica(): bool

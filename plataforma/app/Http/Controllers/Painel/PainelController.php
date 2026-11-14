@@ -11,6 +11,7 @@ use App\Support\Geografia;
 use App\Support\HarasAtual;
 use App\Support\Licenca;
 use App\Support\Modulos;
+use App\Support\PaginaPropriedade;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -44,37 +45,78 @@ class PainelController extends Controller
 
     public function haras(Request $request)
     {
-        return view('painel.haras', ['titular' => $request->attributes->get('haras')->titular]);
+        $empresa = $request->attributes->get('haras');
+
+        return view('painel.haras', ['titular' => $empresa->titular, 'racas' => $empresa->racas()]);
     }
 
+    /**
+     * Cadastro completo da propriedade pelo proprietário. Obrigatórios: nome, tipo e UF/município.
+     * O CPF/CNPJ (identificação única) e a titularidade não mudam por aqui.
+     */
     public function salvarHaras(Request $request)
     {
         $empresa = $request->attributes->get('haras');
         $request->merge([
             'cep' => preg_replace('/\D/', '', (string) $request->input('cep')) ?: null,
+            'corresp_cep' => preg_replace('/\D/', '', (string) $request->input('corresp_cep')) ?: null,
             'area_hectares' => $request->filled('area_hectares') ? str_replace(',', '.', str_replace('.', '', (string) $request->input('area_hectares'))) : null,
+            'latitude' => $request->filled('latitude') ? str_replace(',', '.', (string) $request->input('latitude')) : null,
+            'longitude' => $request->filled('longitude') ? str_replace(',', '.', (string) $request->input('longitude')) : null,
+            'finalidades_criacao' => implode(',', array_intersect((array) $request->input('finalidades', []), array_keys(Empresa::FINALIDADES))) ?: null,
+            'preferencias_marcha' => implode(',', array_intersect((array) $request->input('marchas', []), array_keys(Empresa::MARCHAS))) ?: null,
         ]);
         $dados = $request->validate([
             'nome' => ['required', 'string', 'max:150'],
             'tipo_propriedade' => ['required', Rule::in(array_keys(Empresa::TIPOS_PROPRIEDADE))],
             'razao_social' => ['nullable', 'string', 'max:190'],
             'inscricao_estadual' => ['nullable', 'string', 'max:30'],
+            'area_hectares' => ['nullable', 'numeric', 'min:0', 'max:9999999999'],
+            'quantidade_animais_estimada' => ['nullable', Rule::in(Empresa::QUANTIDADES)],
             'email' => ['nullable', 'email:filter', 'max:190'],
             'telefone' => ['nullable', 'string', 'max:30'],
             'whatsapp' => ['nullable', 'string', 'max:30'],
+            'responsavel_nome' => ['nullable', 'string', 'max:150'],
+            'responsavel_email' => ['nullable', 'email:filter', 'max:190'],
+            'responsavel_telefone' => ['nullable', 'string', 'max:30'],
+            'telefone_residencial' => ['nullable', 'string', 'max:30'],
+            'telefone_celular' => ['nullable', 'string', 'max:30'],
+            'telefone_comercial' => ['nullable', 'string', 'max:30'],
             'cep' => ['nullable', 'digits:8'],
             'logradouro' => ['nullable', 'string', 'max:190'],
             'numero' => ['nullable', 'string', 'max:20'],
             'complemento' => ['nullable', 'string', 'max:100'],
             'bairro' => ['nullable', 'string', 'max:100'],
-            'area_hectares' => ['nullable', 'numeric', 'min:0', 'max:9999999999'],
-            'quantidade_animais_estimada' => ['nullable', Rule::in(Empresa::QUANTIDADES)],
-        ] + Geografia::regras($request, '', true), Geografia::mensagens());
+            'latitude' => ['nullable', 'numeric', 'between:-90,90'],
+            'longitude' => ['nullable', 'numeric', 'between:-180,180'],
+            'como_chegar' => ['nullable', 'string', 'max:400'],
+            'corresp_cep' => ['nullable', 'digits:8'],
+            'corresp_logradouro' => ['nullable', 'string', 'max:190'],
+            'corresp_numero' => ['nullable', 'string', 'max:20'],
+            'corresp_complemento' => ['nullable', 'string', 'max:100'],
+            'corresp_bairro' => ['nullable', 'string', 'max:100'],
+            'finalidades_criacao' => ['nullable', 'string', 'max:500'],
+            'preferencias_marcha' => ['nullable', 'string', 'max:300'],
+            'marca_descricao' => ['nullable', 'string', 'max:500'],
+            'site_url' => ['nullable', 'url:http,https', 'max:255'],
+        ] + Geografia::regras($request, '', true) + Geografia::regras($request, 'corresp_') + PaginaPropriedade::regras($empresa),
+            Geografia::mensagens() + Geografia::mensagens('corresp_') + PaginaPropriedade::mensagens() + ['site_url.url' => 'Informe o endereço completo do site, começando com https://.']);
+
+        $titular = $empresa->titular;
+        if ($titular) { // nome do responsável (e do proprietário PF) vem sempre do cadastro de Profissional
+            $dados['responsavel_nome'] = $titular->nome;
+            if ($empresa->pessoaFisica()) {
+                $dados['razao_social'] = $titular->nome;
+            }
+        }
+        $dados = PaginaPropriedade::colunas($request, $dados, $empresa);
         $antes = $empresa->getAttributes();
-        $empresa->update(Geografia::colunas($dados));
+        $empresa->update(Geografia::colunas(Geografia::colunas($dados), 'corresp_'));
+        $empresa->definirRacas((array) $request->input('racas', []));
+        PaginaPropriedade::salvarImagens($request, $empresa);
         Auditoria::registrar('haras.configurar', $empresa, $antes);
 
-        return redirect()->route('painel.haras')->with('ok', "Dados {$empresa->doRotulo()} salvos.");
+        return redirect()->route('painel.haras')->with('ok', "Dados {$empresa->doRotulo()} salvos.".($empresa->paginaUrl() ? ' Página no ar: '.$empresa->paginaUrl() : ''));
     }
 
     /** Plano: faixa de plantel em vigor, as demais faixas e os módulos adicionais. Só o proprietário vê. */

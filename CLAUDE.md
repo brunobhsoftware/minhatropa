@@ -21,6 +21,18 @@ Projeto irmão (mesma estrutura, mesma conta Hostinger): **foradafila.com.br** (
   Independentes da faixa. Não contratado aparece no menu com cadeado e "Módulo adicional" e abre a tela de benefícios com
   "Solicitar ativação"; a Administração ativa na ficha da propriedade. Regra em `App\Support\Modulos`.
   Saúde, Manejo e Nutrição têm só a estrutura (menu, rota, liberação): as telas de cada um ainda serão construídas.
+- **Entrar e cadastrar (14/11/2026):** no site, "Entrar" e "Cadastre-se grátis" abrem duas opções: **Haras / Fazenda** ou
+  **Profissional**. A conta (`usuario`) é a mesma; `/entrar` só decide o destino (`ambiente=haras|profissional`).
+- **Ambiente do profissional** (`/profissional`, `App\Http\Controllers\Profissional\AreaController`): dados da pessoa (CPF),
+  funções, propriedades em que atua e "Abrir painel" das que acessa; de lá cadastra o próprio Haras / Fazenda (`/cadastro` logado,
+  sem e-mail/senha de novo). `/cadastro/profissional` é o cadastro rápido com senha (cria `usuario` + `profissional.usuario_id`).
+  CPF já cadastrado por um Haras ativa o acesso só com o mesmo e-mail do cadastro. Quem não tem propriedade cai nesse ambiente.
+- **Página de cada propriedade (V008):** `/h/<subsite_slug>`, pública quando `pagina_ativa = 1`. Logomarca, capa, cor principal e
+  cor de fundo (o texto se ajusta para contraste), slogan, apresentação, redes. Imagens no disco `midia`
+  (`propriedades/<uuid>/…`, JPG/PNG/WebP até 2 MB, sem SVG), servidas por `/midia/p/<uuid>/<tipo>`. Regras em
+  `App\Support\PaginaPropriedade`; campos no partial `partes/pagina-propriedade` (painel e Administração).
+- **Cadastro da propriedade no painel** ("Dados"): mesmas seções da Administração, em abas (Identificação, Contato, Endereço,
+  Correspondência, Criação, Página e marca). Só nome, tipo e UF/município são obrigatórios; CPF/CNPJ não muda por ali.
 - Cobrições, nascimentos e transferências continuam exigindo faixa paga (`empresa.licenca_ativa`, ligada ao definir a faixa).
 
 ## Onde está cada coisa
@@ -29,7 +41,7 @@ Projeto irmão (mesma estrutura, mesma conta Hostinger): **foradafila.com.br** (
 | --- | --- |
 | `plataforma/` | Aplicação **Laravel 12** (site público + `/admin`). Publicada pela Action na branch `publicacao` |
 | `plataforma/database/atualizacoes/V0xx__*.sql` | Scripts versionados do banco (idempotentes). Aplicados pela tela `/admin/banco` |
-| `plataforma/tests/e2e/` | Testes de ponta a ponta (Playwright) contra banco limpo + `php artisan serve`: `fluxo-admin.js` (54) e depois `fluxo-cadastro.js` (74); apoio em `apoio.js` |
+| `plataforma/tests/e2e/` | Testes de ponta a ponta (Playwright) contra banco limpo + `php artisan serve`: `fluxo-admin.js` (57), `fluxo-cadastro.js` (76) e `fluxo-profissional.js` (46), nessa ordem; apoio em `apoio.js` |
 | `docs/identidade-visual/` | Logos recortadas (PNG transparente) e o kit original enviado pelo Bruno em `kit-original/` |
 | `.github/workflows/build-plataforma.yml` | Publicação: `composer install --no-dev` e grava em `publicacao` |
 | `.hostinger/site.json` | Alvo da publicação na Hostinger |
@@ -67,7 +79,7 @@ Projeto irmão (mesma estrutura, mesma conta Hostinger): **foradafila.com.br** (
 - **Área do Haras** (`/entrar`, `/painel`, middleware `haras` = `App\Http\Middleware\IdentificarHaras` + `App\Support\HarasAtual`
   na sessão; quem tem vários Haras escolhe em `/painel/escolher`): Início, Animais, Cobrições, Nascimentos, Transferências,
   Criador e equipe, Dados da propriedade, Plano e módulos, e os módulos adicionais.
-- Testes: `fluxo-admin.js` (54) e depois `fluxo-cadastro.js` (74), contra banco limpo (`NODE_PATH` com o playwright; `SENHA_BANCO` = senha do `.env`).
+- Testes: `fluxo-admin.js` (57), `fluxo-cadastro.js` (76) e `fluxo-profissional.js` (46), nessa ordem, contra banco limpo (`NODE_PATH` com o playwright; `SENHA_BANCO` = senha do `.env`).
 - **Identificação única:** `empresa.documento` (CPF ou CNPJ) é obrigatório e único (`uk_empresa_documento`). Cadastro começa pela
   titularidade (PF/PJ). **Pessoa Física só cadastra se o CPF tiver cadastro ativo em `profissional`**: os dados são puxados e a pessoa
   vira titular (`empresa.titular_profissional_id`, `empresa_profissional.titular`). Sem cadastro, o site leva a `/cadastro/profissional`.
@@ -80,6 +92,8 @@ Projeto irmão (mesma estrutura, mesma conta Hostinger): **foradafila.com.br** (
   `cidade`/`uf` continuam gravadas como cópia do nome oficial.
 - **RBAC:** `App\Support\Permissao` (papel de `empresa_usuario` × área) + middleware `permissao:área` nas rotas do painel.
   Só o proprietário vê "Plano e módulos". Acesso externo da equipe exige o módulo `equipe`.
+- O V008 é opcional para o resto funcionar: sem ele só a aba "Página e marca" fica escondida.
+- `MT_ARMAZENAMENTO` precisa estar definido no `.env` de produção: é onde ficam as sessões e as imagens (fora do `public_html`).
 - Sem o banco até o V007, o painel mostra "em atualização" e as telas de Haras/Profissionais/Planos da Administração mandam para `/admin/banco`.
 - Toda ação relevante grava em `auditoria` via `App\Support\Auditoria::registrar()` (senhas nunca entram).
 - Datas: banco em UTC; tela em `America/Sao_Paulo` (helpers `data_local`, `para_input_data`, `utc_de_local` em `app/helpers.php`).

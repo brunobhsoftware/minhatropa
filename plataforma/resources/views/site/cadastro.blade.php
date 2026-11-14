@@ -27,6 +27,7 @@
             @if (session('ok'))<div class="aviso aviso--ok" role="status">{{ session('ok') }}</div>@endif
             @if ($errors->any())<div class="aviso aviso--erro" role="alert">@if ($errors->count() === 1){{ $errors->first() }}@else Confira os campos destacados: <ul>@foreach ($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul>@endif
                 @if (session('cadastrar_profissional'))<p style="margin:10px 0 0"><a class="botao botao--amarelo" href="{{ session('cadastrar_profissional') }}">Fazer meu cadastro de Profissional</a></p>@endif</div>@endif
+            @include('site.partes.escolha-cadastro', ['atual' => 'propriedade'])
             <form method="post" action="{{ route('cadastro.enviar') }}" novalidate id="formCadastro" data-consulta="{{ route('cadastro.consultar-cpf') }}">
                 @csrf
                 <div class="oculto" aria-hidden="true"><label>Site <input name="site" tabindex="-1" autocomplete="off"></label></div>
@@ -137,6 +138,9 @@ document.addEventListener('DOMContentLoaded', function () {
           if (d.email_completo && !e.value) e.value = d.email_completo;
           if (d.telefone && !tel.value) tel.value = d.telefone;
           liberar(true);
+        } else if (d.situacao === 'tem_conta') {
+          mostrar('bloqueio', '<b>Esse CPF já tem conta</b><br>' + texto(d.mensagem) + '<br><a class="botao botao--amarelo" href="' + texto(d.url) + '">Entrar como profissional</a>');
+          liberar(false);
         } else if (d.situacao === 'nao_encontrado') {
           mostrar('bloqueio', '<b>Cadastro de Profissional não encontrado</b><br>' + texto(d.mensagem) + '<br><a class="botao botao--amarelo" href="' + texto(d.url) + '">Fazer meu cadastro de Profissional</a>');
           liberar(false);

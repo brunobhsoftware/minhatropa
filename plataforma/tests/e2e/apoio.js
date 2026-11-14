@@ -25,7 +25,7 @@ async function local(pagina, uf, municipio, prefixo = '') {
 /** Aplica pela Administração todos os scripts do banco ainda pendentes, na ordem. */
 async function aplicarBanco(pagina) {
   const aplicados = [];
-  for (const v of ['V002', 'V003', 'V004', 'V005', 'V006', 'V007']) {
+  for (const v of ['V002', 'V003', 'V004', 'V005', 'V006', 'V007', 'V008']) {
     await pagina.goto(B + '/admin/banco');
     await pagina.click(`form:has(input[value^="${v}"]) button`);
     await pagina.waitForLoadState();

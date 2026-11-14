@@ -22,7 +22,7 @@ const CPF_JOAO = cpf(111222333);
   await p.goto(B + '/admin/haras'); conf(p.url().endsWith('/admin/banco') && (await p.content()).includes('Aplique as atualizações'), 'Haras sem banco atual manda aplicar');
   const v = await pagina(b); await v.goto(B + '/cadastro'); conf((await v.content()).includes('sendo ativado'), 'cadastro sem banco atual avisa');
   const aplicados = await aplicarBanco(p);
-  conf(aplicados.length === 6, 'V002 a V007 aplicados pela tela: ' + aplicados.join(','));
+  conf(aplicados.length === 7, 'V002 a V008 aplicados pela tela: ' + aplicados.join(','));
   await p.goto(B + '/admin/banco'); let c = await p.content(); conf(!c.includes('Pendente'), 'nenhum script pendente');
   await p.click('form:has(input[value^="V006"]) button'); await p.waitForLoadState();
   conf((await p.content()).includes('aplicado ('), 'reaplicar V006 é idempotente');
@@ -86,6 +86,16 @@ const CPF_JOAO = cpf(111222333);
   await geo.locator('[data-geo-busca]').fill('cuia'); conf((await geo.locator('.geo__lista').textContent()).includes('Cuiabá'), 'busca digitável sem acento');
   await geo.locator('[data-geo-busca]').fill('');
   await p.click('button:has-text("Salvar alterações")'); await p.waitForLoadState(); conf((await p.content()).includes('Selecione o município'), 'município obrigatório ao salvar');
+
+  // página da propriedade pela Administração: cores e endereço automático
+  await p.goto(B + '/admin/haras?busca=Vista'); await p.click('text=Haras Vista Alegre'); await p.waitForLoadState(); await p.click('text=Editar dados'); await p.waitForLoadState();
+  conf((await p.locator('.aba-cadastro').allTextContents()).join('|').includes('Página e marca'), 'aba Página e marca na Administração');
+  await p.click('[data-aba=marca]'); await p.check('[name=pagina_ativa]'); await p.fill('[name=pagina_slogan]', 'Tradição em Mangalarga');
+  await p.fill('[name=cor_primaria]', '#0b5d3b'); await p.fill('[name=instagram]', '@vistaalegre');
+  await p.click('button:has-text("Salvar alterações")'); await p.waitForLoadState();
+  c = await p.content(); conf(c.includes('No ar') && c.includes('/h/haras-vista-alegre'), 'página no ar com endereço criado a partir do nome');
+  const pub = await v.goto(B + '/h/haras-vista-alegre'); c = await v.content();
+  conf(pub.status() === 200 && c.includes('Tradição em Mangalarga') && c.includes('--primaria:#0B5D3B') && c.includes('@vistaalegre'), 'página pública com a cor e os dados escolhidos');
 
   // filtro por UF, vincular usuário, situação
   await p.goto(B + '/admin/haras?uf=MG'); c = await p.content(); conf(c.includes('Haras Vista Alegre') && !c.includes('Fazenda Santa Rita'), 'filtro por UF');

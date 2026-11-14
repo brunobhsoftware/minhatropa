@@ -10,7 +10,7 @@
     $tit = old('tipo_documento', $empresa->tipo_documento);
     $titularCpf = old('titular_cpf', $titular?->cpf ? \App\Support\Documento::formatar($titular->cpf) : '');
 @endphp
-<form method="post" action="{{ $empresa->exists ? route('admin.haras.salvar', $empresa) : route('admin.haras.criar') }}" class="formulario" novalidate>
+<form method="post" action="{{ $empresa->exists ? route('admin.haras.salvar', $empresa) : route('admin.haras.criar') }}" class="formulario" novalidate enctype="multipart/form-data">
     @csrf @if ($empresa->exists) @method('put') @endif
 
     {{-- Abas de navegação --}}
@@ -21,7 +21,7 @@
         <button type="button" class="aba-cadastro" data-aba="endereco">Endereço da propriedade</button>
         @if ($v003)<button type="button" class="aba-cadastro" data-aba="proprietario">Endereço do proprietário</button>@endif
         @if ($v003)<button type="button" class="aba-cadastro" data-aba="criacao">Criação</button>@endif
-        @if ($v003)<button type="button" class="aba-cadastro" data-aba="marca">Marca e subsite</button>@endif
+        @if ($v003)<button type="button" class="aba-cadastro" data-aba="marca">Página e marca</button>@endif
         <button type="button" class="aba-cadastro" data-aba="observacoes">Observações</button>
     </nav>
 
@@ -183,24 +183,16 @@
     {{-- 6. Marca e subsite --}}
     @if ($v003)
     <div class="painel-aba painel-aba--oculto" id="aba-marca">
+        @if (\App\Support\Esquema::temV008())
+            @include('partes.pagina-propriedade', ['empresa' => $empresa])
+        @else
         <section class="cartao">
-            <h2>Marca / logomarca do criador</h2>
-            <p class="suave" style="margin-bottom:1rem">Ferro, marca ou logomarca que identifica o criador. A imagem pode ser enviada após salvar o cadastro.</p>
-            <label class="campo"><span>Descrição da marca</span><textarea name="marca_descricao" rows="3" maxlength="500" placeholder="Ex.: Ferro em forma de estrela com as iniciais BE">{{ $v('marca_descricao') }}</textarea></label>
-            @if ($empresa->exists && $empresa->marca_arquivo)
-            <div style="margin:1rem 0"><img src="{{ asset($empresa->marca_arquivo) }}" alt="Marca do criador" style="max-height:120px;border:1px solid #ddd;border-radius:8px;padding:8px"></div>
-            @endif
+            <h2>Marca, site e página</h2>
+            <p class="suave">Aplique o V008 em "Atualizações do banco" para liberar a página da propriedade (logomarca, capa, cores).</p>
+            <label class="campo"><span>Descrição da marca</span><textarea name="marca_descricao" rows="3" maxlength="500">{{ $v('marca_descricao') }}</textarea></label>
+            <label class="campo"><span>Site próprio (URL)</span><input type="url" name="site_url" value="{{ $v('site_url') }}" maxlength="255"></label>
         </section>
-        <section class="cartao">
-            <h2>Site e subsite do Haras / Fazenda</h2>
-            <div class="grade-2">
-                <label class="campo"><span>Site próprio (URL)</span><input type="url" name="site_url" value="{{ $v('site_url') }}" maxlength="255" placeholder="https://www.meuharas.com.br"></label>
-                <label class="campo"><span>Subsite MinhaTropa</span>
-                    <div style="display:flex;align-items:center;gap:4px"><span class="suave" style="white-space:nowrap">minhatropa.com.br/h/</span><input name="subsite_slug" value="{{ $v('subsite_slug') }}" maxlength="60" placeholder="meu-haras" style="flex:1"></div>
-                    <small class="suave">Endereço público da propriedade na plataforma. Só letras minúsculas, números e hifens.</small>
-                </label>
-            </div>
-        </section>
+        @endif
     </div>
     @endif
 
@@ -215,7 +207,8 @@
     <div class="acoes-form"><button class="botao botao--primario">{{ $empresa->exists ? 'Salvar alterações' : 'Cadastrar Haras / Fazenda' }}</button></div>
 </form>
 
-@if ($v003 && $empresa->exists)
+{{-- Envio antigo da marca: só enquanto o V008 (imagens no disco de mídia) não foi aplicado --}}
+@if ($v003 && $empresa->exists && ! \App\Support\Esquema::temV008())
 <section class="cartao" style="margin-top:1.5rem">
     <h2>Enviar marca / logomarca</h2>
     <form method="post" action="{{ route('admin.haras.marca', $empresa) }}" enctype="multipart/form-data" class="formulario">
@@ -285,7 +278,7 @@ document.addEventListener('DOMContentLoaded', function() {
     cpfTit.addEventListener('keydown', function(e) { if (e.key === 'Enter') { e.preventDefault(); buscar(); } });
     ajustar();
     // Erro de validação: abre a aba onde está o primeiro campo com problema
-    @if ($errors->hasAny(['nome', 'tipo_propriedade', 'tipo_documento', 'documento', 'razao_social'])) abrir('identificacao'); @elseif ($errors->has('titular_cpf')) abrir('criador'); @elseif ($errors->has('uf') || $errors->has('municipio_id')) abrir('endereco'); @elseif ($errors->has('corresp_uf') || $errors->has('corresp_municipio_id')) abrir('proprietario'); @endif
+    @if ($errors->hasAny(['nome', 'tipo_propriedade', 'tipo_documento', 'documento', 'razao_social'])) abrir('identificacao'); @elseif ($errors->hasAny(['logo', 'capa', 'marca', 'cor_primaria', 'cor_fundo', 'subsite_slug', 'instagram', 'facebook', 'site_url', 'pagina_slogan', 'pagina_apresentacao'])) abrir('marca'); @elseif ($errors->has('titular_cpf')) abrir('criador'); @elseif ($errors->has('uf') || $errors->has('municipio_id')) abrir('endereco'); @elseif ($errors->has('corresp_uf') || $errors->has('corresp_municipio_id')) abrir('proprietario'); @endif
 });
 </script>
 @endsection

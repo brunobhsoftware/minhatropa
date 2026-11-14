@@ -60,9 +60,10 @@
                 <a href="#" aria-disabled="true" onclick="return false" class="desativado">{{ $texto }} <span class="selo-breve">em breve</span></a>
             @endforeach
         </nav>
-        @if (auth()->user()->admin_plataforma)
-        <div class="menu-lateral__fim"><a href="{{ route('admin.inicio') }}"><x-icone nome="chave" /> Administração</a></div>
-        @endif
+        <div class="menu-lateral__fim">
+            <a href="{{ route('profissional.inicio') }}"><x-icone nome="usuarios" /> Ambiente do profissional</a>
+            @if (auth()->user()->admin_plataforma)<a href="{{ route('admin.inicio') }}"><x-icone nome="chave" /> Administração</a>@endif
+        </div>
     </aside>
     <div class="principal">
         <header class="topo-painel">
