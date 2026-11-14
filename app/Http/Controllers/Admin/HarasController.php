@@ -17,6 +17,7 @@ use App\Support\Documento;
 use App\Support\Geografia;
 use App\Support\Licenca;
 use App\Support\Modulos;
+use App\Support\PaginaPropriedade;
 use App\Support\Titular;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -78,6 +79,7 @@ class HarasController extends Controller
         $empresa = Empresa::create($dados + ['criado_por' => $request->user()->id]);
         $this->salvarRacas($empresa, $request->input('racas', []));
         Titular::definir($empresa, $this->titular);
+        PaginaPropriedade::salvarImagens($request, $empresa);
         Auditoria::registrar('haras.criar', $empresa);
 
         return redirect()->route('admin.haras.show', $empresa)->with('ok', "{$empresa->rotulo()} {$empresa->nome} cadastrado.");
@@ -126,6 +128,7 @@ class HarasController extends Controller
         $empresa->update($this->validar($request, $empresa));
         $this->salvarRacas($empresa, $request->input('racas', []));
         Titular::definir($empresa, $this->titular);
+        PaginaPropriedade::salvarImagens($request, $empresa);
         Auditoria::registrar('haras.editar', $empresa, $antes);
 
         return redirect()->route('admin.haras.show', $empresa)->with('ok', "Dados {$empresa->doRotulo()} salvos.");
@@ -327,7 +330,7 @@ class HarasController extends Controller
             'marca_descricao' => ['nullable', 'string', 'max:500'],
             'site_url' => ['nullable', 'url:http,https', 'max:255'],
             'subsite_slug' => ['nullable', 'string', 'max:60', 'regex:/^[a-z0-9][a-z0-9\-]*$/', Rule::unique('empresa', 'subsite_slug')->ignore($empresa?->id)],
-        ] + Geografia::regras($request, '', true) + Geografia::regras($request, 'corresp_');
+        ] + Geografia::regras($request, '', true) + Geografia::regras($request, 'corresp_') + PaginaPropriedade::regras($empresa);
 
         $dados = $request->validate($regras, [
             'tipo_propriedade.required' => 'Escolha o tipo de propriedade (Haras, Fazenda…).',
@@ -337,7 +340,8 @@ class HarasController extends Controller
             'razao_social.required' => 'Informe a razão social (Pessoa Jurídica).',
             'subsite_slug.unique' => 'Esse endereço de subsite já está em uso.',
             'subsite_slug.regex' => 'O slug deve conter apenas letras minúsculas, números e hifens.',
-        ] + Geografia::mensagens() + Geografia::mensagens('corresp_'));
+        ] + Geografia::mensagens() + Geografia::mensagens('corresp_') + PaginaPropriedade::mensagens());
+        $dados = PaginaPropriedade::colunas($request, $dados, $empresa);
 
         // Criador / proprietário: vem da base de Profissionais pelo CPF (obrigatório para Pessoa Física).
         $this->titular = null;

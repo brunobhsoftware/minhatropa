@@ -78,17 +78,19 @@
 </div>
 @endif
 
-@if ($v003 && ($empresa->marca_descricao || $empresa->marca_arquivo || $empresa->site_url || $empresa->subsite_slug))
+@if ($empresa->marca_descricao || $empresa->marca_arquivo || $empresa->site_url || $empresa->subsite_slug || ($empresa->logo_arquivo ?? null))
 <section class="cartao">
-    <h2>Marca e subsite</h2>
+    <div class="cartao__titulo"><h2>Página e marca</h2>@if ($empresa->paginaUrl())<a href="{{ $empresa->paginaUrl() }}" target="_blank" rel="noopener">Ver a página ↗</a>@endif</div>
     <div style="display:flex;gap:2rem;align-items:start;flex-wrap:wrap">
-        @if ($empresa->marca_arquivo)
-        <div><img src="{{ asset($empresa->marca_arquivo) }}" alt="Marca do criador" style="max-height:100px;border:1px solid #ddd;border-radius:8px;padding:6px"></div>
-        @endif
+        @foreach (['logo' => 'Logomarca', 'marca' => 'Marca do criador'] as $tipo => $rotulo)
+            @if ($empresa->imagemUrl($tipo))<div><img src="{{ $empresa->imagemUrl($tipo) }}" alt="{{ $rotulo }}" style="max-height:100px;max-width:180px;border:1px solid #ddd;border-radius:8px;padding:6px"><br><small class="suave">{{ $rotulo }}</small></div>@endif
+        @endforeach
         <dl class="dados" style="flex:1">
+            <div><dt>Página</dt><dd>@if ($empresa->paginaUrl())<span class="selo selo--ativo">No ar</span> {{ preg_replace('#^https?://#', '', $empresa->paginaUrl()) }}@else Fora do ar{{ $empresa->subsite_slug ? ' (endereço reservado: /h/'.$empresa->subsite_slug.')' : '' }}@endif</dd></div>
+            @if ($empresa->cor_primaria ?? null)<div><dt>Cores</dt><dd><span style="display:inline-block;width:16px;height:16px;border-radius:4px;border:1px solid #ccc;vertical-align:middle;background:{{ $empresa->cor_primaria }}"></span> {{ $empresa->cor_primaria }} · <span style="display:inline-block;width:16px;height:16px;border-radius:4px;border:1px solid #ccc;vertical-align:middle;background:{{ $empresa->cor_fundo ?: '#FFFFFF' }}"></span> {{ $empresa->cor_fundo ?: '#FFFFFF' }}</dd></div>@endif
             @if ($empresa->marca_descricao)<div><dt>Descrição da marca</dt><dd>{{ $empresa->marca_descricao }}</dd></div>@endif
             @if ($empresa->site_url)<div><dt>Site próprio</dt><dd><a href="{{ $empresa->site_url }}" target="_blank" rel="noopener">{{ $empresa->site_url }}</a></dd></div>@endif
-            @if ($empresa->subsite_slug)<div><dt>Subsite</dt><dd>minhatropa.com.br/h/{{ $empresa->subsite_slug }}</dd></div>@endif
+            @if ($empresa->instagram ?? null)<div><dt>Instagram</dt><dd>{{ '@'.$empresa->instagram }}</dd></div>@endif
         </dl>
     </div>
 </section>

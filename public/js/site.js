@@ -11,6 +11,11 @@
       a.addEventListener('click', function () { document.body.classList.remove('menu-aberto'); botao.setAttribute('aria-expanded', 'false'); });
     });
   }
+  // Menus "Entrar" e "Cadastre-se" do topo: abre um por vez e fecha ao clicar fora ou com Esc
+  var opcoes = document.querySelectorAll('.topo__opcoes');
+  opcoes.forEach(function (d) { d.addEventListener('toggle', function () { if (d.open) opcoes.forEach(function (o) { if (o !== d) o.open = false; }); }); });
+  document.addEventListener('click', function (e) { opcoes.forEach(function (d) { if (d.open && !d.contains(e.target)) d.open = false; }); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') opcoes.forEach(function (d) { d.open = false; }); });
   // Máscara de CPF
   document.querySelectorAll('[data-mascara=cpf]').forEach(function (i) {
     var m = function () { i.value = i.value.replace(/\D/g, '').slice(0, 11).replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2'); };

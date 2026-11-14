@@ -20,7 +20,8 @@ class IdentificarHaras
         $empresa = HarasAtual::obter($request->user());
         if (! $empresa) {
             if (HarasAtual::disponiveis($request->user())->isEmpty()) {
-                return response()->view('painel.sem-haras', [], 403);
+                // Sem propriedade para abrir: a pessoa vai para o ambiente do profissional (de lá cadastra ou é vinculada).
+                return redirect()->route('profissional.inicio')->with('aviso', 'Você não tem acesso a nenhum Haras / Fazenda no momento.');
             }
 
             return redirect()->route('painel.escolher');
