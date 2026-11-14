@@ -3,6 +3,10 @@
   'use strict';
 
   // Menu lateral no celular
+  // Menu lateral: os itens com subitens abrem ao clicar, um de cada vez (o menu fica limpo)
+  var grupos = document.querySelectorAll('.menu-lateral .menu-grupo');
+  grupos.forEach(function (g) { g.addEventListener('toggle', function () { if (g.open) grupos.forEach(function (o) { if (o !== g) o.open = false; }); }); });
+
   document.querySelectorAll('[data-menu-alternar]').forEach(function (b) {
     b.addEventListener('click', function () {
       var aberto = document.body.classList.toggle('menu-aberto');

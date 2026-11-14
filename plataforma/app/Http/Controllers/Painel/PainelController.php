@@ -12,6 +12,8 @@ use App\Support\HarasAtual;
 use App\Support\Licenca;
 use App\Support\Modulos;
 use App\Support\PaginaPropriedade;
+use App\Support\Permissao;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -24,6 +26,28 @@ class PainelController extends Controller
 
         return view('painel.inicio', $this->plantel($empresa) + [
             'ultimos' => Animal::where('empresa_id', $empresa->id)->whereNull('excluido_em')->latest('criado_em')->limit(5)->get(),
+        ]);
+    }
+
+    /**
+     * Ocorrências do plantel: a entrada única para os fatos dos animais (nascimentos, cobrições, mortes e transferências).
+     * Cada cartão respeita o papel da pessoa e o plano; "Ocorrências do Haras" (avisos entre pessoas) ainda vai ser construído.
+     */
+    public function ocorrencias(Request $request)
+    {
+        $empresa = $request->attributes->get('haras');
+        $papel = $request->attributes->get('papel');
+        $licenca = Licenca::ativa($empresa);
+        $conta = fn (string $tabela) => $licenca ? DB::table($tabela)->where('empresa_id', $empresa->id)->count() : null;
+
+        return view('painel.ocorrencias', [
+            'licenca' => $licenca,
+            'reproducao' => Permissao::pode($papel, 'reproducao'),
+            'transferir' => Permissao::pode($papel, 'transferencias'),
+            'nascimentos' => $conta('nascimento'),
+            'cobricoes' => $conta('cobricao'),
+            'transferencias' => $licenca ? DB::table('transferencia')->where(fn ($q) => $q->where('empresa_origem_id', $empresa->id)->orWhere('empresa_destino_id', $empresa->id))->count() : null,
+            'mortes' => Animal::where('empresa_id', $empresa->id)->whereNull('excluido_em')->where('situacao', 'morto')->count(),
         ]);
     }
 

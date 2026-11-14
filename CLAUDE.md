@@ -33,6 +33,16 @@ Projeto irmão (mesma estrutura, mesma conta Hostinger): **foradafila.com.br** (
   `App\Support\PaginaPropriedade`; campos no partial `partes/pagina-propriedade` (painel e Administração).
 - **Cadastro da propriedade no painel** ("Dados"): mesmas seções da Administração, em abas (Identificação, Contato, Endereço,
   Correspondência, Criação, Página e marca). Só nome, tipo e UF/município são obrigatórios; CPF/CNPJ não muda por ali.
+- **Menu do painel (14/11/2026, lista do parceiro de implantação):** menu limpo; item com subitens abre ao clicar, um por vez
+  (`painel/partes/menu.blade.php`, estrutura em `layouts/painel.blade.php`). Nunca chamar de "aba": é menu / item de menu.
+  Ordem: Início · **Meu Plantel** (Animais do plantel, Cadastrar animal, Organograma*) · **Ocorrências** (Ocorrências do plantel =
+  `/painel/ocorrencias`, que reúne nascimentos, cobrições, transferências e mortes; Ocorrências do Haras* = avisos entre pessoas) ·
+  Reprodução* (coleta, pedido de sêmen, embrião, notificação ao sócio) · Comércio* (pregão on-line, venda permanente de coberturas,
+  classificados) · Clínica veterinária (módulos `manejo` e `saude`) · Controle de estoque (módulo `nutricao`; leitura de NF*) ·
+  Financeiro* (contratos, boletos, gráficos) · RH (Cadastro da equipe, acesso externo = módulo `equipe`, Escala*) · Agenda de eventos* ·
+  Configuração (Dados, Plano e módulos). `*` = "em breve", só no menu, sem tela. Ocorrências é menu independente, não é do plantel.
+- **A definir com o Bruno (não inventar):** pacotes Simples (módulos que ele escolher) e Completo (todos), além dos módulos avulsos;
+  conceito de "sócio" de animal; onde entra Nutrição; se cobrição/nascimento ficam só em Ocorrências ou também em Reprodução.
 - Cobrições, nascimentos e transferências continuam exigindo faixa paga (`empresa.licenca_ativa`, ligada ao definir a faixa).
 
 ## Onde está cada coisa
@@ -41,7 +51,7 @@ Projeto irmão (mesma estrutura, mesma conta Hostinger): **foradafila.com.br** (
 | --- | --- |
 | `plataforma/` | Aplicação **Laravel 12** (site público + `/admin`). Publicada pela Action na branch `publicacao` |
 | `plataforma/database/atualizacoes/V0xx__*.sql` | Scripts versionados do banco (idempotentes). Aplicados pela tela `/admin/banco` |
-| `plataforma/tests/e2e/` | Testes de ponta a ponta (Playwright) contra banco limpo + `php artisan serve`: `fluxo-admin.js` (57), `fluxo-cadastro.js` (76) e `fluxo-profissional.js` (46), nessa ordem; apoio em `apoio.js` |
+| `plataforma/tests/e2e/` | Testes de ponta a ponta (Playwright) contra banco limpo + `php artisan serve`: `fluxo-admin.js` (57), `fluxo-cadastro.js` (88) e `fluxo-profissional.js` (46), nessa ordem; apoio em `apoio.js` |
 | `docs/identidade-visual/` | Logos recortadas (PNG transparente) e o kit original enviado pelo Bruno em `kit-original/` |
 | `.github/workflows/build-plataforma.yml` | Publicação: `composer install --no-dev` e grava em `publicacao` |
 | `.hostinger/site.json` | Alvo da publicação na Hostinger |
@@ -79,7 +89,7 @@ Projeto irmão (mesma estrutura, mesma conta Hostinger): **foradafila.com.br** (
 - **Área do Haras** (`/entrar`, `/painel`, middleware `haras` = `App\Http\Middleware\IdentificarHaras` + `App\Support\HarasAtual`
   na sessão; quem tem vários Haras escolhe em `/painel/escolher`): Início, Animais, Cobrições, Nascimentos, Transferências,
   Criador e equipe, Dados da propriedade, Plano e módulos, e os módulos adicionais.
-- Testes: `fluxo-admin.js` (57), `fluxo-cadastro.js` (76) e `fluxo-profissional.js` (46), nessa ordem, contra banco limpo (`NODE_PATH` com o playwright; `SENHA_BANCO` = senha do `.env`).
+- Testes: `fluxo-admin.js` (57), `fluxo-cadastro.js` (88) e `fluxo-profissional.js` (46), nessa ordem, contra banco limpo (`NODE_PATH` com o playwright; `SENHA_BANCO` = senha do `.env`).
 - **Identificação única:** `empresa.documento` (CPF ou CNPJ) é obrigatório e único (`uk_empresa_documento`). Cadastro começa pela
   titularidade (PF/PJ). **Pessoa Física só cadastra se o CPF tiver cadastro ativo em `profissional`**: os dados são puxados e a pessoa
   vira titular (`empresa.titular_profissional_id`, `empresa_profissional.titular`). Sem cadastro, o site leva a `/cadastro/profissional`.

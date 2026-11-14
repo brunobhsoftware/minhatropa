@@ -1,13 +1,16 @@
 @extends('layouts.painel')
-@section('titulo', 'Animais')
+@section('titulo', 'Meu Plantel')
 @section('conteudo')
 @php $v5 = \App\Support\Esquema::temV005(); @endphp
 <div class="cabecalho">
-    <div><h1>Animais</h1><p>Plantel {{ $haras->doRotulo() }}.@if ($limite !== null) <b>{{ $ativosPlantel }} de {{ $limite }}</b> animais ativos da faixa {{ $faixa?->nome }}.@endif</p></div>
-    @if (\App\Support\Permissao::pode($papel, 'animais', true))
-    {{-- No limite da faixa o botão continua aqui: o clique mostra o aviso com a oferta de upgrade. --}}
-    <a href="{{ route('painel.animais.novo') }}" class="botao {{ $podeCadastrar ? 'botao--primario' : 'botao--escuro' }}"><x-icone nome="mais" :tamanho="18" /> Cadastrar animal</a>
-    @endif
+    <div><h1>Meu Plantel</h1><p>Animais {{ $haras->doRotulo() }}.@if ($limite !== null) <b>{{ $ativosPlantel }} de {{ $limite }}</b> animais ativos da faixa {{ $faixa?->nome }}.@endif</p></div>
+    <div class="acoes-cabecalho">
+        <a href="{{ route('painel.ocorrencias') }}" class="botao botao--contorno"><x-icone nome="historico" :tamanho="18" /> Ocorrências</a>
+        @if (\App\Support\Permissao::pode($papel, 'animais', true))
+        {{-- No limite da faixa o botão continua aqui: o clique mostra o aviso com a oferta de upgrade. --}}
+        <a href="{{ route('painel.animais.novo') }}" class="botao {{ $podeCadastrar ? 'botao--primario' : 'botao--escuro' }}"><x-icone nome="mais" :tamanho="18" /> Cadastrar animal</a>
+        @endif
+    </div>
 </div>
 
 @if ($totais && $totais->total > 0)

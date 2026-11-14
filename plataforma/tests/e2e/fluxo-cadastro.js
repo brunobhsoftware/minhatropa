@@ -93,18 +93,41 @@ const mascara = (d) => d.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
   await c.goto(B + '/painel'); conf((await c.content()).includes('6 de 10 animais ativos'), 'faixa 1: 6 de 10');
 
   // ---------- Módulos adicionais (feature flags) ----------
-  const menu = c.locator('[data-modulos] a');
-  conf(await menu.count() === 4, '4 módulos no menu');
-  conf((await c.textContent('[data-modulos]')).split('Módulo adicional').length - 1 === 4, 'módulos não contratados com o selo "Módulo adicional"');
-  await c.click('[data-modulo=saude]'); await c.waitForLoadState(); h = await c.content();
+  // menu limpo: só os itens principais aparecem; os subitens abrem ao clicar, um grupo por vez
+  const grupos = await c.locator('.menu-lateral .menu-grupo > summary').allTextContents();
+  conf(['Meu Plantel', 'Ocorrências', 'Reprodução', 'Comércio', 'Clínica veterinária', 'Controle de estoque', 'Financeiro', 'RH'].every((g) => grupos.some((t) => t.includes(g))), 'menu com os itens combinados: ' + grupos.map((t) => t.trim()).join(' | '));
+  conf(!(await c.locator('.menu-lateral').textContent()).includes('Animais\n') && await c.locator('.menu-lateral a.desativado:has-text("Agenda de eventos")').count() === 1, 'Agenda de eventos em breve, com cadeado');
+  conf(await c.locator('.menu-grupo[open]').count() === 0 && await c.locator('[data-modulo=saude]').first().isHidden(), 'no início nenhum grupo aberto: subitens escondidos');
+  await c.click('summary:has-text("Reprodução")'); conf(await c.locator('.menu-grupo[open] .menu-sub--breve').count() === 4, 'Reprodução abre os 4 subitens em breve');
+  await c.click('summary:has-text("Clínica veterinária")');
+  await c.waitForFunction(() => document.querySelectorAll('.menu-grupo[open]').length === 1, null, { timeout: 3000 }).catch(() => {});
+  conf(await c.locator('.menu-grupo[open]').count() === 1 && await c.locator('[data-grupo=reproducao]').evaluate((d) => !d.open), 'abrir um grupo fecha o outro');
+  conf(await c.locator('[data-modulo][data-liberado="0"]').count() === 5 && (await c.locator('[data-grupo=clinica-veterinaria]').textContent()).split('Módulo adicional').length - 1 === 3, 'módulos não contratados com cadeado e "Módulo adicional"');
+  await c.screenshot({ path: '/tmp/mt-menu.png', fullPage: true });
+  await c.click('[data-modulo=saude] >> nth=0'); await c.waitForLoadState(); h = await c.content();
   conf(h.includes('data-modulo-bloqueado="saude"') && h.includes('O que este módulo traz') && h.includes('Calendário de vacinas'), 'tela explicativa com os benefícios');
+  conf(await c.locator('[data-grupo=clinica-veterinaria]').evaluate((d) => d.open), 'grupo da tela atual já vem aberto');
   await c.screenshot({ path: '/tmp/mt-modulo.png', fullPage: true });
   await c.click('button:has-text("Solicitar ativação")'); await c.waitForLoadState(); conf((await c.content()).includes('Ativação pedida'), 'ativação solicitada');
   await a.reload(); conf((await a.content()).includes('Solicitado pelo proprietário'), 'admin vê a solicitação do módulo');
   await a.click('button[data-modulo=saude]'); await a.waitForLoadState(); await a.click('button[data-modulo=equipe]'); await a.waitForLoadState();
   conf((await a.content()).includes('Gestão de Equipe e Acesso Externo" ativado'), 'admin ativa módulos');
   await c.goto(B + '/painel/modulos/saude'); conf((await c.content()).includes('Módulo ativo'), 'módulo de saúde liberado');
-  conf(await c.locator('[data-modulo=saude][data-liberado="1"]').count() === 1 && await c.locator('[data-modulo=nutricao][data-liberado="0"]').count() === 1, 'menu reflete o que está liberado');
+  conf(await c.locator('[data-modulo=saude][data-liberado="1"]').count() === 2 && await c.locator('[data-modulo=nutricao][data-liberado="0"]').count() === 1, 'menu reflete o que está liberado');
+  conf(await c.locator('[data-grupo=clinica-veterinaria].menu-grupo--fechado').count() === 0 && await c.locator('[data-grupo=controle-de-estoque].menu-grupo--fechado').count() === 1, 'cadeado do grupo some quando há módulo liberado');
+
+  // ---------- Meu Plantel e Ocorrências ----------
+  await c.goto(B + '/painel/animais'); h = await c.content();
+  conf(h.includes('<h1>Meu Plantel</h1>') && await c.locator('.cabecalho a:has-text("Ocorrências")').count() === 1 && await c.locator('.cabecalho a:has-text("Cadastrar animal")').count() === 1, 'Meu Plantel com os botões Cadastrar animal e Ocorrências');
+  conf(await c.locator('[data-grupo=meu-plantel]').evaluate((d) => d.open) && await c.locator('.menu-sub.ativo').textContent() === 'Animais do plantel', 'menu abre em Meu Plantel › Animais do plantel');
+  await c.click('.cabecalho a:has-text("Ocorrências")'); await c.waitForLoadState(); h = await c.content();
+  conf(c.url().endsWith('/painel/ocorrencias') && ['nascimentos', 'cobricoes', 'transferencias', 'mortes'].every((o) => h.includes('data-ocorrencia="' + o + '"')), 'Ocorrências do plantel reúne nascimentos, cobrições, transferências e mortes');
+  conf(h.includes('Ocorrências da Fazenda') && h.includes('Em breve'), 'Ocorrências do Haras / Fazenda aparece como em breve');
+  await c.screenshot({ path: '/tmp/mt-ocorrencias.png', fullPage: true });
+  await c.click('[data-ocorrencia=cobricoes]'); await c.waitForLoadState();
+  conf(c.url().endsWith('/painel/cobricoes') && await c.locator('[data-grupo=ocorrencias]').evaluate((d) => d.open), 'cobrições abrem a partir de Ocorrências do plantel');
+  await c.click('[data-grupo=dados-da-fazenda] summary'); await c.click('.menu-sub:has-text("Página, logomarca e cores")'); await c.waitForLoadState();
+  conf(await c.locator('#aba-pagina').isVisible(), 'atalho do menu abre direto a página, logomarca e cores');
 
   // ---------- Equipe: busca por CPF primeiro, cadastro rápido e acesso externo (RBAC) ----------
   await c.goto(B + '/painel/profissionais/novo');

@@ -139,6 +139,10 @@ document.addEventListener('DOMContentLoaded', function () {
   var erros = (f.dataset.erros || '').split(',').filter(Boolean), alvo = null;
   erros.some(function (nome) { var c = f.querySelector('[name="' + nome + '"], [name="' + nome + '[]"]'); var p = c && c.closest('.painel-aba'); if (p) { alvo = p.id.replace('aba-', ''); return true; } return false; });
   if (!alvo && !erros.length) { try { alvo = sessionStorage.getItem('mt-aba-dados'); } catch (e) {} }
+  // Atalho do menu "Página, logomarca e cores": /painel/haras#pagina abre direto a seção
+  var daUrl = function () { var h = location.hash.replace('#', ''); if (h && f.querySelector('#aba-' + h)) { abrir(h); return true; } return false; };
+  if (!erros.length && daUrl()) alvo = null;
+  window.addEventListener('hashchange', daUrl);
   if (alvo && f.querySelector('#aba-' + alvo)) abrir(alvo);
 });
 </script>
