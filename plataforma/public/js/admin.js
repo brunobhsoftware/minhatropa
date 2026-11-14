@@ -3,6 +3,16 @@
   'use strict';
 
   // Menu lateral no celular
+  // Botões "Copiar link"
+  document.querySelectorAll('[data-copiar]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var t = b.getAttribute('data-copiar'), antes = b.textContent;
+      var feito = function () { b.textContent = 'Copiado!'; setTimeout(function () { b.textContent = antes; }, 1800); };
+      if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(t).then(feito, function () {}); }
+      else { var i = b.parentNode.querySelector('input'); if (i) { i.select(); document.execCommand('copy'); feito(); } }
+    });
+  });
+
   // Menu lateral: os itens com subitens abrem ao clicar, um de cada vez (o menu fica limpo)
   var grupos = document.querySelectorAll('.menu-lateral .menu-grupo');
   grupos.forEach(function (g) { g.addEventListener('toggle', function () { if (g.open) grupos.forEach(function (o) { if (o !== g) o.open = false; }); }); });

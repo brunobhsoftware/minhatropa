@@ -26,6 +26,24 @@
 </section>
 @endif
 
+@if ($sociedades->isNotEmpty())
+<section class="cartao" data-sociedades>
+    <h2>Animais em sociedade</h2>
+    <p class="suave" style="margin-bottom:.75rem">Animais em que você tem parte, lançados pelo seu CPF.</p>
+    <div class="tabela-rolagem"><table class="tabela">
+        <thead><tr><th>Animal</th><th>Propriedade</th><th class="num">Minha parte</th><th>Situação</th></tr></thead>
+        <tbody>
+        @foreach ($sociedades as $s)
+            <tr><td><b>{{ $s->nome }}</b><br><small class="suave">{{ $s->raca ?: 'raça não informada' }}</small></td>
+                <td>{{ $s->propriedade }}<br><small class="suave">{{ $s->cidade ? $s->cidade.'/'.$s->uf : '' }}</small></td>
+                <td class="num"><b>{{ \App\Support\Sociedade::pct($s->percentual) }}</b></td>
+                <td><span class="selo selo--{{ $s->situacao }}">{{ \App\Models\Animal::SITUACOES[$s->situacao] ?? $s->situacao }}</span></td></tr>
+        @endforeach
+        </tbody>
+    </table></div>
+</section>
+@endif
+
 <section class="cartao">
     <h2>Propriedades em que atuo</h2>
     @if ($vinculos->isEmpty() && $outrosAcessos->isEmpty())

@@ -99,6 +99,16 @@ class Esquema
         }
     }
 
+    /** V011: sociedade do animal (sócios e percentuais). Opcional. */
+    public static function temV011(): bool
+    {
+        try {
+            return self::$cache['v011'] ??= Schema::hasTable('animal_socio');
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
     /** O banco tem tudo o que as telas atuais usam (até o V007)? */
     public static function atual(): bool
     {

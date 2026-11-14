@@ -42,7 +42,7 @@ Projeto irmão (mesma estrutura, mesma conta Hostinger): **foradafila.com.br** (
   Financeiro* (contratos, boletos, gráficos) · RH (Cadastro da equipe, acesso externo = módulo `equipe`, Escala*) · Agenda de eventos* ·
   Configuração (Dados, Plano e módulos). `*` = "em breve", só no menu, sem tela. Ocorrências é menu independente, não é do plantel.
 - **A definir com o Bruno (não inventar):** pacotes Simples (módulos que ele escolher) e Completo (todos), além dos módulos avulsos;
-  conceito de "sócio" de animal; onde entra Nutrição; se cobrição/nascimento ficam só em Ocorrências ou também em Reprodução.
+  onde entra Nutrição; se cobrição/nascimento ficam só em Ocorrências ou também em Reprodução.
 - **Cadastro de animal já preenchido ao máximo (Bruno, 14/11/2026):** espécie vem Equino; o nome copia para o nome de registro e
   o apelido recebe o primeiro nome (enquanto a pessoa não mexer neles); raça é lista (`Empresa::RACAS`, com as raças da propriedade
   primeiro e já escolhida quando ela cria uma só) com "Outra (digitar)"; pelagem "Outra" pede qual é. Sexo fica para a pessoa.
@@ -52,6 +52,12 @@ Projeto irmão (mesma estrutura, mesma conta Hostinger): **foradafila.com.br** (
   com opção de plantel sem limite. É uma marca por cima (`empresa.cortesia`, `cortesia_plantel`): não muda faixa nem módulos
   contratados, e ao retirar tudo volta ao que era. `Licenca::ativa()`, `Licenca::limite()` e `Modulos::daEmpresa()` já consideram;
   `Modulos::contratados()` é o real. A lista de propriedades tem o filtro "Só em cortesia". Nunca ler `licenca_ativa` direto.
+- **Sociedade do animal (V011, Bruno, 14/11/2026):** no cadastro de animal, seção "Sociedade": 100% da propriedade ou com sócios.
+  Sócio pessoa = CPF (profissional); sócio Haras / Fazenda = CNPJ. Tabela `animal_socio` (documento, nome, percentual, convite_token);
+  a parte da propriedade dona do cadastro é o que sobra até 100%. O vínculo é só pelo documento (`App\Support\Sociedade`): quem se
+  cadastra depois já enxerga o animal. Sócio sem cadastro ganha link de convite (`/convite/<token>`, na ficha do animal, com
+  "Copiar link" e WhatsApp): cadastro simples (nome e CPF prontos; e-mail, WhatsApp e senha). O sócio vê os animais em
+  "Animais em sociedade" no painel profissional; a propriedade sócia, no fim de Meu Plantel. Sem envio automático (e-mail desligado).
 - Cobrições, nascimentos e transferências continuam exigindo faixa paga (`empresa.licenca_ativa`, ligada ao definir a faixa).
 
 ## Onde está cada coisa
@@ -60,7 +66,7 @@ Projeto irmão (mesma estrutura, mesma conta Hostinger): **foradafila.com.br** (
 | --- | --- |
 | `plataforma/` | Aplicação **Laravel 12** (site público + `/admin`). Publicada pela Action na branch `publicacao` |
 | `plataforma/database/atualizacoes/V0xx__*.sql` | Scripts versionados do banco (idempotentes). Aplicados pela tela `/admin/banco` |
-| `plataforma/tests/e2e/` | Testes de ponta a ponta (Playwright) contra banco limpo + `php artisan serve`: `fluxo-admin.js` (57), `fluxo-cadastro.js` (93) e `fluxo-profissional.js` (58), nessa ordem; apoio em `apoio.js` |
+| `plataforma/tests/e2e/` | Testes de ponta a ponta (Playwright) contra banco limpo + `php artisan serve`: `fluxo-admin.js` (57), `fluxo-cadastro.js` (93) e `fluxo-profissional.js` (75), nessa ordem; apoio em `apoio.js` |
 | `docs/identidade-visual/` | Logos recortadas (PNG transparente) e o kit original enviado pelo Bruno em `kit-original/` |
 | `.github/workflows/build-plataforma.yml` | Publicação: `composer install --no-dev` e grava em `publicacao` |
 | `.hostinger/site.json` | Alvo da publicação na Hostinger |
@@ -98,7 +104,7 @@ Projeto irmão (mesma estrutura, mesma conta Hostinger): **foradafila.com.br** (
 - **Área do Haras** (`/entrar`, `/painel`, middleware `haras` = `App\Http\Middleware\IdentificarHaras` + `App\Support\HarasAtual`
   na sessão; quem tem vários Haras escolhe em `/painel/escolher`): Início, Animais, Cobrições, Nascimentos, Transferências,
   Criador e equipe, Dados da propriedade, Plano e módulos, e os módulos adicionais.
-- Testes: `fluxo-admin.js` (57), `fluxo-cadastro.js` (93) e `fluxo-profissional.js` (58), nessa ordem, contra banco limpo (`NODE_PATH` com o playwright; `SENHA_BANCO` = senha do `.env`).
+- Testes: `fluxo-admin.js` (57), `fluxo-cadastro.js` (93) e `fluxo-profissional.js` (75), nessa ordem, contra banco limpo (`NODE_PATH` com o playwright; `SENHA_BANCO` = senha do `.env`).
 - **Identificação única:** `empresa.documento` (CPF ou CNPJ) é obrigatório e único (`uk_empresa_documento`). Cadastro começa pela
   titularidade (PF/PJ). **Toda propriedade em CPF fica ligada a um `profissional`** (titular: `empresa.titular_profissional_id`,
   `empresa_profissional.titular`). CPF já na base: os dados são puxados. **CPF novo: sem aviso e sem desvio (pedido do Bruno,

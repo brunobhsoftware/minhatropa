@@ -7,6 +7,7 @@ use App\Models\Animal;
 use App\Support\Auditoria;
 use App\Support\Esquema;
 use App\Support\Licenca;
+use App\Support\Sociedade;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -51,6 +52,8 @@ class AnimaisController extends Controller
             'totais' => $totais,
             'podeCadastrar' => Licenca::podeCadastrarAnimal($empresa),
             'ativosPlantel' => Licenca::animais($empresa),
+            // Animais de outras propriedades em que esta é sócia (lançada pelo CNPJ/CPF dela)
+            'sociedades' => Sociedade::animaisDoSocio($empresa->documento),
             'limite' => Licenca::limite($empresa),
             'faixa' => Licenca::faixaAtual($empresa),
         ]);
@@ -63,22 +66,27 @@ class AnimaisController extends Controller
             return redirect()->route('painel.animais')->with('limite_plantel', true);
         }
 
-        return view('painel.animais.form', ['animal' => new Animal]);
+        return view('painel.animais.form', ['animal' => new Animal, 'socios' => collect()]);
     }
 
     public function store(Request $request)
     {
         $empresa = $request->attributes->get('haras');
         $dados = $this->validar($request);
+        $socios = Sociedade::validar($request, $empresa);
         // Só animal que entra no plantel ativo conta para a faixa (vendido, transferido e morto ficam de fora).
         $contaNoPlantel = ! in_array($dados['situacao'] ?? 'ativo', Licenca::FORA_DO_PLANTEL, true);
         if ($contaNoPlantel && ! Licenca::podeCadastrarAnimal($empresa)) {
             return redirect()->route('painel.animais')->with('limite_plantel', true);
         }
         $animal = Animal::create($dados + ['empresa_id' => $empresa->id, 'criado_por' => $request->user()->id]);
-        Auditoria::registrar('animal.criar', $animal);
+        Sociedade::salvar($animal, $socios, $request->user()->id);
+        Auditoria::registrar('animal.criar', $animal, null, $socios ? ['socios' => $socios] : null);
 
-        return redirect()->route('painel.animais')->with('ok', "{$animal->nome} cadastrado(a).");
+        // Com sócios, abre a ficha: é lá que ficam os links de convite para enviar a quem ainda não tem cadastro.
+        return $socios
+            ? redirect()->route('painel.animais.show', $animal)->with('ok', "{$animal->nome} cadastrado(a) com ".count($socios).' sócio(s).')
+            : redirect()->route('painel.animais')->with('ok', "{$animal->nome} cadastrado(a).");
     }
 
     public function show(Request $request, Animal $animal)
@@ -87,6 +95,8 @@ class AnimaisController extends Controller
 
         return view('painel.animais.show', [
             'animal' => $animal,
+            'socios' => Sociedade::doAnimal($animal),
+            'parteDaPropriedade' => Sociedade::parteDaPropriedade($animal),
             'arvore' => $animal->arvoreGenealogica(3),
         ]);
     }
@@ -95,7 +105,7 @@ class AnimaisController extends Controller
     {
         $this->doHaras($request, $animal);
 
-        return view('painel.animais.form', ['animal' => $animal]);
+        return view('painel.animais.form', ['animal' => $animal, 'socios' => Sociedade::doAnimal($animal)]);
     }
 
     public function update(Request $request, Animal $animal)
@@ -103,6 +113,7 @@ class AnimaisController extends Controller
         $this->doHaras($request, $animal);
         $antes = $animal->getAttributes();
         $dados = $this->validar($request);
+        $socios = Sociedade::validar($request, $request->attributes->get('haras'));
         // Voltar um animal ao plantel ativo também respeita o limite da faixa.
         $estavaFora = in_array($animal->situacao, Licenca::FORA_DO_PLANTEL, true);
         $ficaDentro = ! in_array($dados['situacao'] ?? $animal->situacao, Licenca::FORA_DO_PLANTEL, true);
@@ -110,9 +121,29 @@ class AnimaisController extends Controller
             return redirect()->route('painel.animais')->with('limite_plantel', true);
         }
         $animal->update($dados);
-        Auditoria::registrar('animal.editar', $animal, $antes);
+        if (Sociedade::disponivel() && $request->has('sociedade')) {
+            Sociedade::salvar($animal, $socios, $request->user()->id);
+        }
+        Auditoria::registrar('animal.editar', $animal, $antes, $socios ? ['socios' => $socios] : null);
 
         return redirect()->route('painel.animais.show', $animal)->with('ok', "Dados de {$animal->nome} salvos.");
+    }
+
+    /** Busca de sócio pelo CPF ou CNPJ (JSON): diz se já tem cadastro no MinhaTropa e traz o nome. */
+    public function buscarSocio(Request $request)
+    {
+        $doc = \App\Support\Documento::digitos($request->query('documento'));
+        if (! in_array(strlen($doc), [11, 14], true) || ! \App\Support\Documento::valido($doc)) {
+            return response()->json(['situacao' => 'invalido', 'mensagem' => 'CPF ou CNPJ inválido.']);
+        }
+        if ($doc === $request->attributes->get('haras')->documento) {
+            return response()->json(['situacao' => 'invalido', 'mensagem' => 'Esse é o documento desta propriedade. A parte dela é o que sobra dos sócios.']);
+        }
+        $achado = Sociedade::localizar($doc);
+
+        return response()->json($achado
+            ? ['situacao' => 'encontrado', 'tipo' => $achado['tipo'], 'nome' => $achado['nome'], 'detalhe' => $achado['detalhe']]
+            : ['situacao' => 'novo', 'tipo' => strlen($doc) === 11 ? 'profissional' : 'propriedade']);
     }
 
     public function morte(Request $request, Animal $animal)

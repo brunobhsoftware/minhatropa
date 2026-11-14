@@ -106,6 +106,58 @@ fs.writeFileSync(PNG, Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kA
   conf((await v.goto(B + '/h/tres-rios')).status() === 404, 'página fora do ar responde 404');
   await p.click('[data-aba=pagina]'); conf(await p.locator('img[data-imagem=capa]').count() === 0 && await p.locator('img[data-imagem=logo]').count() === 1, 'capa removida, logomarca mantida');
 
+  // ---------- Sociedade do animal: 100% da propriedade ou com sócios (CPF e CNPJ) ----------
+  const CPF_SOCIO = cpf(666777888), CPF_ANA = cpf(222333444);
+  const socio = async (n, doc, pct, nome) => {
+    const linha = p.locator('[data-socio]').nth(n);
+    await linha.locator('[data-socio-doc]').fill(doc); await linha.locator('[data-socio-doc]').blur();
+    await p.waitForFunction((i) => /cadastro no MinhaTropa|sem cadastro|inválido|propriedade/.test(document.querySelectorAll('[data-socio]')[i].querySelector('[data-socio-aviso]').textContent), n);
+    if (nome) await linha.locator('[data-socio-nome]').fill(nome);
+    await linha.locator('[data-socio-pct]').fill(pct);
+    return linha;
+  };
+  await p.goto(B + '/painel/animais/novo'); await p.fill('[name=nome]', 'Imperador');
+  conf((await p.locator('.abas-cadastro .aba-cadastro').allTextContents()).map((t) => t.trim()).includes('Sociedade'), 'cadastro de animal tem a seção Sociedade');
+  await p.click('[data-aba=sociedade]');
+  conf(await p.isChecked('[name=sociedade][value=propria]') && await p.locator('#blocoSocios').isHidden(), 'por padrão o animal é 100% da propriedade');
+  await p.check('[name=sociedade][value=socios]');
+  let l0 = await socio(0, CPF_ANA, '20');
+  conf(await l0.locator('[data-socio-nome]').inputValue() === 'Ana Proprietária' && (await l0.locator('[data-socio-aviso]').textContent()).includes('Profissional com cadastro'), 'sócio por CPF: acha o profissional e traz o nome');
+  await p.click('#btnAddSocio'); const l1 = await socio(1, '11222333000181', '50');
+  conf(await l1.locator('[data-socio-nome]').inputValue() === 'Haras Vista Alegre' && (await l1.locator('[data-socio-aviso]').textContent()).includes('Haras / Fazenda com cadastro'), 'sócio por CNPJ: acha o Haras / Fazenda');
+  await p.click('#btnAddSocio'); const l2 = await socio(2, CPF_SOCIO, '10', 'Sócio Novo da Silva');
+  conf((await l2.locator('[data-socio-aviso]').textContent()).includes('ainda sem cadastro'), 'sócio sem cadastro: pede o nome e avisa do convite');
+  conf((await p.textContent('[data-total-socios]')) === '80%' && (await p.textContent('[data-total-proprio]')) === '20%', 'soma: sócios 80%, propriedade 20%');
+  await p.screenshot({ path: '/tmp/mt-sociedade-form.png', fullPage: true });
+  await p.click('button:has-text("Cadastrar animal")'); await p.waitForLoadState();
+  h = await p.textContent('#sociedade');
+  conf(p.url().includes('/painel/animais/') && h.includes('Haras Três Rios') && h.includes('20%') && h.includes('Ana Proprietária') && h.includes('Haras Vista Alegre') && h.includes('50%') && h.includes('Sócio Novo da Silva') && h.includes('10%'), 'ficha do animal mostra a sociedade completa');
+  conf(await p.locator('#sociedade .convite').count() === 1 && h.includes('Aguardando cadastro'), 'só o sócio sem cadastro tem link de convite');
+  const linkConvite = await p.locator('#sociedade .convite input').inputValue();
+  await p.screenshot({ path: '/tmp/mt-sociedade-ficha.png', fullPage: true });
+  // soma acima de 100% é recusada e a seção abre com o erro
+  await p.click('#sociedade >> text=Alterar'); await p.waitForLoadState();
+  conf(await p.locator('#aba-sociedade').isVisible() && await p.locator('[data-socio]').count() === 3, 'alterar abre direto a seção Sociedade com os sócios lançados');
+  await p.locator('[data-socio]').first().locator('[data-socio-pct]').fill('90'); await p.click('button:has-text("Salvar")'); await p.waitForLoadState();
+  conf((await p.content()).includes('passa de 100%') && await p.locator('#aba-sociedade').isVisible(), 'soma acima de 100% recusada');
+  // o convite: cadastro simples do sócio
+  const sc = await pagina(b); const rc = await sc.goto(linkConvite); h = await sc.content();
+  conf(rc.status() === 200 && h.includes('Você é sócio(a) de Imperador') && h.includes('Haras Três Rios') && h.includes('10%') && await sc.inputValue('[name=nome]') === 'Sócio Novo da Silva', 'link de convite abre o cadastro simples, com nome e CPF prontos');
+  conf(await sc.locator('[name=uf]').count() === 0 && await sc.locator('[name="especialidades[]"]').count() === 0, 'convite pede só os dados básicos');
+  await sc.fill('[name=email]', 'socio@exemplo.com.br'); await sc.fill('[name=telefone]', '31966660000'); await sc.fill('[name=senha]', 'senha1234'); await sc.fill('[name=senha_confirmation]', 'senha1234');
+  await sc.screenshot({ path: '/tmp/mt-convite.png', fullPage: true });
+  await sc.click('button:has-text("Concluir meu cadastro")'); await sc.waitForLoadState();
+  h = await sc.content(); conf(sc.url().endsWith('/profissional') && await sc.locator('[data-sociedades]').count() === 1 && h.includes('Imperador') && h.includes('10%'), 'sócio cadastrado vê o animal em sociedade no painel profissional');
+  conf((await sc.goto(linkConvite)).status() === 200 && (await sc.content()).includes('já tem cadastro'), 'convite já usado manda entrar');
+  await p.goto(B + '/painel/animais?busca=Imperador'); await p.click('text=Imperador'); await p.waitForLoadState();
+  conf(await p.locator('#sociedade .convite').count() === 0 && (await p.textContent('#sociedade')).split('Cadastrado').length - 1 >= 3, 'depois do cadastro o convite some da ficha');
+  // quem já tinha cadastro vê sem fazer nada
+  const an = await pagina(b); await an.goto(B + '/entrar?ambiente=profissional'); await an.fill('[name=email]', 'ana@fazendaboa.com.br'); await an.fill('[name=senha]', 'senha1234'); await an.click('button:has-text("Entrar")'); await an.waitForLoadState();
+  h = await an.content(); conf(await an.locator('[data-sociedades]').count() === 1 && h.includes('Imperador') && h.includes('20%'), 'sócia que já tinha cadastro vê o animal no painel profissional');
+  // voltar a 100% da propriedade
+  await p.click('#sociedade >> text=Alterar'); await p.waitForLoadState(); await p.check('[name=sociedade][value=propria]'); await p.click('button:has-text("Salvar")'); await p.waitForLoadState();
+  conf((await p.textContent('#sociedade')).includes('100% de Haras Três Rios'), 'animal volta a ser 100% da propriedade');
+
   // ---------- Profissional cadastrado por um Haras ativa o próprio acesso ----------
   await p.goto(B + '/painel/profissionais/novo?cpf=' + CPF_CARLA);
   await p.fill('[name=nome]', 'Carla Treinadora'); await p.fill('[name=email]', 'carla@exemplo.com.br'); await p.check('[name="funcoes[]"][value=treinador]');

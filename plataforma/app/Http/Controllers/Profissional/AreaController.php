@@ -38,6 +38,8 @@ class AreaController extends Controller
 
         return view('profissional.inicio', [
             'usuario' => $usuario, 'profissional' => $profissional, 'vinculos' => $vinculos, 'acessos' => $acessos,
+            // Animais em que a pessoa é sócia (lançados pelo CPF dela no cadastro do animal)
+            'sociedades' => \App\Support\Sociedade::animaisDoSocio($profissional?->cpf),
             // Acessos que não passam pelo cadastro de profissional (ex.: dono de propriedade em CNPJ)
             'outrosAcessos' => $acessos->whereNotIn('id', $vinculos->pluck('id')),
         ]);
