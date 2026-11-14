@@ -26,15 +26,12 @@ use Illuminate\Validation\Rules\Password;
  *
  * Fluxo: tipo de propriedade → titularidade (Pessoa Física ou Jurídica) → CPF ou CNPJ, que é obrigatório e
  * único (não existem duas propriedades com o mesmo documento) → localização por UF e município (IBGE).
- * Pessoa Física só cadastra a propriedade se o CPF já tiver cadastro ATIVO na base de Profissionais: o sistema
- * puxa os dados dessa pessoa e a vincula como proprietário titular. Sem cadastro, o avanço é bloqueado e a pessoa
- * é levada a concluir primeiro o cadastro de Profissional.
+ * Pessoa Física: toda propriedade em CPF fica ligada a um cadastro de Profissional (o proprietário titular).
+ * CPF já na base puxa os dados dessa pessoa; CPF novo não trava nem desvia: o mesmo formulário pede o nome
+ * e o envio cria o Profissional, a conta e a propriedade de uma vez, já vinculados.
  */
 class CadastroController extends Controller
 {
-    /** Guarda na sessão o profissional que a própria pessoa acabou de cadastrar (aí os dados podem aparecer inteiros). */
-    private const SESSAO_PROFISSIONAL = 'cadastro_profissional_id';
-
     public function create(Request $request)
     {
         $cpf = Documento::digitos($request->query('cpf'));
@@ -71,8 +68,8 @@ class CadastroController extends Controller
         }
         $profissional = Profissional::porCpf($cpf);
         if (! $profissional) {
-            return response()->json(['situacao' => 'nao_encontrado', 'url' => route('cadastro.profissional', ['cpf' => $cpf, 'continuar' => 'propriedade']),
-                'mensagem' => 'Esse CPF ainda não tem cadastro de Profissional. Para cadastrar um Haras / Fazenda como Pessoa Física, conclua primeiro o seu cadastro de Profissional.']);
+            // CPF novo: o próprio cadastro do Haras / Fazenda pede os dados da pessoa e cria o Profissional junto.
+            return response()->json(['situacao' => 'novo']);
         }
         if (! $profissional->ativo()) {
             return response()->json(['situacao' => 'inativo', 'mensagem' => 'O cadastro de Profissional desse CPF não está ativo. Fale com o atendimento: atendimento@minhatropa.com.br.']);
@@ -81,17 +78,14 @@ class CadastroController extends Controller
             return response()->json(['situacao' => 'tem_conta', 'url' => route('entrar', ['ambiente' => 'profissional']),
                 'mensagem' => 'Esse CPF já tem conta no MinhaTropa. Entre com o seu e-mail e a sua senha e cadastre o Haras / Fazenda pelo ambiente do profissional.']);
         }
-        $meu = (int) session(self::SESSAO_PROFISSIONAL) === $profissional->id;
-
+        // Tela pública: nome e e-mail voltam mascarados (o e-mail completo é confirmado pela própria pessoa no envio).
         return response()->json([
             'situacao' => 'encontrado',
-            'nome' => $meu ? $profissional->nome : $profissional->nomeMascarado(),
-            'email' => $meu ? $profissional->email : $profissional->emailMascarado(),
-            'email_completo' => $meu ? $profissional->email : null,
-            'telefone' => $meu ? ($profissional->whatsapp ?: $profissional->telefone) : null,
+            'nome' => $profissional->nomeMascarado(),
+            'email' => $profissional->emailMascarado(),
             'cidade_uf' => $profissional->cidadeUf(),
             'funcoes' => $profissional->especialidadesTexto(),
-            'mensagem' => 'Cadastro de Profissional encontrado. Os dados serão usados no cadastro e essa pessoa ficará como proprietário titular.',
+            'mensagem' => 'Esse CPF já está cadastrado no MinhaTropa. Os dados serão usados no cadastro e essa pessoa ficará como proprietário titular.',
         ]);
     }
 
@@ -108,6 +102,9 @@ class CadastroController extends Controller
         $request->merge(['documento' => Documento::digitos($request->input('documento')) ?: null]);
         $pf = $titularidade === 'cpf';
         $voltar = fn (array $erros) => back()->withInput($request->except('senha', 'senha_confirmation'))->withErrors($erros);
+        // Pessoa Física: CPF já na base de Profissionais puxa os dados; CPF novo cria o Profissional neste mesmo cadastro.
+        $profissional = $pf ? Profissional::porCpf($request->input('documento')) : null;
+        $pessoaNova = $pf && ! $profissional;
 
         $dados = $request->validate([
             'tipo_propriedade' => ['required', Rule::in(array_keys(Empresa::TIPOS_CADASTRO))],
@@ -120,7 +117,7 @@ class CadastroController extends Controller
             'haras' => ['required', 'string', 'max:150'],
             'razao_social' => [$pf ? 'nullable' : 'required', 'string', 'max:190'],
             'quantidade_animais' => ['required', Rule::in(Empresa::QUANTIDADES)],
-            'nome' => [$pf ? 'nullable' : 'required', 'string', 'max:150'],
+            'nome' => [$pf && ! $pessoaNova ? 'nullable' : 'required', 'string', 'max:150'],
             'email' => ['required', 'email:filter', 'max:190'],
             'telefone' => ['required', 'string', 'max:30'],
             'senha' => ['required', 'confirmed', Password::min(8)->letters()->numbers()],
@@ -131,37 +128,39 @@ class CadastroController extends Controller
             'documento.required' => $pf ? 'Informe o CPF do proprietário.' : 'Informe o CNPJ.',
             'documento.unique' => 'Já existe um Haras / Fazenda cadastrado com esse '.($pf ? 'CPF' : 'CNPJ').'. Entre com a sua senha ou fale com o atendimento.',
             'aceite.accepted' => 'Confirme que leu e concorda com as condições do plano gratuito.',
-        ] + Geografia::mensagens(), ['haras' => 'nome do Haras / Fazenda', 'razao_social' => 'razão social', 'nome' => 'seu nome', 'senha' => 'senha', 'telefone' => 'WhatsApp']);
+        ] + Geografia::mensagens(), ['haras' => 'nome do Haras / Fazenda', 'razao_social' => 'razão social', 'nome' => 'seu nome completo', 'senha' => 'senha', 'telefone' => 'WhatsApp']);
 
         $email = mb_strtolower(trim($dados['email']));
 
-        // Pessoa Física: o CPF precisa ter cadastro ativo de Profissional. Os dados vêm de lá (sem redigitação).
-        $profissional = null;
-        if ($pf) {
-            $profissional = Profissional::porCpf($dados['documento']);
-            if (! $profissional) {
-                return $voltar(['documento' => 'Esse CPF ainda não tem cadastro de Profissional. Conclua primeiro o seu cadastro de Profissional para cadastrar o Haras / Fazenda.'])
-                    ->with('cadastrar_profissional', route('cadastro.profissional', ['cpf' => $dados['documento'], 'continuar' => 'propriedade']));
-            }
+        if ($profissional) {
             if (! $profissional->ativo()) {
                 return $voltar(['documento' => 'O cadastro de Profissional desse CPF não está ativo. Fale com o atendimento: atendimento@minhatropa.com.br.']);
             }
-            $meu = (int) session(self::SESSAO_PROFISSIONAL) === $profissional->id;
-            // Quem não acabou de fazer o cadastro confirma o e-mail que está no cadastro de Profissional.
-            if (! $meu && $profissional->email && mb_strtolower($profissional->email) !== $email) {
-                return $voltar(['email' => 'O e-mail não confere com o do cadastro de Profissional desse CPF ('.$profissional->emailMascarado().'). Use o mesmo e-mail ou fale com o atendimento.']);
-            }
             if ($profissional->usuario_id) {
                 return $voltar(['documento' => 'Esse CPF já tem conta no MinhaTropa. Entre com a sua senha e cadastre o Haras / Fazenda pelo ambiente do profissional.']);
+            }
+            // CPF cadastrado antes por um Haras / Fazenda ou pela Administração: confirma o e-mail que está no cadastro.
+            if ($profissional->email && mb_strtolower($profissional->email) !== $email) {
+                return $voltar(['email' => 'O e-mail não confere com o do cadastro de Profissional desse CPF ('.$profissional->emailMascarado().'). Use o mesmo e-mail ou fale com o atendimento.']);
             }
         }
         if (Usuario::where('email', $email)->exists()) {
             return $voltar(['email' => 'Já existe uma conta com esse e-mail. Entre com sua senha para acessar.']);
         }
 
-        $nomePessoa = $pf ? $profissional->nome : $dados['nome'];
+        $nomePessoa = $profissional ? $profissional->nome : $dados['nome'];
 
-        [$usuario, $empresa] = DB::transaction(function () use ($dados, $email, $pf, $profissional, $nomePessoa) {
+        [$usuario, $empresa] = DB::transaction(function () use ($dados, $email, $pf, $profissional, $pessoaNova, $nomePessoa) {
+            if ($pessoaNova) {
+                // Cria o Profissional (proprietário) com os dados deste cadastro; a cidade é a da propriedade.
+                $profissional = CadastroProfissional::criar(Geografia::colunas([
+                    'nome' => $dados['nome'], 'cpf' => $dados['documento'], 'email' => $email,
+                    'telefone' => $dados['telefone'], 'whatsapp' => $dados['telefone'],
+                    'uf' => $dados['uf'], 'municipio_id' => $dados['municipio_id'],
+                    'especialidades' => [Profissional::PROPRIETARIO],
+                ]), 'site');
+                Auditoria::registrar('profissional.autocadastro', $profissional);
+            }
             $usuario = Usuario::create(['nome' => $nomePessoa, 'email' => $email, 'telefone' => $dados['telefone'],
                 'senha_hash' => Hash::make($dados['senha']), 'ativo' => true]);
             if ($profissional) {
@@ -174,7 +173,6 @@ class CadastroController extends Controller
 
         Auth::login($usuario);
         $request->session()->regenerate();
-        $request->session()->forget(self::SESSAO_PROFISSIONAL);
         $usuario->forceFill(['ultimo_login_em' => now()])->save();
 
         return $this->concluir($empresa);
