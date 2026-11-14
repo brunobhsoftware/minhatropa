@@ -108,6 +108,15 @@ Route::middleware(['auth', 'haras'])->prefix('painel')->group(function () {
         Route::put('/rotinas/{rotina}', [$p.'\AgendaController', 'atualizarRotina'])->name('rotinas.atualizar');
         Route::delete('/rotinas/{rotina}', [$p.'\AgendaController', 'excluirRotina'])->name('rotinas.excluir');
 
+        // Clínica veterinária
+        Route::get('/clinica', [$p.'\ClinicaController', 'index'])->name('clinica');
+        Route::get('/clinica/novo', [$p.'\ClinicaController', 'criar'])->name('clinica.novo');
+        Route::post('/clinica', [$p.'\ClinicaController', 'salvar'])->name('clinica.salvar');
+        Route::get('/clinica/{evento}', [$p.'\ClinicaController', 'ver'])->name('clinica.ver');
+        Route::get('/clinica/{evento}/editar', [$p.'\ClinicaController', 'editar'])->name('clinica.editar');
+        Route::put('/clinica/{evento}', [$p.'\ClinicaController', 'atualizar'])->name('clinica.atualizar');
+        Route::delete('/clinica/{evento}', [$p.'\ClinicaController', 'excluir'])->name('clinica.excluir');
+
         // Equipe: vínculo de profissionais pelo CPF (base global) e acesso externo (módulo de equipe)
         Route::middleware('permissao:equipe')->group(function () use ($p) {
             Route::get('/profissionais', [$p.'\ProfissionaisController', 'index'])->name('profissionais');

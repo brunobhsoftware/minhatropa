@@ -25,7 +25,7 @@ async function local(pagina, uf, municipio, prefixo = '') {
 /** Aplica pela Administração todos os scripts do banco ainda pendentes, na ordem. */
 async function aplicarBanco(pagina) {
   const aplicados = [];
-  for (const v of ['V002', 'V003', 'V004', 'V005', 'V006', 'V007', 'V008', 'V009', 'V010', 'V011']) {
+  for (const v of ['V002', 'V003', 'V004', 'V005', 'V006', 'V007', 'V008', 'V009', 'V010', 'V011', 'V012']) {
     await pagina.goto(B + '/admin/banco');
     await pagina.click(`form:has(input[value^="${v}"]) button`);
     await pagina.waitForLoadState();
@@ -37,7 +37,13 @@ async function aplicarBanco(pagina) {
 /** Página nova que só fala com o servidor de teste (fontes e ViaCEP ficam de fora). */
 async function pagina(navegador, opcoes = {}) {
   const contexto = await navegador.newContext(opcoes);
-  await contexto.route((url) => !url.href.startsWith(B), (rota) => rota.abort());
+  await contexto.route((url) => !url.href.startsWith(B), (rota) => {
+    if (rota.request().resourceType() === 'stylesheet' || rota.request().resourceType() === 'font') {
+      rota.fulfill({ status: 200, contentType: 'text/css', body: '' });
+    } else {
+      rota.abort();
+    }
+  });
   const p = await contexto.newPage();
   p.on('dialog', (d) => d.accept());
   p.on('pageerror', (e) => { falhas++; console.log('ERRO DE JS:', e.message); });
