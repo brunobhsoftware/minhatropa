@@ -127,6 +127,8 @@ Projeto irmão (mesma estrutura, mesma conta Hostinger): **foradafila.com.br** (
 
 ## Publicação (Hostinger)
 
+- **Publicar sem perguntar (Bruno, 14/11/2026):** terminado e testado (os três fluxos e2e passando em banco limpo), enviar direto
+  para a `main`, sem pedir confirmação. Avisar depois o que foi publicado e se há script de banco para aplicar.
 - **Como publicar:** commit e push na `main` mexendo em `plataforma/`. A Action instala as dependências (sem dev) e grava
   o resultado na branch `publicacao` (commit normal, sem force push). A Hostinger acompanha `publicacao` (auto-deploy do GitHub).
 - **Nunca** apontar a publicação automática para a `main`: levaria `docs/` e `CLAUDE.md` para o site.
