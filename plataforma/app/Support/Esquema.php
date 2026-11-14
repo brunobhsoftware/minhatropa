@@ -38,4 +38,14 @@ class Esquema
             return false;
         }
     }
+
+    /** V005: animais expandido, cobrições, nascimentos, transferências. */
+    public static function temV005(): bool
+    {
+        try {
+            return self::$cache['v005'] ??= Schema::hasTable('cobricao') && Schema::hasColumn('animal', 'especie');
+        } catch (\Throwable) {
+            return false;
+        }
+    }
 }

@@ -31,4 +31,9 @@ class Licenca
     {
         return self::ativa($empresa) || self::animais($empresa) < self::animaisGratis();
     }
+
+    public static function exigir(Empresa $empresa): void
+    {
+        abort_unless(self::ativa($empresa), 403, 'Licença não ativa. Contrate para acessar esta ferramenta.');
+    }
 }
