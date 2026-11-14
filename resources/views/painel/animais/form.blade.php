@@ -43,7 +43,7 @@
         <button type="button" class="aba-cadastro" data-aba="registro">Registro</button>
         <button type="button" class="aba-cadastro" data-aba="aquisicao">Aquisição</button>
         <button type="button" class="aba-cadastro" data-aba="genealogia">Genealogia</button>
-        @if (\App\Support\Sociedade::disponivel())<button type="button" class="aba-cadastro" data-aba="sociedade">Sociedade</button>@endif
+        @if (\App\Support\Sociedade::disponivel())<button type="button" class="aba-cadastro" data-aba="sociedade" id="botaoSociedade" @if (old('sociedade', $socios->isNotEmpty() ? 'socios' : 'propria') !== 'socios') hidden @endif>Sociedade</button>@endif
         <button type="button" class="aba-cadastro" data-aba="observacoes">Observações</button>
     </div>
 
@@ -96,7 +96,13 @@
                 </label>
                 <label class="campo"><span id="rotuloPelagemComp">Complemento da pelagem</span><input name="pelagem_complemento" id="campoPelagemComp" value="{{ $v('pelagem_complemento') }}" maxlength="80" placeholder="Variação ou detalhe"></label>
                 <label class="campo"><span>Data de nascimento</span><input type="date" name="data_nascimento" value="{{ old('data_nascimento', $animal->data_nascimento?->format('Y-m-d')) }}"></label>
-                <label class="campo"><span>Nº plantel</span><input name="numero_plantel" value="{{ $v('numero_plantel') }}" maxlength="30" placeholder="Número interno"></label>
+                <div class="campo"><span>Nº plantel</span>
+                    <div class="campo-com-botao">
+                        <input name="numero_plantel" id="campoNumeroPlantel" value="{{ $v('numero_plantel') }}" maxlength="30" placeholder="Digite ou busque o próximo" aria-label="Nº plantel">
+                        <button type="button" class="botao botao--contorno botao--pequeno" id="btnProximoNumero" data-url="{{ route('painel.animais.proximo-numero') }}" title="Buscar o próximo número da sequência">Próximo nº</button>
+                    </div>
+                    <small class="suave" id="avisoNumeroPlantel" aria-live="polite"></small>
+                </div>
                 <label class="campo"><span>Local / baia</span><input name="local_baia" value="{{ $v('local_baia') }}" maxlength="80"></label>
             </div>
         </section>
@@ -130,6 +136,16 @@
     <div class="painel-aba painel-aba--oculto" id="aba-aquisicao">
         <section class="cartao"><h2>Aquisição e situação</h2>
             <div class="grade-3">
+                @if (\App\Support\Sociedade::disponivel())
+                @php $comSocios = old('sociedade', $socios->isNotEmpty() ? 'socios' : 'propria') === 'socios'; @endphp
+                <label class="campo"><span>Percentual {{ $haras->doRotulo() }}</span>
+                    <select name="sociedade" id="selSociedade">
+                        <option value="propria" @selected(! $comSocios)>100%</option>
+                        <option value="socios" @selected($comSocios)>Personalizado</option>
+                    </select>
+                    <small class="suave" id="atalhoSociedade" @if (! $comSocios) hidden @endif>O animal tem sócios. <a href="#sociedade" id="linkSociedade">Detalhar na seção Sociedade</a></small>
+                </label>
+                @endif
                 <label class="campo"><span>Data de aquisição</span><input type="date" name="data_aquisicao" value="{{ old('data_aquisicao', $animal->data_aquisicao?->format('Y-m-d')) }}"></label>
                 <label class="campo"><span>Forma de aquisição</span>
                     <select name="forma_aquisicao"><option value=""></option>
@@ -193,12 +209,8 @@
     @endphp
     <div class="painel-aba painel-aba--oculto" id="aba-sociedade">
         <section class="cartao"><h2>Sociedade</h2>
-            <p class="suave" style="margin-bottom:1rem">Diga se o animal é todo {{ $haras->doRotulo() }} ou se tem sócios. Sócio pessoa entra pelo CPF; sócio Haras / Fazenda, pelo CNPJ.</p>
-            <div class="opcoes-situacao">
-                <label class="opcao-cartao"><input type="radio" name="sociedade" value="propria" @checked(! $comSocios)> 100% de {{ $haras->nome }}</label>
-                <label class="opcao-cartao"><input type="radio" name="sociedade" value="socios" @checked($comSocios)> Tem sócios</label>
-            </div>
-            <div id="blocoSocios" data-busca="{{ route('painel.animais.buscar-socio') }}" @if (! $comSocios) hidden @endif style="margin-top:16px">
+            <p class="suave" style="margin-bottom:1rem">Informe os sócios do animal e a parte de cada um. Sócio pessoa entra pelo CPF; sócio Haras / Fazenda, pelo CNPJ. Para voltar a 100% {{ $haras->doRotulo() }}, mude o percentual na seção Aquisição.</p>
+            <div id="blocoSocios" data-busca="{{ route('painel.animais.buscar-socio') }}">
                 <div id="listaSocios" class="socios">
                     @foreach ($linhasSocios->isEmpty() ? [['documento' => '', 'nome' => '', 'percentual' => '']] : $linhasSocios as $i => $l)
                     <div class="socio" data-socio>
@@ -232,6 +244,20 @@
 </form>
 
 <script>
+// Nº plantel: o botão busca o próximo número da sequência da propriedade; digitar à mão continua valendo.
+(function () {
+    var botao = document.getElementById('btnProximoNumero'), campo = document.getElementById('campoNumeroPlantel'), aviso = document.getElementById('avisoNumeroPlantel');
+    if (!botao || !campo) return;
+    botao.addEventListener('click', function () {
+        botao.disabled = true; aviso.textContent = 'Buscando…';
+        fetch(botao.dataset.url, { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' })
+            .then(function (r) { if (!r.ok) throw new Error(); return r.json(); })
+            .then(function (d) { campo.value = d.numero; aviso.textContent = d.ultimo ? 'Último usado: ' + d.ultimo + '.' : 'Primeiro número da sequência.'; })
+            .catch(function () { aviso.textContent = 'Não foi possível buscar agora. Digite o número.'; })
+            .finally(function () { botao.disabled = false; });
+    });
+})();
+
 // Seções do cadastro: uma por vez. Com erro de validação, abre a seção do primeiro campo com problema.
 (function () {
     var botoes = document.querySelectorAll('.abas-cadastro .aba-cadastro'), paineis = document.querySelectorAll('.painel-aba');
@@ -241,7 +267,7 @@
     };
     botoes.forEach(function (b) { b.addEventListener('click', function () { abrir(b.dataset.aba); }); });
     var erros = @json($errors->keys());
-    if (!erros.length && location.hash && document.getElementById('aba-' + location.hash.slice(1))) abrir(location.hash.slice(1));
+    if (!erros.length && location.hash && document.getElementById('aba-' + location.hash.slice(1))) { var alvo = location.hash.slice(1), bs = document.getElementById('botaoSociedade'); abrir(alvo === 'sociedade' && bs && bs.hidden ? 'aquisicao' : alvo); }
     if (erros.some(function (n) { return n === 'sociedade' || n.indexOf('socios.') === 0; })) { abrir('sociedade'); return; }
     erros.some(function (nome) { var c = document.querySelector('.formulario [name="' + nome + '"]'); var p = c && c.closest('.painel-aba'); if (p) { abrir(p.id.replace('aba-', '')); return true; } return false; });
 })();
@@ -306,7 +332,13 @@
         nova.querySelector('[data-socio-aviso]').textContent = ''; nova.querySelector('[data-socio-aviso]').className = 'socio__aviso';
         lista.appendChild(nova); ligar(nova); nova.querySelector('[data-socio-doc]').focus();
     });
-    document.querySelectorAll('[name=sociedade]').forEach(function (r) { r.addEventListener('change', function () { bloco.hidden = r.value !== 'socios' || !r.checked; }); });
+    // Percentual (seção Aquisição): 100% esconde a seção Sociedade; Personalizado libera para lançar os sócios.
+    var sel = document.getElementById('selSociedade'), botao = document.getElementById('botaoSociedade'), atalho = document.getElementById('atalhoSociedade');
+    if (sel && botao) {
+        var ajustar = function () { var com = sel.value === 'socios'; botao.hidden = !com; if (atalho) atalho.hidden = !com; };
+        sel.addEventListener('change', ajustar); ajustar();
+        document.getElementById('linkSociedade').addEventListener('click', function (e) { e.preventDefault(); botao.click(); });
+    }
     somar();
 })();
 

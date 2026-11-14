@@ -129,6 +129,25 @@ class AnimaisController extends Controller
         return redirect()->route('painel.animais.show', $animal)->with('ok', "Dados de {$animal->nome} salvos.");
     }
 
+    /**
+     * Próximo número de plantel da propriedade (JSON): o maior número já usado + 1, mantendo os zeros à esquerda.
+     * Conta todos os animais da propriedade (vendido, morto e excluído também), para não repetir número.
+     */
+    public function proximoNumero(Request $request)
+    {
+        $empresa = $request->attributes->get('haras');
+        $maior = null;
+        foreach (Animal::where('empresa_id', $empresa->id)->whereNotNull('numero_plantel')->pluck('numero_plantel') as $n) {
+            $n = trim((string) $n);
+            if ($n !== '' && ctype_digit($n) && strlen($n) <= 15 && ($maior === null || (int) $n > (int) $maior)) {
+                $maior = $n;
+            }
+        }
+        $proximo = $maior === null ? '1' : str_pad((string) ((int) $maior + 1), strlen($maior), '0', STR_PAD_LEFT);
+
+        return response()->json(['numero' => $proximo, 'ultimo' => $maior]);
+    }
+
     /** Busca de sócio pelo CPF ou CNPJ (JSON): diz se já tem cadastro no MinhaTropa e traz o nome. */
     public function buscarSocio(Request $request)
     {
