@@ -5,10 +5,13 @@
     $menu = [
         ['rota' => 'painel', 'icone' => 'painel', 'texto' => 'Início', 'exato' => true],
         ['rota' => 'painel.animais', 'icone' => 'cavalo', 'texto' => 'Animais'],
+        ['rota' => 'painel.cobricoes', 'icone' => 'historico', 'texto' => 'Cobrições', 'licenca' => true],
+        ['rota' => 'painel.nascimentos', 'icone' => 'mais', 'texto' => 'Nascimentos', 'licenca' => true],
+        ['rota' => 'painel.transferencias', 'icone' => 'site', 'texto' => 'Transferências', 'licenca' => true],
         ['rota' => 'painel.profissionais', 'icone' => 'usuarios', 'texto' => 'Equipe'],
         ['rota' => 'painel.haras', 'icone' => 'haras', 'texto' => 'Dados do Haras'],
     ];
-    $bloqueados = ['Agenda e rotinas', 'Saúde veterinária', 'Reprodução e genética', 'Treinos e desempenho', 'Custos e financeiro', 'Relatórios'];
+    $bloqueados = ['Agenda e rotinas', 'Saúde veterinária', 'Treinos e desempenho', 'Custos e financeiro', 'Relatórios'];
     $outros = isset($haras) ? \App\Support\HarasAtual::disponiveis(auth()->user())->count() > 1 : false;
 @endphp
 @section('corpo')
@@ -18,8 +21,12 @@
         <div class="menu-lateral__haras"><small>Haras</small><b>{{ $haras->nome }}</b>@if ($outros)<a href="{{ route('painel.escolher') }}">Trocar</a>@endif</div>
         <nav>
             @foreach ($menu as $item)
-                @php $ativo = ($item['exato'] ?? false) ? request()->routeIs($item['rota']) : request()->routeIs($item['rota'].'*'); @endphp
-                <a href="{{ route($item['rota']) }}" class="{{ $ativo ? 'ativo' : '' }}" @if ($ativo) aria-current="page" @endif><x-icone :nome="$item['icone']" /> {{ $item['texto'] }}</a>
+                @if (($item['licenca'] ?? false) && ! $licenca)
+                    <a href="{{ route('painel.licenca') }}" class="desativado">🔒 {{ $item['texto'] }}</a>
+                @else
+                    @php $ativo = ($item['exato'] ?? false) ? request()->routeIs($item['rota']) : request()->routeIs($item['rota'].'*'); @endphp
+                    <a href="{{ route($item['rota']) }}" class="{{ $ativo ? 'ativo' : '' }}" @if ($ativo) aria-current="page" @endif><x-icone :nome="$item['icone']" /> {{ $item['texto'] }}</a>
+                @endif
             @endforeach
         </nav>
         <div class="menu-lateral__grupo">{{ $licenca ? 'Ferramentas' : 'Liberado após a contratação' }}</div>

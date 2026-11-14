@@ -29,8 +29,30 @@ Route::middleware(['auth', 'haras'])->prefix('painel')->group(function () {
         Route::get('/animais', [\App\Http\Controllers\Painel\AnimaisController::class, 'index'])->name('animais');
         Route::get('/animais/novo', [\App\Http\Controllers\Painel\AnimaisController::class, 'create'])->name('animais.novo');
         Route::post('/animais', [\App\Http\Controllers\Painel\AnimaisController::class, 'store'])->name('animais.criar');
+        Route::get('/animais/{animal}', [\App\Http\Controllers\Painel\AnimaisController::class, 'show'])->name('animais.show');
         Route::get('/animais/{animal}/editar', [\App\Http\Controllers\Painel\AnimaisController::class, 'edit'])->name('animais.editar');
         Route::put('/animais/{animal}', [\App\Http\Controllers\Painel\AnimaisController::class, 'update'])->name('animais.salvar');
+        Route::put('/animais/{animal}/morte', [\App\Http\Controllers\Painel\AnimaisController::class, 'morte'])->name('animais.morte');
+        Route::get('/animais-buscar-genitor', [\App\Http\Controllers\Painel\AnimaisController::class, 'buscarGenitor'])->name('animais.buscar-genitor');
+
+        Route::get('/cobricoes', [\App\Http\Controllers\Painel\CobricoesController::class, 'index'])->name('cobricoes');
+        Route::get('/cobricoes/novo', [\App\Http\Controllers\Painel\CobricoesController::class, 'create'])->name('cobricoes.novo');
+        Route::post('/cobricoes', [\App\Http\Controllers\Painel\CobricoesController::class, 'store'])->name('cobricoes.criar');
+        Route::get('/cobricoes/{cobricao}', [\App\Http\Controllers\Painel\CobricoesController::class, 'show'])->name('cobricoes.show');
+        Route::get('/cobricoes/{cobricao}/editar', [\App\Http\Controllers\Painel\CobricoesController::class, 'edit'])->name('cobricoes.editar');
+        Route::put('/cobricoes/{cobricao}', [\App\Http\Controllers\Painel\CobricoesController::class, 'update'])->name('cobricoes.salvar');
+
+        Route::get('/nascimentos', [\App\Http\Controllers\Painel\NascimentosController::class, 'index'])->name('nascimentos');
+        Route::get('/nascimentos/novo', [\App\Http\Controllers\Painel\NascimentosController::class, 'create'])->name('nascimentos.novo');
+        Route::post('/nascimentos', [\App\Http\Controllers\Painel\NascimentosController::class, 'store'])->name('nascimentos.criar');
+        Route::get('/nascimentos/{nascimento}', [\App\Http\Controllers\Painel\NascimentosController::class, 'show'])->name('nascimentos.show');
+
+        Route::get('/transferencias', [\App\Http\Controllers\Painel\TransferenciasController::class, 'index'])->name('transferencias');
+        Route::get('/transferencias/novo', [\App\Http\Controllers\Painel\TransferenciasController::class, 'create'])->name('transferencias.novo');
+        Route::post('/transferencias', [\App\Http\Controllers\Painel\TransferenciasController::class, 'store'])->name('transferencias.criar');
+        Route::get('/transferencias/{transferencia}', [\App\Http\Controllers\Painel\TransferenciasController::class, 'show'])->name('transferencias.show');
+        Route::put('/transferencias/{transferencia}/responder', [\App\Http\Controllers\Painel\TransferenciasController::class, 'responder'])->name('transferencias.responder');
+        Route::get('/transferencias-buscar-haras', [\App\Http\Controllers\Painel\TransferenciasController::class, 'buscarHaras'])->name('transferencias.buscar-haras');
 
         Route::get('/profissionais', [\App\Http\Controllers\Painel\ProfissionaisController::class, 'index'])->name('profissionais');
         Route::get('/profissionais/novo', [\App\Http\Controllers\Painel\ProfissionaisController::class, 'create'])->name('profissionais.novo');
