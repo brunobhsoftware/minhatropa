@@ -43,7 +43,7 @@
                         <summary class="botao botao--contorno-claro"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg> Entrar</summary>
                         <div class="topo__opcoes-lista">
                             <a href="{{ route('entrar', ['ambiente' => 'haras']) }}"><b>Haras / Fazenda</b><small>Painel da propriedade</small></a>
-                            <a href="{{ route('entrar', ['ambiente' => 'profissional']) }}"><b>Profissional</b><small>Seu ambiente de profissional</small></a>
+                            <a href="{{ route('entrar', ['ambiente' => 'profissional']) }}"><b>Profissional</b><small>Painel profissional</small></a>
                         </div>
                     </details>
                     <details class="topo__opcoes" data-opcoes="cadastrar">
