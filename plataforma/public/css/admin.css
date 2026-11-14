@@ -56,6 +56,9 @@ input[type=checkbox],input[type=radio]{width:auto}
 .selo--teste{background:#fff8d1;color:#7a5d00}
 .selo--suspenso{background:var(--laranja-claro);color:var(--laranja)}
 .selo--encerrado{background:var(--cinza-2);color:var(--azul-3)}
+.selo--inativo{background:var(--cinza-2);color:var(--azul-3)}
+.selo--banido{background:#fde2e2;color:#b91c1c}
+.selo--desativado{background:var(--cinza-2);color:var(--azul-3)}
 .selo-breve{font-size:.68rem;background:rgba(255,214,10,.15);color:var(--amarelo);padding:1px 7px;border-radius:999px;margin-left:auto}
 
 /* Tela de acesso (login/instalação) */

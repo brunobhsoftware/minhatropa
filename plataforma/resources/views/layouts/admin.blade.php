@@ -4,6 +4,7 @@
     $menuAdmin = [
         ['rota' => 'admin.inicio', 'icone' => 'painel', 'texto' => 'Início', 'exato' => true],
         ['rota' => 'admin.haras', 'icone' => 'haras', 'texto' => 'Haras'],
+        ['rota' => 'admin.profissionais', 'icone' => 'usuarios', 'texto' => 'Profissionais'],
         ['rota' => 'admin.contatos', 'icone' => 'mensagem', 'texto' => 'Contatos do site'],
         ['rota' => 'admin.usuarios', 'icone' => 'usuarios', 'texto' => 'Administradores'],
         ['rota' => 'admin.banco', 'icone' => 'banco', 'texto' => 'Atualizações do banco'],
