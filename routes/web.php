@@ -128,6 +128,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::put('/haras/{empresa}', [Admin\HarasController::class, 'update'])->name('haras.salvar');
             Route::put('/haras/{empresa}/faixa', [Admin\HarasController::class, 'faixa'])->name('haras.faixa');
             Route::put('/haras/{empresa}/modulos/{modulo}', [Admin\HarasController::class, 'modulo'])->name('haras.modulo');
+            Route::put('/haras/{empresa}/cortesia', [Admin\HarasController::class, 'cortesia'])->name('haras.cortesia');
             Route::get('/haras-consultar-cpf', [Admin\HarasController::class, 'consultarCpf'])->name('haras.consultar-cpf');
             Route::put('/haras/{empresa}/situacao', [Admin\HarasController::class, 'situacao'])->name('haras.situacao');
             Route::post('/haras/{empresa}/usuarios', [Admin\HarasController::class, 'vincularUsuario'])->name('haras.usuarios.vincular');
@@ -160,7 +161,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/contatos/{contato}/lido', [Admin\ContatosController::class, 'lido'])->name('contatos.lido')->whereNumber('contato');
 
         Route::get('/banco', [Admin\BancoController::class, 'index'])->name('banco');
-        Route::post('/banco', [Admin\BancoController::class, 'aplicar'])->name('banco.aplicar')->middleware('throttle:10,10,admin-banco');
+        Route::post('/banco', [Admin\BancoController::class, 'aplicar'])->name('banco.aplicar')->middleware('throttle:30,10,admin-banco');
 
         Route::get('/auditoria', [Admin\AdminController::class, 'auditoria'])->name('auditoria');
     });

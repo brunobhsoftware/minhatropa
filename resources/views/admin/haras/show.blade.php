@@ -96,6 +96,29 @@
 </section>
 @endif
 
+@if ($temCortesia)
+<section class="cartao {{ $empresa->emCortesia() ? 'cartao--destaque' : '' }}" id="cortesia">
+    <div class="cartao__titulo"><h2>Cortesia: liberar tudo gratuitamente</h2>
+        <span class="selo selo--{{ $empresa->emCortesia() ? 'ativo' : 'encerrado' }}">{{ $empresa->emCortesia() ? 'Cortesia ativa' : 'Sem cortesia' }}</span></div>
+    @if ($empresa->emCortesia())
+        <p>Esta propriedade usa <b>todos os módulos e as ferramentas do plano gratuitamente</b>{{ $empresa->cortesia_plantel ? ', com plantel sem limite de animais' : ' (o limite de animais continua o da faixa)' }}.
+            <span class="suave">Liberada em {{ data_local($empresa->cortesia_em) }}.@if ($empresa->cortesia_obs) Anotação: {{ $empresa->cortesia_obs }}@endif</span></p>
+        <form method="post" action="{{ route('admin.haras.cortesia', $empresa) }}" data-confirmar="Retirar a cortesia de {{ $empresa->nome }}? Ela volta à faixa e aos módulos contratados.">
+            @csrf @method('put') <input type="hidden" name="cortesia" value="0">
+            <button class="botao botao--contorno botao--pequeno">Retirar cortesia</button>
+        </form>
+    @else
+        <p class="suave">Para quem está testando o sistema. Libera de uma vez todos os módulos adicionais e as ferramentas do plano (cobrições, nascimentos, transferências), sem cobrança e sem mudar a faixa contratada. Ao retirar, tudo volta ao que era.</p>
+        <form method="post" action="{{ route('admin.haras.cortesia', $empresa) }}" class="formulario" style="max-width:640px">
+            @csrf @method('put') <input type="hidden" name="cortesia" value="1">
+            <label class="opcao"><input type="checkbox" name="cortesia_plantel" value="1" checked> Liberar também o plantel sem limite de animais</label>
+            <label class="campo"><span>Anotação interna (opcional)</span><input name="cortesia_obs" maxlength="255" placeholder="Ex.: amigo do Bruno, testando até dezembro"></label>
+            <div><button class="botao botao--primario">Liberar tudo gratuitamente</button></div>
+        </form>
+    @endif
+</section>
+@endif
+
 <div class="grade-2">
 <section class="cartao cartao--licenca" id="plano">
     <div class="cartao__titulo"><h2>Plano: faixa de plantel</h2>
@@ -117,6 +140,7 @@
 </section>
 <section class="cartao" id="modulos">
     <h2>Módulos adicionais</h2>
+    @if ($empresa->emCortesia())<p class="suave">Em cortesia, todos os módulos estão liberados. Abaixo, o que a propriedade contratou de fato (vale quando a cortesia for retirada).</p>@endif
     @foreach ($modulos as $m)
         @php $sit = $modulosHaras[$m->codigo] ?? null; @endphp
         <div class="linha-lista">

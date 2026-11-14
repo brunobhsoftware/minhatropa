@@ -1,7 +1,8 @@
 @extends('layouts.base')
 @section('titulo_sufixo', 'MinhaTropa')
 @php
-    $licenca = (bool) ($haras->licenca_ativa ?? false);
+    $licenca = \App\Support\Licenca::ativa($haras);
+    $cortesia = $haras->emCortesia();
     $papel = $papel ?? 'consulta';
     $dono = $papel === 'proprietario';
     $pode = fn (string $area, bool $escrita = false) => \App\Support\Permissao::pode($papel, $area, $escrita);
@@ -77,7 +78,7 @@
             <button type="button" class="topo-painel__menu" data-menu-alternar aria-controls="menu-lateral" aria-expanded="false" aria-label="Abrir menu"><x-icone nome="menu" /></button>
             @if ($dono)
                 @php $faixaTopo = \App\Support\Licenca::faixaAtual($haras); @endphp
-                <a href="{{ route('painel.plano') }}" class="topo-painel__selo selo selo--{{ $licenca ? 'ativo' : 'teste' }}">{{ $faixaTopo?->nome ?? 'Plano gratuito' }}</a>
+                <a href="{{ route('painel.plano') }}" class="topo-painel__selo selo selo--{{ $licenca ? 'ativo' : 'teste' }}">{{ $cortesia ? 'Cortesia · tudo liberado' : ($faixaTopo?->nome ?? 'Plano gratuito') }}</a>
             @else
                 <span class="topo-painel__selo selo selo--encerrado">{{ \App\Models\EmpresaUsuario::PAPEIS[$papel] ?? $papel }}</span>
             @endif

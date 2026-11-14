@@ -4,10 +4,14 @@
 @php $cheio = $limite !== null && $totalAnimais >= $limite; @endphp
 <div class="cabecalho"><div><h1>Plano e módulos</h1><p>A faixa do plano acompanha o tamanho do plantel. Os módulos adicionais são contratados à parte, quando você quiser.</p></div></div>
 
+@if ($haras->emCortesia())
+<div class="alerta alerta--ok" data-cortesia><p><b>Cortesia ativa.</b> A equipe do MinhaTropa liberou gratuitamente todos os módulos e as ferramentas do sistema para {{ $haras->nome }}{{ $haras->cortesia_plantel ? ', com plantel sem limite de animais' : '' }}.</p></div>
+@endif
+
 <section class="cartao cartao--destaque">
     <div class="cartao__titulo"><h2>Sua faixa: {{ $faixa?->nome ?? 'Plano gratuito' }}</h2><span class="selo selo--{{ $licenca ? 'ativo' : 'teste' }}">{{ $faixa?->valorTexto() ?? 'Grátis' }}</span></div>
     @if ($limite === null)
-        <p>{{ $haras->nome }} tem <b>{{ $totalAnimais }}</b> animais ativos e está em uma faixa sem limite de plantel.</p>
+        <p>{{ $haras->nome }} tem <b>{{ $totalAnimais }}</b> animais ativos e não tem limite de plantel.</p>
     @else
         <p>{{ $haras->nome }} tem <b>{{ $totalAnimais }}</b> de <b>{{ $limite }}</b> animais ativos desta faixa.</p>
         <div class="uso-plantel {{ $cheio ? 'uso-plantel--cheio' : '' }}"><span style="width:{{ min(100, $limite ? round($totalAnimais / $limite * 100) : 0) }}%"></span></div>
