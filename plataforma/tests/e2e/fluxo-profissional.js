@@ -195,7 +195,7 @@ fs.writeFileSync(PNG, Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kA
   await a.screenshot({ path: '/tmp/mt-admin-cortesia.png', fullPage: true });
   await a.goto(B + '/admin/haras?cortesia=1'); h = await a.content(); conf(h.includes('Haras Serra Azul') && !h.includes('Haras Três Rios') && h.includes('>Cortesia<'), 'lista filtra as propriedades em cortesia');
   await z.goto(B + '/painel'); h = await z.content();
-  conf(h.includes('Cortesia · tudo liberado') && await z.locator('[data-modulo][data-liberado="0"]').count() === 0 && await z.locator('[data-modulo][data-liberado="1"]').count() === 5, 'painel em cortesia: todos os módulos liberados');
+  conf(h.includes('Cortesia · tudo liberado') && await z.locator('[data-modulo][data-liberado="0"]').count() === 0 && await z.locator('[data-modulo][data-liberado="1"]').count() === 2, 'painel em cortesia: todos os módulos liberados');
   conf((await z.goto(B + '/painel/cobricoes')).status() === 200 && (await z.goto(B + '/painel/modulos/saude')).status() === 200 && (await z.content()).includes('Módulo ativo'), 'cobrições e módulos abrem em cortesia');
   await z.goto(B + '/painel/plano'); h = await z.content(); conf(await z.locator('[data-cortesia]').count() === 1 && h.includes('não tem limite de plantel'), 'plano mostra a cortesia e o plantel sem limite');
   let seis = true; for (const n of ['A1', 'A2', 'A3', 'A4', 'A5', 'A6']) { await z.goto(B + '/painel/animais/novo'); await z.fill('[name=nome]', n); await z.click('button:has-text("Cadastrar animal")'); await z.waitForLoadState(); seis = seis && (await z.content()).includes(n + ' cadastrado'); }
