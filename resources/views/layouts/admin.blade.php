@@ -3,14 +3,15 @@
 @php
     $menuAdmin = [
         ['rota' => 'admin.inicio', 'icone' => 'painel', 'texto' => 'Início', 'exato' => true],
-        ['rota' => 'admin.haras', 'icone' => 'haras', 'texto' => 'Haras'],
+        ['rota' => 'admin.haras', 'icone' => 'haras', 'texto' => 'Haras / Fazendas'],
         ['rota' => 'admin.profissionais', 'icone' => 'usuarios', 'texto' => 'Profissionais'],
+        ['rota' => 'admin.planos', 'icone' => 'plano', 'texto' => 'Planos e módulos'],
         ['rota' => 'admin.contatos', 'icone' => 'mensagem', 'texto' => 'Contatos do site'],
         ['rota' => 'admin.usuarios', 'icone' => 'usuarios', 'texto' => 'Administradores'],
         ['rota' => 'admin.banco', 'icone' => 'banco', 'texto' => 'Atualizações do banco'],
         ['rota' => 'admin.auditoria', 'icone' => 'historico', 'texto' => 'Auditoria'],
     ];
-    $emBreve = ['Planos e cobrança', 'Mercado Pago', 'E-mails enviados'];
+    $emBreve = ['Cobrança on-line', 'Mercado Pago', 'E-mails enviados'];
 @endphp
 
 @section('corpo')

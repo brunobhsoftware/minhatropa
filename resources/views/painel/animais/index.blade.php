@@ -3,11 +3,10 @@
 @section('conteudo')
 @php $v5 = \App\Support\Esquema::temV005(); @endphp
 <div class="cabecalho">
-    <div><h1>Animais</h1><p>Plantel do Haras.</p></div>
-    @if ($podeCadastrar)
-    <a href="{{ route('painel.animais.novo') }}" class="botao botao--primario"><x-icone nome="mais" :tamanho="18" /> Cadastrar animal</a>
-    @else
-    <a href="{{ route('painel.licenca') }}" class="botao botao--escuro">🔒 Contratar para cadastrar mais</a>
+    <div><h1>Animais</h1><p>Plantel {{ $haras->doRotulo() }}.@if ($limite !== null) <b>{{ $ativosPlantel }} de {{ $limite }}</b> animais ativos da faixa {{ $faixa?->nome }}.@endif</p></div>
+    @if (\App\Support\Permissao::pode($papel, 'animais', true))
+    {{-- No limite da faixa o botão continua aqui: o clique mostra o aviso com a oferta de upgrade. --}}
+    <a href="{{ route('painel.animais.novo') }}" class="botao {{ $podeCadastrar ? 'botao--primario' : 'botao--escuro' }}"><x-icone nome="mais" :tamanho="18" /> Cadastrar animal</a>
     @endif
 </div>
 
@@ -43,7 +42,7 @@
                 @if($v5)<td><span class="selo selo--{{ $a->situacao }}">{{ $a->situacaoTexto() }}</span></td>@endif
             </tr>
         @empty
-            <tr><td colspan="{{ $v5 ? 7 : 5 }}"><div class="vazio"><p>Nenhum animal cadastrado.</p>@if ($podeCadastrar)<a href="{{ route('painel.animais.novo') }}" class="botao botao--primario botao--pequeno">Cadastrar o primeiro</a>@endif</div></td></tr>
+            <tr><td colspan="{{ $v5 ? 7 : 5 }}"><div class="vazio"><p>Nenhum animal cadastrado.</p>@if ($podeCadastrar && \App\Support\Permissao::pode($papel, 'animais', true))<a href="{{ route('painel.animais.novo') }}" class="botao botao--primario botao--pequeno">Cadastrar o primeiro</a>@endif</div></td></tr>
         @endforelse
         </tbody>
     </table></div>

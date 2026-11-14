@@ -48,4 +48,30 @@ class Esquema
             return false;
         }
     }
+
+    /** V006: CPF/CNPJ único, faixas de plantel, módulos e tabelas de estado/município. */
+    public static function temV006(): bool
+    {
+        try {
+            return self::$cache['v006'] ??= Schema::hasTable('plano_plantel') && Schema::hasTable('empresa_modulo') && Schema::hasColumn('empresa', 'municipio_id');
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    /** V007: estados e municípios do IBGE carregados. */
+    public static function temV007(): bool
+    {
+        try {
+            return self::$cache['v007'] ??= self::temV006() && \Illuminate\Support\Facades\DB::table('municipio')->exists();
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    /** O banco tem tudo o que as telas atuais usam (até o V007)? */
+    public static function atual(): bool
+    {
+        return self::temV002() && self::temV003() && self::temV004() && self::temV005() && self::temV007();
+    }
 }

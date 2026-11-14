@@ -36,12 +36,12 @@
 
     <section class="cartao"><h2>Destino</h2>
         <div style="margin-bottom:1rem">
-            <label class="opcao-check"><input type="radio" name="destino_tipo" value="plataforma" @checked(old('destino_tipo', 'plataforma') === 'plataforma') onchange="toggleDestino()"> Haras da plataforma</label>
+            <label class="opcao-check"><input type="radio" name="destino_tipo" value="plataforma" @checked(old('destino_tipo', 'plataforma') === 'plataforma') onchange="toggleDestino()"> Haras / Fazenda da plataforma</label>
             <label class="opcao-check" style="margin-left:1.5rem"><input type="radio" name="destino_tipo" value="externo" @checked(old('destino_tipo') === 'externo') onchange="toggleDestino()"> Destino externo</label>
         </div>
         <div id="destinoPlataforma">
             <div style="display:flex;gap:8px;flex-wrap:wrap">
-                <input id="buscaHaras" placeholder="Pesquisar Haras por nome…" style="flex:1;min-width:200px" autocomplete="off">
+                <input id="buscaHaras" placeholder="Pesquisar Haras / Fazenda por nome…" style="flex:1;min-width:200px" autocomplete="off">
                 <button type="button" id="btnBuscarHaras" class="botao botao--contorno botao--pequeno">Pesquisar</button>
             </div>
             <div id="resultadoHaras" style="margin-top:.5rem"></div>
@@ -72,7 +72,7 @@ document.getElementById('btnBuscarHaras').addEventListener('click', function() {
     fetch('{{ route("painel.transferencias.buscar-haras") }}?q=' + encodeURIComponent(q))
         .then(function(r) { return r.json(); })
         .then(function(dados) {
-            if (!dados.length) { div.innerHTML = '<p class="suave">Nenhum Haras encontrado.</p>'; return; }
+            if (!dados.length) { div.innerHTML = '<p class="suave">Nenhum Haras / Fazenda encontrado.</p>'; return; }
             var html = '';
             dados.forEach(function(h) {
                 html += '<button type="button" class="botao botao--contorno botao--pequeno" style="margin:2px" onclick="selecionarHaras(' + h.id + ',\'' + h.nome.replace(/'/g, "\\'") + '\')">' + h.nome + ' — ' + h.cidade_uf + '</button> ';

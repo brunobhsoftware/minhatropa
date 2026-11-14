@@ -47,7 +47,9 @@ class NascimentosController extends Controller
 
         $nascimento = Nascimento::create($dados + ['empresa_id' => $empresa->id, 'criado_por' => $request->user()->id]);
 
-        if ($request->boolean('criar_animal') && $dados['nome_produto']) {
+        // O potro vivo entra no plantel ativo: só é criado se couber na faixa (o nascimento fica registrado de qualquer forma).
+        $semVaga = $request->boolean('criar_animal') && $dados['nome_produto'] && $dados['vivo'] && ! Licenca::podeCadastrarAnimal($empresa);
+        if ($request->boolean('criar_animal') && $dados['nome_produto'] && ! $semVaga) {
             $animal = Animal::create([
                 'empresa_id' => $empresa->id,
                 'nome' => $dados['nome_produto'],
@@ -69,6 +71,10 @@ class NascimentosController extends Controller
         }
 
         Auditoria::registrar('nascimento.criar', $nascimento);
+
+        if ($semVaga) {
+            return redirect()->route('painel.nascimentos')->with('ok', 'Nascimento registrado. O animal não foi criado no plantel porque a faixa atual está no limite.')->with('limite_plantel', true);
+        }
 
         return redirect()->route('painel.nascimentos')->with('ok', 'Nascimento registrado.');
     }

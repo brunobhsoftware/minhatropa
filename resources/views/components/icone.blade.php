@@ -17,6 +17,11 @@ $p = [
     'busca' => '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
     'check' => '<path d="M20 6 9 17l-5-5"/>',
     'seta' => '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
+    'cadeado' => '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+    'saude' => '<path d="M12 21s-7-4.4-9.3-9A5.4 5.4 0 0 1 12 6.6 5.4 5.4 0 0 1 21.3 12c-2.3 4.6-9.3 9-9.3 9z"/><path d="M12 10v5M9.5 12.5h5"/>',
+    'manejo' => '<path d="M9 3h6l1 4H8z"/><path d="M8 7v11a3 3 0 0 0 3 3h2a3 3 0 0 0 3-3V7"/><path d="M8 12h8"/>',
+    'nutricao' => '<path d="M12 21c4-2 7-6 7-11V5l-7-2-7 2v5c0 5 3 9 7 11z"/><path d="M12 8v8M9 11c1 1.5 2 2 3 2s2-.5 3-2"/>',
+    'plano' => '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/><path d="M7 15h4"/>',
 ];
 @endphp
 <svg {{ $attributes->merge(['class' => 'icone']) }} width="{{ $tamanho }}" height="{{ $tamanho }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{!! $p[$nome] ?? '' !!}</svg>

@@ -6,25 +6,29 @@ use App\Http\Controllers\Controller;
 use App\Models\Profissional;
 use App\Support\Auditoria;
 use App\Support\Documento;
+use App\Support\Geografia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class ProfissionaisController extends Controller
 {
-    private const UFS = ['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'];
-
     public function index(Request $request)
     {
         $busca = trim((string) $request->query('busca'));
         $situacao = $request->query('situacao');
         $digitos = Documento::digitos($busca);
+        $uf = strtoupper((string) $request->query('uf'));
+        $municipioId = (int) $request->query('municipio_id');
+        $funcao = (string) $request->query('funcao');
 
         $profissionais = Profissional::naoExcluidos()
+            ->when(in_array($uf, Geografia::siglas(), true), fn ($q) => $q->where('uf', $uf))
+            ->when($municipioId > 0, fn ($q) => $q->where('municipio_id', $municipioId))
+            ->when(isset(Profissional::ESPECIALIDADES[$funcao]), fn ($q) => $q->whereIn('id', DB::table('profissional_especialidade')->where('especialidade', $funcao)->select('profissional_id')))
             ->when($busca !== '', fn ($q) => $q->where(function ($q) use ($busca, $digitos) {
                 $q->where('nome', 'like', "%{$busca}%")
-                    ->orWhere('email', 'like', "%{$busca}%")
-                    ->orWhere('cidade', 'like', "%{$busca}%");
+                    ->orWhere('email', 'like', "%{$busca}%");
                 if (strlen($digitos) >= 3) {
                     $q->orWhere('cpf', 'like', "%{$digitos}%");
                 }
@@ -32,14 +36,17 @@ class ProfissionaisController extends Controller
             ->when(isset(Profissional::SITUACOES[$situacao]), fn ($q) => $q->where('situacao', $situacao))
             ->orderBy('nome')->paginate(25)->withQueryString();
 
-        return view('admin.profissionais.index', compact('profissionais', 'busca', 'situacao'));
+        return view('admin.profissionais.index', compact('profissionais', 'busca', 'situacao', 'uf', 'municipioId', 'funcao') + [
+            'cidadeFiltro' => $municipioId ? \App\Models\Municipio::find($municipioId)?->nome : null,
+        ]);
     }
 
-    public function create()
+    public function create(Request $request)
     {
+        $cpf = Documento::digitos($request->query('cpf'));
+
         return view('admin.profissionais.form', [
-            'profissional' => new Profissional,
-            'ufs' => self::UFS,
+            'profissional' => new Profissional(['cpf' => strlen($cpf) === 11 ? $cpf : null]),
             'especialidadesSelecionadas' => [],
         ]);
     }
@@ -47,7 +54,7 @@ class ProfissionaisController extends Controller
     public function store(Request $request)
     {
         $dados = $this->validar($request);
-        $profissional = Profissional::create($dados + ['criado_por' => $request->user()->id]);
+        $profissional = Profissional::create($dados + ['criado_por' => $request->user()->id, 'origem' => 'admin']);
         $this->salvarEspecialidades($profissional, $request->input('especialidades', []));
         Auditoria::registrar('profissional.criar', $profissional);
 
@@ -71,7 +78,6 @@ class ProfissionaisController extends Controller
 
         return view('admin.profissionais.form', [
             'profissional' => $profissional,
-            'ufs' => self::UFS,
             'especialidadesSelecionadas' => $profissional->especialidades(),
         ]);
     }
@@ -143,16 +149,15 @@ class ProfissionaisController extends Controller
         $request->merge([
             'cpf' => Documento::digitos($request->input('cpf')) ?: null,
             'cep' => preg_replace('/\D/', '', (string) $request->input('cep')) ?: null,
-            'uf' => $request->filled('uf') ? mb_strtoupper($request->input('uf')) : null,
         ]);
 
-        return $request->validate([
+        return Geografia::colunas($request->validate([
             'nome' => ['required', 'string', 'max:150'],
             'cpf' => ['required', 'string', 'size:11', function ($attr, $valor, $falha) {
                 if (! Documento::valido($valor)) {
                     $falha('CPF inválido.');
                 }
-            }, Rule::unique('profissional', 'cpf')->ignore($profissional?->id)->whereNull('excluido_em')],
+            }, Rule::unique('profissional', 'cpf')->ignore($profissional?->id)],
             'email' => ['nullable', 'email:filter', 'max:190'],
             'telefone' => ['nullable', 'string', 'max:30'],
             'telefone_fixo' => ['nullable', 'string', 'max:30'],
@@ -163,10 +168,8 @@ class ProfissionaisController extends Controller
             'numero' => ['nullable', 'string', 'max:20'],
             'complemento' => ['nullable', 'string', 'max:100'],
             'bairro' => ['nullable', 'string', 'max:100'],
-            'cidade' => ['nullable', 'string', 'max:100'],
-            'uf' => ['nullable', Rule::in(self::UFS)],
             'crmv' => ['nullable', 'string', 'max:30'],
             'descricao' => ['nullable', 'string', 'max:5000'],
-        ], ['cpf.unique' => 'Já existe um profissional cadastrado com esse CPF.']);
+        ] + Geografia::regras($request), ['cpf.unique' => 'Já existe um profissional cadastrado com esse CPF.'] + Geografia::mensagens()));
     }
 }

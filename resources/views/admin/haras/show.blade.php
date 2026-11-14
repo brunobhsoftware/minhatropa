@@ -2,18 +2,20 @@
 @section('titulo', $empresa->nome)
 @section('conteudo')
 <div class="cabecalho">
-    <div><p class="migalha"><a href="{{ route('admin.haras') }}">Haras</a> ›</p><h1>{{ $empresa->nome }} <span class="selo selo--{{ $empresa->situacao }}">{{ $empresa->situacaoTexto() }}</span></h1>
+    <div><p class="migalha"><a href="{{ route('admin.haras') }}">Haras / Fazendas</a> ›</p><h1>{{ $empresa->nome }} <span class="selo selo--{{ $empresa->situacao }}">{{ $empresa->situacaoTexto() }}</span></h1>
         @if ($empresa->situacao_motivo)<p>Motivo: {{ $empresa->situacao_motivo }}</p>@endif</div>
     <a href="{{ route('admin.haras.editar', $empresa) }}" class="botao botao--primario"><x-icone nome="editar" :tamanho="16" /> Editar dados</a>
 </div>
 
 <div class="grade-2">
     <section class="cartao">
-        <h2>Dados do Haras</h2>
+        <h2>Dados {{ $empresa->doRotulo() }}</h2>
         <dl class="dados">
-            @if ($v003 && $empresa->tipo_propriedade)<div><dt>Tipo</dt><dd>{{ $empresa->tipoPropriedadeTexto() }}</dd></div>@endif
-            <div><dt>Razão social</dt><dd>{{ $empresa->razao_social ?: '—' }}</dd></div>
-            <div><dt>{{ strtoupper($empresa->tipo_documento ?? 'CPF/CNPJ') }}</dt><dd>{{ $empresa->documentoFormatado() }}</dd></div>
+            <div><dt>Tipo</dt><dd>{{ $empresa->rotulo() }}</dd></div>
+            <div><dt>Titularidade</dt><dd>{{ \App\Models\Empresa::TITULARIDADES[$empresa->tipo_documento] ?? '—' }}</dd></div>
+            <div><dt>{{ strtoupper($empresa->tipo_documento ?? 'CPF/CNPJ') }}</dt><dd>{{ $empresa->documentoFormatado() }}@unless ($empresa->documento) <span class="selo selo--suspenso">pendente</span>@endunless</dd></div>
+            <div><dt>{{ $empresa->pessoaFisica() ? 'Proprietário' : 'Razão social' }}</dt><dd>{{ $empresa->razao_social ?: '—' }}</dd></div>
+            <div><dt>Criador / titular</dt><dd>@if ($titular)<a href="{{ route('admin.profissionais.show', $titular) }}">{{ $titular->nome }}</a> <small class="suave">{{ $titular->cpfFormatado() }}</small>@else — @endif</dd></div>
             <div><dt>Inscrição estadual</dt><dd>{{ $empresa->inscricao_estadual ?: '—' }}</dd></div>
             <div><dt>Área</dt><dd>{{ $empresa->area_hectares !== null ? numero($empresa->area_hectares, 2).' ha' : '—' }}</dd></div>
             <div><dt>Plano</dt><dd>{{ $empresa->plano?->nome ?? 'Sem plano' }}</dd></div>
@@ -92,28 +94,64 @@
 </section>
 @endif
 
-@if ($v002)
-<section class="cartao cartao--licenca">
-    <div class="cartao__titulo"><h2>Licença</h2>
-        <span class="selo selo--{{ $empresa->licenca_ativa ? 'ativo' : 'teste' }}">{{ $empresa->licenca_ativa ? 'Licença ativa' : 'Período gratuito' }}</span></div>
-    <p class="suave">{{ $totalAnimais }} animal(is) cadastrado(s).
-        @if ($empresa->origem === 'site') Cadastrado pelo próprio Haras no site. @endif
-        Quantidade informada: {{ $empresa->quantidade_animais_estimada ?: '—' }}.
-        @if ($empresa->licenca_ativa && $empresa->licenca_liberada_em) Liberada em {{ data_local($empresa->licenca_liberada_em) }}. @endif</p>
-    <form method="post" action="{{ route('admin.haras.licenca', $empresa) }}" data-confirmar="{{ $empresa->licenca_ativa ? 'Retirar a licença deste Haras?' : 'Liberar a licença (todas as ferramentas) para este Haras?' }}">
+<div class="grade-2">
+<section class="cartao cartao--licenca" id="plano">
+    <div class="cartao__titulo"><h2>Plano: faixa de plantel</h2>
+        <span class="selo selo--{{ $empresa->licenca_ativa ? 'ativo' : 'teste' }}">{{ $faixa?->nome ?? 'Plano gratuito' }}</span></div>
+    <p class="suave"><b>{{ $totalAnimais }}</b> animal(is) ativo(s) no plantel{{ $faixa && $faixa->limite_max !== null ? ' de '.$faixa->limite_max.' da faixa' : '' }}.
+        @if ($empresa->origem === 'site') Cadastrado pelo próprio cliente no site. @endif
+        Quantidade informada: {{ $empresa->quantidade_animais_estimada ?: '—' }}.</p>
+    @if ($faixaSolicitada)
+        <div class="alerta alerta--aviso"><p>O proprietário pediu a mudança para <b>{{ $faixaSolicitada->nome }}</b> ({{ $faixaSolicitada->faixaTexto() }}).</p></div>
+    @endif
+    <form method="post" action="{{ route('admin.haras.faixa', $empresa) }}" class="linha-form">
         @csrf @method('put')
-        <input type="hidden" name="licenca_ativa" value="{{ $empresa->licenca_ativa ? 0 : 1 }}">
-        <button class="botao {{ $empresa->licenca_ativa ? 'botao--contorno' : 'botao--primario' }} botao--pequeno">{{ $empresa->licenca_ativa ? 'Retirar licença' : 'Liberar licença' }}</button>
+        <select name="faixa" aria-label="Faixa de plantel">
+            @foreach ($faixas as $f)<option value="{{ $f->id }}" @selected(($faixaSolicitada?->id ?? $faixa?->id) === $f->id)>{{ $f->nome }} — {{ $f->faixaTexto() }} ({{ $f->valorTexto() }}){{ $f->ativo ? '' : ' · inativa' }}</option>@endforeach
+        </select>
+        <button class="botao botao--primario botao--pequeno">Definir faixa</button>
     </form>
+    <p class="suave"><small>Faixa paga libera também as ferramentas do plano (cobrições, nascimentos e transferências).</small></p>
 </section>
-@endif
+<section class="cartao" id="modulos">
+    <h2>Módulos adicionais</h2>
+    @foreach ($modulos as $m)
+        @php $sit = $modulosHaras[$m->codigo] ?? null; @endphp
+        <div class="linha-lista">
+            <span><b>{{ $m->nome }}</b><small>@if ($sit === 'ativo')<span class="selo selo--ativo">Ativo</span>@elseif ($sit === 'solicitado')<span class="selo selo--solicitado">Solicitado pelo proprietário</span>@else Não contratado @endif</small></span>
+            <form method="post" action="{{ route('admin.haras.modulo', [$empresa, $m]) }}">@csrf @method('put')
+                <input type="hidden" name="ativo" value="{{ $sit === 'ativo' ? 0 : 1 }}">
+                <button class="botao {{ $sit === 'ativo' ? 'botao--contorno' : 'botao--primario' }} botao--pequeno" data-modulo="{{ $m->codigo }}">{{ $sit === 'ativo' ? 'Desativar' : 'Ativar' }}</button></form>
+        </div>
+    @endforeach
+</section>
+</div>
+
+<section class="cartao">
+    <h2>Criador e equipe (profissionais vinculados)</h2>
+    @if ($equipe->isEmpty())
+        <p class="suave">Nenhum profissional vinculado. O criador / proprietário é vinculado pelo CPF em "Editar dados" → aba "Criador / proprietário".</p>
+    @else
+    <div class="tabela-rolagem"><table class="tabela">
+        <thead><tr><th>Nome</th><th>CPF</th><th>Funções</th><th>Acesso</th><th>Situação</th></tr></thead>
+        <tbody>
+        @foreach ($equipe as $p)
+            <tr><td><a href="{{ route('admin.profissionais.show', $p->uuid) }}"><b>{{ $p->nome }}</b></a>@if ($p->titular) <span class="selo titular-selo">Titular</span>@endif</td>
+                <td>{{ \App\Support\Documento::formatar($p->cpf) }}</td><td>{{ $p->funcao ?: '—' }}</td>
+                <td>{{ $p->acesso_sistema ? (\App\Models\EmpresaUsuario::PAPEIS[$p->papel_acesso] ?? 'Com acesso') : '—' }}</td>
+                <td><span class="selo selo--{{ $p->situacao }}">{{ $p->situacao === 'ativo' ? 'Ativo' : 'Desativado' }}</span></td></tr>
+        @endforeach
+        </tbody>
+    </table></div>
+    @endif
+</section>
 
 @if ($empresa->observacoes)
 <section class="cartao"><h2>Observações internas</h2><p class="pre">{{ $empresa->observacoes }}</p></section>
 @endif
 
 <section class="cartao">
-    <h2>Quem acessa este Haras</h2>
+    <h2>Quem acessa esta propriedade</h2>
     @if ($vinculos->isNotEmpty())
     <div class="tabela-rolagem"><table class="tabela">
         <thead><tr><th>Nome</th><th>E-mail</th><th>Papel</th><th>Situação</th><th class="num"></th></tr></thead>

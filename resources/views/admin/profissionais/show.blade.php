@@ -31,7 +31,7 @@
 
 @if (count($especialidades))
 <section class="cartao">
-    <h2>Especialidades</h2>
+    <h2>Funções</h2>
     <div class="lista-tags">@foreach ($especialidades as $e)<span class="tag">{{ \App\Models\Profissional::ESPECIALIDADES[$e] ?? $e }}</span>@endforeach</div>
 </section>
 @endif
@@ -42,9 +42,9 @@
 
 @if ($vinculos->isNotEmpty())
 <section class="cartao">
-    <h2>Haras vinculados</h2>
+    <h2>Haras / Fazendas vinculados</h2>
     <div class="tabela-rolagem"><table class="tabela">
-        <thead><tr><th>Haras</th><th>Função</th><th>Início</th><th>Situação</th></tr></thead>
+        <thead><tr><th>Haras / Fazenda</th><th>Função</th><th>Início</th><th>Situação</th></tr></thead>
         <tbody>
         @foreach ($vinculos as $h)
             <tr>

@@ -30,26 +30,24 @@ ALTER TABLE animal
     ADD COLUMN IF NOT EXISTS foto_principal VARCHAR(255) NULL AFTER morte_laudo;
 
 -- FK genealogia cross-Haras (sem restrição de empresa_id)
-SELECT COUNT(*) INTO @fk_pai FROM information_schema.TABLE_CONSTRAINTS
-    WHERE CONSTRAINT_NAME = 'fk_animal_pai' AND TABLE_SCHEMA = DATABASE();
+-- Variáveis com SET e "DO 0": a tela /admin/banco ignora comandos que começam com SELECT e não aceita resultado no EXECUTE.
+SET @fk_pai = (SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS WHERE CONSTRAINT_NAME = 'fk_animal_pai' AND TABLE_SCHEMA = DATABASE());
 SET @sql_pai = IF(@fk_pai = 0,
     'ALTER TABLE animal ADD CONSTRAINT fk_animal_pai FOREIGN KEY (pai_id) REFERENCES animal (id) ON DELETE SET NULL',
-    'SELECT 1');
+    'DO 0');
 PREPARE stmt FROM @sql_pai; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
-SELECT COUNT(*) INTO @fk_mae FROM information_schema.TABLE_CONSTRAINTS
-    WHERE CONSTRAINT_NAME = 'fk_animal_mae' AND TABLE_SCHEMA = DATABASE();
+SET @fk_mae = (SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS WHERE CONSTRAINT_NAME = 'fk_animal_mae' AND TABLE_SCHEMA = DATABASE());
 SET @sql_mae = IF(@fk_mae = 0,
     'ALTER TABLE animal ADD CONSTRAINT fk_animal_mae FOREIGN KEY (mae_id) REFERENCES animal (id) ON DELETE SET NULL',
-    'SELECT 1');
+    'DO 0');
 PREPARE stmt FROM @sql_mae; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
 -- Índice por situação
-SELECT COUNT(*) INTO @ix_sit FROM information_schema.STATISTICS
-    WHERE INDEX_NAME = 'ix_animal_situacao' AND TABLE_SCHEMA = DATABASE();
+SET @ix_sit = (SELECT COUNT(*) FROM information_schema.STATISTICS WHERE INDEX_NAME = 'ix_animal_situacao' AND TABLE_SCHEMA = DATABASE());
 SET @sql_ix = IF(@ix_sit = 0,
     'ALTER TABLE animal ADD INDEX ix_animal_situacao (empresa_id, situacao, excluido_em)',
-    'SELECT 1');
+    'DO 0');
 PREPARE stmt FROM @sql_ix; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
 -- Expandir ENUM de categoria (adicionar novas)
