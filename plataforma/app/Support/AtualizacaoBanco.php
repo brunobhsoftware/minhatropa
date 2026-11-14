@@ -58,13 +58,19 @@ class AtualizacaoBanco
         $sql = (string) file_get_contents($caminho);
         abort_if(stripos($sql, 'DELIMITER') !== false, 422, 'Script com DELIMITER precisa ser importado no phpMyAdmin.');
 
+        $pdo = DB::connection()->getPdo();
+        $pdo->setAttribute(\PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, true);
+
         $n = 0;
         foreach (self::comandos($sql) as $comando) {
-            // As consultas de conferência (SELECT/SHOW) do fim do script não alteram nada: ficam de fora.
-            if (preg_match('/^\s*(SELECT|SHOW)\b/i', $comando)) {
+            // Consultas de conferência (SELECT/SHOW) que só exibem dados ficam de fora.
+            // SELECT … INTO @var é funcional (seta variável) e precisa rodar.
+            if (preg_match('/^\s*(SELECT|SHOW)\b/i', $comando) && ! preg_match('/\bINTO\s+@/i', $comando)) {
                 continue;
             }
-            DB::unprepared($comando);
+            $stmt = $pdo->prepare($comando);
+            $stmt->execute();
+            $stmt->closeCursor();
             $n++;
         }
         $versao = strtok($arquivo, '_');
