@@ -10,8 +10,10 @@
         ['rota' => 'admin.usuarios', 'icone' => 'usuarios', 'texto' => 'Administradores'],
         ['rota' => 'admin.banco', 'icone' => 'banco', 'texto' => 'Atualizações do banco'],
         ['rota' => 'admin.auditoria', 'icone' => 'historico', 'texto' => 'Auditoria'],
+        ['rota' => 'admin.mercadopago', 'icone' => 'pagamento', 'texto' => 'Mercado Pago', 'v015' => true],
+        ['rota' => 'admin.emails', 'icone' => 'mensagem', 'texto' => 'E-mails enviados', 'v015' => true],
     ];
-    $emBreve = ['Cobrança on-line', 'Mercado Pago', 'E-mails enviados'];
+    $emBreve = ['Cobrança on-line'];
 @endphp
 
 @section('corpo')
@@ -23,6 +25,7 @@
         <div class="menu-lateral__grupo">Administração</div>
         <nav>
             @foreach ($menuAdmin as $item)
+                @if (! empty($item['v015']) && ! \App\Support\Esquema::temV015()) @continue @endif
                 @php $ativo = ($item['exato'] ?? false) ? request()->routeIs($item['rota']) : request()->routeIs($item['rota'].'*'); @endphp
                 <a href="{{ route($item['rota']) }}" class="{{ $ativo ? 'ativo' : '' }}" @if ($ativo) aria-current="page" @endif><x-icone :nome="$item['icone']" /> {{ $item['texto'] }}</a>
             @endforeach

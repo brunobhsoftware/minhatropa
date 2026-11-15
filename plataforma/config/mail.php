@@ -37,6 +37,35 @@ return [
 
     'mailers' => [
 
+        /*
+        | MinhaTropa — duas contas SMTP da Hostinger (smtp.hostinger.com, SSL 465):
+        |  - atendimento: atendimento@minhatropa.com.br → cadastro, senha e operações com o usuário.
+        |  - noreply:     noreply@minhatropa.com.br     → avisos que não esperam resposta.
+        | Senhas só no .env do servidor, nunca no Git.
+        | Envio: App\Support\Email::atendimento(...) / App\Support\Email::aviso(...).
+        */
+        'atendimento' => [
+            'transport' => 'smtp',
+            'scheme' => env('MAIL_SCHEME', 'smtps'),
+            'host' => env('MAIL_HOST', 'smtp.hostinger.com'),
+            'port' => env('MAIL_PORT', 465),
+            'username' => env('MAIL_ATENDIMENTO_USERNAME', 'atendimento@minhatropa.com.br'),
+            'password' => env('MAIL_ATENDIMENTO_PASSWORD'),
+            'timeout' => 15,
+            'local_domain' => 'minhatropa.com.br',
+        ],
+
+        'noreply' => [
+            'transport' => 'smtp',
+            'scheme' => env('MAIL_SCHEME', 'smtps'),
+            'host' => env('MAIL_HOST', 'smtp.hostinger.com'),
+            'port' => env('MAIL_PORT', 465),
+            'username' => env('MAIL_NOREPLY_USERNAME', 'noreply@minhatropa.com.br'),
+            'password' => env('MAIL_NOREPLY_PASSWORD'),
+            'timeout' => 15,
+            'local_domain' => 'minhatropa.com.br',
+        ],
+
         'smtp' => [
             'transport' => 'smtp',
             'scheme' => env('MAIL_SCHEME'),

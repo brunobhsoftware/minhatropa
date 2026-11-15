@@ -17,6 +17,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
             'permissao' => \App\Http\Middleware\VerificarPermissao::class,
             'banco-atual' => \App\Http\Middleware\BancoAtualizado::class,
         ]);
+        $middleware->validateCsrfTokens(except: ['webhooks/*']);
         // Quem não está logado vai para o login da área que tentou abrir.
         $middleware->redirectGuestsTo(fn ($request) => $request->is('admin*') ? route('admin.entrar') : route('entrar'));
         $middleware->redirectUsersTo(fn ($request) => $request->user()?->admin_plataforma && $request->is('admin*') ? route('admin.inicio') : route('painel'));

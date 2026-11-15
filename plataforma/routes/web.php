@@ -214,5 +214,18 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/banco', [Admin\BancoController::class, 'aplicar'])->name('banco.aplicar')->middleware('throttle:30,10,admin-banco');
 
         Route::get('/auditoria', [Admin\AdminController::class, 'auditoria'])->name('auditoria');
+
+        // Mercado Pago (requer V015)
+        Route::get('/mercadopago', [Admin\AdminController::class, 'mercadoPago'])->name('mercadopago');
+        Route::post('/mercadopago', [Admin\AdminController::class, 'salvarMercadoPago'])->name('mercadopago.salvar');
+        Route::post('/mercadopago/teste', [Admin\AdminController::class, 'testarPagamento'])->name('mercadopago.teste');
+        Route::get('/mercadopago/teste/retorno', [Admin\AdminController::class, 'retornoTeste'])->name('mercadopago.teste.retorno');
+        Route::post('/mercadopago/verificar', [Admin\AdminController::class, 'verificarTokens'])->name('mercadopago.verificar');
+
+        // E-mails enviados (requer V015)
+        Route::get('/emails', [Admin\AdminController::class, 'emails'])->name('emails');
     });
 });
+
+// ---------- Webhooks ----------
+Route::post('/webhooks/mercadopago', [\App\Http\Controllers\WebhookController::class, 'mercadoPago'])->name('webhooks.mercadopago');
