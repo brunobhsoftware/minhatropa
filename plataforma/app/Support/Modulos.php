@@ -71,6 +71,11 @@ class Modulos
         return (self::daEmpresa($empresa)[$codigo] ?? null) === 'solicitado';
     }
 
+    public static function exigir(Empresa $empresa, string $codigo): void
+    {
+        abort_unless(self::ativo($empresa, $codigo), 403, 'Módulo não contratado.');
+    }
+
     public static function solicitar(Empresa $empresa, ModuloSistema $modulo, ?int $usuarioId): void
     {
         if ((self::contratados($empresa)[$modulo->codigo] ?? null) === 'ativo') {

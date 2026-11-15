@@ -118,6 +118,30 @@ Route::middleware(['auth', 'haras'])->prefix('painel')->group(function () {
         Route::put('/clinica/{evento}', [$p.'\ClinicaController', 'atualizar'])->name('clinica.atualizar');
         Route::delete('/clinica/{evento}', [$p.'\ClinicaController', 'excluir'])->name('clinica.excluir');
 
+        // Controle de estoque (módulo nutrição)
+        Route::middleware('permissao:nutricao')->group(function () use ($p) {
+            Route::get('/estoque', [$p.'\EstoqueController', 'index'])->name('estoque');
+            Route::get('/estoque/novo', [$p.'\EstoqueController', 'criar'])->name('estoque.novo');
+            Route::post('/estoque', [$p.'\EstoqueController', 'salvar'])->name('estoque.salvar');
+            Route::get('/estoque/categorias', [$p.'\EstoqueController', 'categorias'])->name('estoque.categorias');
+            Route::post('/estoque/categorias', [$p.'\EstoqueController', 'salvarCategoria'])->name('estoque.categorias.salvar');
+            Route::delete('/estoque/categorias/{categoria}', [$p.'\EstoqueController', 'excluirCategoria'])->name('estoque.categorias.excluir');
+            Route::get('/estoque/{item}', [$p.'\EstoqueController', 'ver'])->name('estoque.ver');
+            Route::get('/estoque/{item}/editar', [$p.'\EstoqueController', 'editar'])->name('estoque.editar');
+            Route::put('/estoque/{item}', [$p.'\EstoqueController', 'atualizar'])->name('estoque.atualizar');
+            Route::post('/estoque/{item}/movimentar', [$p.'\EstoqueController', 'movimentar'])->name('estoque.movimentar');
+            Route::delete('/estoque/{item}', [$p.'\EstoqueController', 'excluir'])->name('estoque.excluir');
+        });
+
+        // Financeiro (receitas e despesas)
+        Route::get('/financeiro', [$p.'\FinanceiroController', 'index'])->name('financeiro');
+        Route::get('/financeiro/novo', [$p.'\FinanceiroController', 'criar'])->name('financeiro.novo');
+        Route::post('/financeiro', [$p.'\FinanceiroController', 'salvar'])->name('financeiro.salvar');
+        Route::get('/financeiro/{lancamento}', [$p.'\FinanceiroController', 'ver'])->name('financeiro.ver');
+        Route::get('/financeiro/{lancamento}/editar', [$p.'\FinanceiroController', 'editar'])->name('financeiro.editar');
+        Route::put('/financeiro/{lancamento}', [$p.'\FinanceiroController', 'atualizar'])->name('financeiro.atualizar');
+        Route::delete('/financeiro/{lancamento}', [$p.'\FinanceiroController', 'excluir'])->name('financeiro.excluir');
+
         // Equipe: vínculo de profissionais pelo CPF (base global) e acesso externo (módulo de equipe)
         Route::middleware('permissao:equipe')->group(function () use ($p) {
             Route::get('/profissionais', [$p.'\ProfissionaisController', 'index'])->name('profissionais');

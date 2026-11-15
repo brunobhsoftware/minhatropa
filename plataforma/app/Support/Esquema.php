@@ -119,6 +119,25 @@ class Esquema
         }
     }
 
+    /** V013: controle de estoque (módulo nutrição). */
+    public static function temV013(): bool
+    {
+        try {
+            return self::$cache['v013'] ??= Schema::hasTable('item_estoque');
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    public static function temV014(): bool
+    {
+        try {
+            return self::$cache['v014'] ??= Schema::hasTable('lancamento_financeiro');
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
     /** O banco tem tudo o que as telas atuais usam (até o V007)? */
     public static function atual(): bool
     {
