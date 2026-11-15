@@ -37,8 +37,8 @@ Projeto irmão (mesma estrutura, mesma conta Hostinger): **foradafila.com.br** (
   (`painel/partes/menu.blade.php`, estrutura em `layouts/painel.blade.php`). Nunca chamar de "aba": é menu / item de menu.
   Ordem: Início · **Meu Plantel** (Animais do plantel, Cadastrar animal, Organograma*) · **Ocorrências** (Ocorrências do plantel =
   `/painel/ocorrencias`, que reúne nascimentos, cobrições, transferências e mortes; Ocorrências do Haras* = avisos entre pessoas) ·
-  Reprodução* (coleta, pedido de sêmen, embrião, notificação ao sócio) · Comércio* (pregão on-line, venda permanente de coberturas,
-  classificados) · **Saúde animal** (era "Clínica veterinária"; eventos de saúde, V012; exige faixa paga) · Controle de estoque (módulo `nutricao`; leitura de NF*) ·
+  Reprodução* (coleta, pedido de sêmen, embrião, notificação ao sócio) · Comércio (**Classificados**, V017; pregão on-line* e venda
+  permanente de coberturas*) · **Saúde animal** (era "Clínica veterinária"; eventos de saúde, V012; exige faixa paga) · Controle de estoque (módulo `nutricao`; leitura de NF*) ·
   Financeiro* (contratos, boletos, gráficos) · RH (Cadastro da equipe, acesso externo = módulo `equipe`, Escala*) · Agenda de eventos* ·
   Configuração (Dados, Plano e módulos). `*` = "em breve", só no menu, sem tela. Ocorrências é menu independente, não é do plantel.
 - **A definir com o Bruno (não inventar):** pacotes Simples (módulos que ele escolher) e Completo (todos), além dos módulos avulsos;
@@ -71,7 +71,18 @@ Projeto irmão (mesma estrutura, mesma conta Hostinger): **foradafila.com.br** (
   retrato 3:4, 900 x 1200, JPEG qualidade 80. O arquivo **não** fica no banco: vai para o disco `midia`
   (`animais/<empresa_id>/<animal_id>/…`) e a tabela `animal_foto` guarda só o caminho. O navegador recorta o centro e compacta
   antes de enviar (`public/js/fotos-animal.js`) e o servidor refaz com GD (`App\Support\FotosAnimal`), seja qual for o tamanho do
-  original. Servidas por `/painel/animais/<uuid>/foto/<1-3>`, só para quem acessa a propriedade.
+  original. Servidas por `/painel/animais/<uuid>/foto/<1-3>`, só para quem acessa a propriedade. A foto principal aparece em
+  miniatura na lista do Meu Plantel.
+- **Sem tela de erro 403 no painel (Bruno, 15/11/2026):** quem abre algo que não tem vê uma página do painel explicando.
+  Ferramenta dos planos pagos (`Licenca::exigir`) → `painel.indisponivel` (diz qual é e leva a Plano e módulos); módulo adicional
+  não contratado (`Modulos::exigir`) → vai para a página do módulo, com "Solicitar ativação"; área fora do papel da pessoa
+  (`permissao:`) → `painel.sem-acesso`. O status HTTP continua 403 nas duas páginas (só muda o que a pessoa vê).
+- **Classificados (V017, Bruno, 15/11/2026):** Comércio → Classificados (`/painel/classificados`, área `transferencias`): a
+  propriedade põe um animal ativo à venda com **preço** e **período** (início obrigatório, fim opcional), descrição e WhatsApp de
+  contato. Um anúncio aberto por animal. Estados: No ar, Agendado, Prazo encerrado, Vendido, Retirado (`Classificado::estado()`).
+  O que está no ar aparece no site, sem login: `/classificados` (filtro por nome/raça, sexo, UF) e `/classificados/<uuid>`, com as
+  fotos (`/classificados/<uuid>/foto/<n>`, só enquanto no ar). "Vendido" só tira o anúncio: a saída do animal é em Transferências.
+  Na ficha do animal: "Colocar à venda" / "À venda · R$". Hoje vale para todas as faixas; se vai ser pago, o Bruno define.
 
 ## Onde está cada coisa
 
@@ -79,7 +90,7 @@ Projeto irmão (mesma estrutura, mesma conta Hostinger): **foradafila.com.br** (
 | --- | --- |
 | `plataforma/` | Aplicação **Laravel 12** (site público + `/admin`). Publicada pela Action na branch `publicacao` |
 | `plataforma/database/atualizacoes/V0xx__*.sql` | Scripts versionados do banco (idempotentes). Aplicados pela tela `/admin/banco` |
-| `plataforma/tests/e2e/` | Testes de ponta a ponta (Playwright) contra banco limpo + `php artisan serve`: `fluxo-admin.js` (57), `fluxo-cadastro.js` (93) e `fluxo-profissional.js` (87), nessa ordem; apoio em `apoio.js` |
+| `plataforma/tests/e2e/` | Testes de ponta a ponta (Playwright) contra banco limpo + `php artisan serve`: `fluxo-admin.js` (57), `fluxo-cadastro.js` (94) e `fluxo-profissional.js` (102), nessa ordem; apoio em `apoio.js` |
 | `docs/identidade-visual/` | Logos recortadas (PNG transparente) e o kit original enviado pelo Bruno em `kit-original/` |
 | `.github/workflows/build-plataforma.yml` | Publicação: `composer install --no-dev` e grava em `publicacao` |
 | `.hostinger/site.json` | Alvo da publicação na Hostinger |
@@ -117,7 +128,7 @@ Projeto irmão (mesma estrutura, mesma conta Hostinger): **foradafila.com.br** (
 - **Área do Haras** (`/entrar`, `/painel`, middleware `haras` = `App\Http\Middleware\IdentificarHaras` + `App\Support\HarasAtual`
   na sessão; quem tem vários Haras escolhe em `/painel/escolher`): Início, Animais, Cobrições, Nascimentos, Transferências,
   Criador e equipe, Dados da propriedade, Plano e módulos, e os módulos adicionais.
-- Testes: `fluxo-admin.js` (57), `fluxo-cadastro.js` (93) e `fluxo-profissional.js` (87), nessa ordem, contra banco limpo (`NODE_PATH` com o playwright; `SENHA_BANCO` = senha do `.env`).
+- Testes: `fluxo-admin.js` (57), `fluxo-cadastro.js` (94) e `fluxo-profissional.js` (102), nessa ordem, contra banco limpo (`NODE_PATH` com o playwright; `SENHA_BANCO` = senha do `.env`).
 - **Identificação única:** `empresa.documento` (CPF ou CNPJ) é obrigatório e único (`uk_empresa_documento`). Cadastro começa pela
   titularidade (PF/PJ). **Toda propriedade em CPF fica ligada a um `profissional`** (titular: `empresa.titular_profissional_id`,
   `empresa_profissional.titular`). CPF já na base: os dados são puxados. **CPF novo: sem aviso e sem desvio (pedido do Bruno,

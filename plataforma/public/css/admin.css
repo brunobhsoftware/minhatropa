@@ -395,3 +395,7 @@ a.ocorrencia:hover{border-color:var(--azul-3);box-shadow:0 6px 16px rgba(16,24,4
 .foto-animal--sai .foto-animal__quadro{opacity:.35}
 .fotos-animal--ficha .foto-animal__quadro{border-style:solid}
 @media(max-width:640px){.fotos-animal{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}}
+.animal-nome{display:flex;align-items:center;gap:10px}
+.animal-mini{width:36px;height:48px;border-radius:6px;object-fit:cover;flex:none;background:var(--cinza,#F3F4F6)}
+.animal-mini--vazia{display:inline-block;border:1px dashed #cbd2dc}
+button.link{background:none;border:none;padding:0;font:inherit;color:var(--azul);text-decoration:underline;cursor:pointer}

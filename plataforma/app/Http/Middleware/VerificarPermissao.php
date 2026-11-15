@@ -13,8 +13,15 @@ class VerificarPermissao
     {
         $papel = (string) $request->attributes->get('papel', 'consulta');
         $escrita = ! in_array($request->method(), ['GET', 'HEAD'], true);
-        abort_unless(Permissao::pode($papel, $area, $escrita), 403,
-            $escrita ? 'Seu acesso a esta propriedade não permite alterar esta área.' : 'Seu acesso a esta propriedade não inclui esta área.');
+        if (! Permissao::pode($papel, $area, $escrita)) {
+            $mensagem = $escrita ? 'Seu acesso a esta propriedade não permite alterar esta área.' : 'Seu acesso a esta propriedade não inclui esta área.';
+            if ($request->expectsJson()) {
+                abort(403, $mensagem);
+            }
+
+            // Em vez da tela de erro, uma página do painel explicando por que não abriu e a quem pedir o acesso.
+            return response()->view('painel.sem-acesso', ['mensagem' => $mensagem], 403);
+        }
 
         return $next($request);
     }

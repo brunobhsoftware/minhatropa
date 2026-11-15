@@ -23,6 +23,11 @@ Route::post('/convite/{token}', [\App\Http\Controllers\Site\ConviteController::c
 Route::get('/h/{slug}', [\App\Http\Controllers\Site\PropriedadeController::class, 'pagina'])->name('propriedade.pagina')->where('slug', '[a-z0-9][a-z0-9\-]*');
 Route::get('/midia/p/{uuid}/{tipo}', [\App\Http\Controllers\Site\PropriedadeController::class, 'imagem'])->name('midia.propriedade')->whereUuid('uuid')->whereIn('tipo', ['logo', 'capa', 'marca']);
 
+// Classificados do site: animais à venda que estão no ar
+Route::get('/classificados', [\App\Http\Controllers\Site\ClassificadosController::class, 'index'])->name('classificados');
+Route::get('/classificados/{uuid}', [\App\Http\Controllers\Site\ClassificadosController::class, 'show'])->name('classificados.ver')->whereUuid('uuid');
+Route::get('/classificados/{uuid}/foto/{posicao}', [\App\Http\Controllers\Site\ClassificadosController::class, 'foto'])->name('classificados.foto')->whereUuid('uuid')->whereIn('posicao', ['1', '2', '3']);
+
 // ---------- Área do Haras ----------
 Route::middleware('guest')->group(function () {
     Route::get('/entrar', [\App\Http\Controllers\Auth\EntrarController::class, 'create'])->name('entrar');
@@ -132,6 +137,16 @@ Route::middleware(['auth', 'haras'])->prefix('painel')->group(function () {
             Route::put('/estoque/{item}', [$p.'\EstoqueController', 'atualizar'])->name('estoque.atualizar');
             Route::post('/estoque/{item}/movimentar', [$p.'\EstoqueController', 'movimentar'])->name('estoque.movimentar');
             Route::delete('/estoque/{item}', [$p.'\EstoqueController', 'excluir'])->name('estoque.excluir');
+        });
+
+        // Comércio → Classificados: animais à venda (preço e período); aparecem na página pública /classificados
+        Route::middleware('permissao:transferencias')->group(function () use ($p) {
+            Route::get('/classificados', [$p.'\ClassificadosController', 'index'])->name('classificados');
+            Route::get('/classificados/novo', [$p.'\ClassificadosController', 'create'])->name('classificados.novo');
+            Route::post('/classificados', [$p.'\ClassificadosController', 'store'])->name('classificados.criar');
+            Route::get('/classificados/{classificado}/editar', [$p.'\ClassificadosController', 'edit'])->name('classificados.editar');
+            Route::put('/classificados/{classificado}', [$p.'\ClassificadosController', 'update'])->name('classificados.salvar');
+            Route::put('/classificados/{classificado}/encerrar', [$p.'\ClassificadosController', 'encerrar'])->name('classificados.encerrar');
         });
 
         // Financeiro (receitas e despesas)

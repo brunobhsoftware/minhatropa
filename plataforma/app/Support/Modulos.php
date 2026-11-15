@@ -73,7 +73,15 @@ class Modulos
 
     public static function exigir(Empresa $empresa, string $codigo): void
     {
-        abort_unless(self::ativo($empresa, $codigo), 403, 'Módulo não contratado.');
+        if (self::ativo($empresa, $codigo)) {
+            return;
+        }
+        if (request()->expectsJson()) {
+            abort(403, 'Módulo não contratado.');
+        }
+        // Em vez de tela de erro: a página do módulo, que explica o que ele traz e tem o "Solicitar ativação".
+        throw new \Illuminate\Http\Exceptions\HttpResponseException(
+            redirect()->route('painel.modulos.show', $codigo)->with('aviso', 'Essa tela faz parte de um módulo adicional que ainda não está ativo para esta propriedade.'));
     }
 
     public static function solicitar(Empresa $empresa, ModuloSistema $modulo, ?int $usuarioId): void

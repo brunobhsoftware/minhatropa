@@ -166,6 +166,7 @@ const mascara = (d) => d.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
   conf((await t.goto(B + '/painel/plano')).status() === 403, 'plano bloqueado para a equipe (403)');
   conf((await t.goto(B + '/painel/animais')).status() === 200, 'tratador consulta os animais');
   conf((await t.goto(B + '/painel/animais/novo')).status() === 200 && (await t.goto(B + '/painel/haras')).status() === 403, 'dados da propriedade bloqueados para tratador');
+  conf(await t.locator('[data-sem-acesso]').count() === 1 && await t.locator('.menu-lateral').count() === 1 && (await t.content()).includes('peça ao proprietário'), 'sem acesso à área: página do painel explicando, em vez da tela de erro');
   const post = await t.evaluate(async (base) => { const r = await fetch(base + '/painel/animais', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-TOKEN': '' }, body: 'nome=X' }); return r.status; }, B);
   conf(post === 419 || post === 403, 'tratador não cadastra animal (' + post + ')');
   await t.goto(B + '/painel/animais'); const tk = await t.evaluate(async (base) => { const m = document.querySelector('form input[name=_token]'); const r = await fetch(base + '/painel/animais', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: '_token=' + encodeURIComponent(m.value) + '&nome=X' }); return r.status; }, B);

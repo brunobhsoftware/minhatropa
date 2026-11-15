@@ -186,6 +186,42 @@ fs.writeFileSync(PNG, Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kA
   const fora = await b.newContext(); const visitante = await fora.newPage();
   conf((await visitante.goto(urlFoto)).url().includes('/entrar') || (await visitante.content()).includes('Entrar'), 'foto não abre para quem não está logado');
   await fora.close();
+  const fichaFoto = p.url();
+  await p.goto(B + '/painel/animais');
+  conf(await p.locator('img[data-mini]').count() === 1 && await p.locator('img[data-mini]').evaluate((i) => i.complete && i.naturalWidth === 900), 'Meu Plantel mostra a foto principal em miniatura');
+
+  // ---------- Comércio → Classificados: animal à venda com preço e período ----------
+  await p.click('summary:has-text("Comércio")'); await p.click('.menu-lateral a:has-text("Classificados")'); await p.waitForLoadState();
+  conf(p.url().endsWith('/painel/classificados') && (await p.content()).includes('Nenhum animal anunciado'), 'menu Comércio → Classificados abre a lista de anúncios');
+  await p.goto(fichaFoto); await p.click('[data-anunciar]'); await p.waitForLoadState();
+  conf((await p.locator('[name=animal_id] option:checked').textContent()).includes('Fotogênico') && (await p.inputValue('[name=inicio]')).length === 10, 'Colocar à venda na ficha já abre o anúncio com o animal e a data de hoje');
+  await p.fill('[name=preco]', '18.500,00'); await p.fill('[name=contato_whatsapp]', '(31) 99999-0000'); await p.fill('[name=descricao]', 'Manso de sela.');
+  await p.click('button:has-text("Publicar anúncio")'); await p.waitForLoadState(); h = await p.content();
+  conf(p.url().endsWith('/painel/classificados') && h.includes('R$ 18.500,00') && await p.locator('tr[data-anuncio="Fotogênico"][data-estado=no_ar]').count() === 1, 'anúncio publicado: preço e situação "No ar"');
+  await p.goto(B + '/painel/classificados/novo');
+  conf(!(await p.locator('[name=animal_id]').textContent()).includes('Fotogênico'), 'animal com anúncio aberto não entra em outro anúncio');
+  const loja = await b.newContext(); const vis = await loja.newPage();
+  await vis.goto(B + '/classificados'); h = await vis.content();
+  conf(h.includes('Fotogênico') && h.includes('R$ 18.500,00') && h.includes('Haras Três Rios'), 'classificados do site mostram o animal, o preço e a propriedade, sem login');
+  await vis.click('a[data-anuncio="Fotogênico"]'); await vis.waitForLoadState(); const urlAnuncio = vis.url();
+  conf((await vis.getAttribute('[data-contato]', 'href')).startsWith('https://wa.me/5531999990000') && (await vis.content()).includes('Manso de sela.'), 'página do anúncio tem a descrição e o contato por WhatsApp');
+  conf(await vis.locator('.anuncio-pagina__fotos img').evaluate((i) => i.complete && i.naturalWidth === 900 && i.naturalHeight === 1200), 'foto do animal anunciado abre no site');
+  const urlFotoPublica = await vis.locator('.anuncio-pagina__fotos img').evaluate((i) => i.src);
+  // período: agendado para amanhã sai do site; sem prazo de novo volta
+  const amanha = new Date(Date.now() + 36 * 3600 * 1000).toISOString().slice(0, 10);
+  await p.goto(B + '/painel/classificados'); await p.click('tr[data-anuncio="Fotogênico"] >> text=Alterar'); await p.waitForLoadState();
+  const hojeAnuncio = await p.inputValue('[name=inicio]');
+  await p.fill('[name=inicio]', amanha); await p.click('button:has-text("Salvar anúncio")'); await p.waitForLoadState();
+  conf(await p.locator('tr[data-anuncio="Fotogênico"][data-estado=agendado]').count() === 1 && (await vis.goto(urlAnuncio)).status() === 404 && !(await (await vis.goto(B + '/classificados')).text()).includes('Fotogênico'), 'anúncio agendado para depois ainda não aparece no site');
+  await p.click('tr[data-anuncio="Fotogênico"] >> text=Alterar'); await p.waitForLoadState(); await p.fill('[name=inicio]', hojeAnuncio); await p.fill('[name=fim]', '2020-01-01'); await p.click('button:has-text("Salvar anúncio")'); await p.waitForLoadState();
+  conf((await p.content()).includes('A data final não pode ser antes da data inicial') || (await p.content()).includes('A data final já passou'), 'período: data final no passado é recusada');
+  await p.fill('[name=fim]', ''); await p.click('button:has-text("Salvar anúncio")'); await p.waitForLoadState();
+  conf((await vis.goto(urlAnuncio)).status() === 200, 'dentro do período o anúncio volta ao site');
+  await p.goto(fichaFoto); conf((await p.textContent('[data-a-venda]')).includes('18.500,00'), 'ficha do animal mostra que ele está à venda');
+  await p.goto(B + '/painel/classificados'); await p.click('tr[data-anuncio="Fotogênico"] button[value=vendido]'); await p.waitForLoadState();
+  conf(await p.locator('tr[data-anuncio="Fotogênico"][data-estado=vendido]').count() === 1 && (await vis.goto(urlAnuncio)).status() === 404 && (await vis.goto(urlFotoPublica + '&sem-cache=1')).status() === 404, 'marcado como vendido: sai do site, junto com a foto');
+  await loja.close();
+  await p.goto(fichaFoto);
   await p.click('#fotos >> text=Alterar'); await p.waitForLoadState();
   conf(await p.locator('#aba-fotos').isVisible() && await p.locator('[data-foto="1"] [data-foto-previa]').isVisible(), 'Alterar abre a seção Fotos com a foto atual');
   await p.check('[name="remover_foto[1]"]'); await p.click('button:has-text("Salvar")'); await p.waitForLoadState();
@@ -210,6 +246,9 @@ fs.writeFileSync(PNG, Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kA
   // ---------- Cortesia: a Administração libera tudo gratuitamente para quem está testando ----------
   await z.goto(B + '/painel'); h = await z.content();
   conf(h.includes('Plano Gratuito') && await z.locator('[data-modulo][data-liberado="1"]').count() === 0 && (await z.goto(B + '/painel/cobricoes')).status() === 200 && (await z.goto(B + '/painel/financeiro')).status() === 403, 'antes da cortesia: plano gratuito tem Ocorrências do plantel; módulos e ferramentas pagas bloqueados');
+  conf(await z.locator('[data-indisponivel=financeiro]').count() === 1 && await z.locator('a:has-text("Ver plano e módulos")').count() === 1 && await z.locator('.menu-lateral').count() === 1, 'ferramenta fora do plano: página explicando e levando a Plano e módulos, em vez da tela de erro');
+  await z.goto(B + '/painel/estoque');
+  conf(z.url().endsWith('/painel/modulos/nutricao') && await z.locator('[data-modulo-bloqueado=nutricao]').count() === 1 && (await z.content()).includes('módulo adicional que ainda não está ativo'), 'tela de módulo não contratado leva à página do módulo, com Solicitar ativação');
   const a = await pagina(b); await a.goto(B + '/admin/entrar'); await a.fill('[name=email]', 'bruno@bhsoftware.com.br'); await a.fill('[name=senha]', 'OutraSenha456'); await a.click('button:has-text("Entrar")'); await a.waitForLoadState();
   await a.goto(B + '/admin/haras?busca=Serra'); await a.click('text=Haras Serra Azul'); await a.waitForLoadState();
   conf((await a.textContent('#cortesia')).includes('Sem cortesia') && await a.isChecked('#cortesia [name=cortesia_plantel]'), 'ficha da propriedade tem a rotina de cortesia');

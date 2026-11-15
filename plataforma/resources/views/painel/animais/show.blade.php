@@ -8,6 +8,14 @@
         <p>{{ $animal->especieTexto() }} · {{ $animal->categoriaTexto() }} · {{ $animal->raca ?: 'Sem raça' }} · {{ $animal->pelagemTexto() }} · {{ $animal->idade() }}</p>
     </div>
     <div style="display:flex;gap:8px">
+        @if (\App\Support\Esquema::temV017() && \App\Support\Permissao::pode($papel, 'transferencias', true) && $animal->situacao === 'ativo')
+            @php $anuncioAberto = \App\Models\Classificado::abertos()->where('animal_id', $animal->id)->first(); @endphp
+            @if ($anuncioAberto)
+                <a href="{{ route('painel.classificados.editar', $anuncioAberto) }}" class="botao botao--contorno" data-a-venda>À venda · {{ moeda($anuncioAberto->preco) }}</a>
+            @else
+                <a href="{{ route('painel.classificados.novo', ['animal' => $animal->uuid]) }}" class="botao botao--contorno" data-anunciar>Colocar à venda</a>
+            @endif
+        @endif
         <a href="{{ route('painel.animais.editar', $animal) }}" class="botao botao--primario"><x-icone nome="editar" :tamanho="16" /> Editar</a>
     </div>
 </div>
