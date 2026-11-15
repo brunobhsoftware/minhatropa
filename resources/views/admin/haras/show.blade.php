@@ -108,7 +108,7 @@
             <button class="botao botao--contorno botao--pequeno">Retirar cortesia</button>
         </form>
     @else
-        <p class="suave">Para quem está testando o sistema. Libera de uma vez todos os módulos adicionais e as ferramentas do plano (cobrições, nascimentos, transferências), sem cobrança e sem mudar a faixa contratada. Ao retirar, tudo volta ao que era.</p>
+        <p class="suave">Para quem está testando o sistema. Libera de uma vez todos os módulos adicionais e as ferramentas do plano (agenda e rotinas, saúde animal, financeiro), sem cobrança e sem mudar a faixa contratada. Ao retirar, tudo volta ao que era.</p>
         <form method="post" action="{{ route('admin.haras.cortesia', $empresa) }}" class="formulario" style="max-width:640px">
             @csrf @method('put') <input type="hidden" name="cortesia" value="1">
             <label class="opcao"><input type="checkbox" name="cortesia_plantel" value="1" checked> Liberar também o plantel sem limite de animais</label>
@@ -136,7 +136,7 @@
         </select>
         <button class="botao botao--primario botao--pequeno">Definir faixa</button>
     </form>
-    <p class="suave"><small>Faixa paga libera também as ferramentas do plano (cobrições, nascimentos e transferências).</small></p>
+    <p class="suave"><small>Faixa paga libera também as ferramentas do plano (agenda e rotinas, saúde animal e financeiro). Ocorrências do plantel valem também no plano gratuito.</small></p>
 </section>
 <section class="cartao" id="modulos">
     <h2>Módulos adicionais</h2>

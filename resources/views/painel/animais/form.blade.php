@@ -11,7 +11,7 @@
     $racaAtual = (string) old('raca', $animal->exists ? $animal->raca : (count($racasHaras) === 1 ? $racasHaras[0] : ''));
     $racaDaLista = $racaAtual === '' || in_array($racaAtual, $racasTodas, true);
 @endphp
-<form method="post" action="{{ $animal->exists ? route('painel.animais.salvar', $animal) : route('painel.animais.criar') }}" class="formulario">
+<form method="post" action="{{ $animal->exists ? route('painel.animais.salvar', $animal) : route('painel.animais.criar') }}" class="formulario" enctype="multipart/form-data">
     @csrf @if ($animal->exists) @method('put') @endif
 
 @if (! \App\Support\Esquema::temV005())
@@ -44,6 +44,7 @@
         <button type="button" class="aba-cadastro" data-aba="aquisicao">Aquisição</button>
         <button type="button" class="aba-cadastro" data-aba="genealogia">Genealogia</button>
         @if (\App\Support\Sociedade::disponivel())<button type="button" class="aba-cadastro" data-aba="sociedade" id="botaoSociedade" @if (old('sociedade', $socios->isNotEmpty() ? 'socios' : 'propria') !== 'socios') hidden @endif>Sociedade</button>@endif
+        @if (\App\Support\FotosAnimal::disponivel())<button type="button" class="aba-cadastro" data-aba="fotos">Fotos</button>@endif
         <button type="button" class="aba-cadastro" data-aba="observacoes">Observações</button>
     </div>
 
@@ -233,6 +234,32 @@
     </div>
     @endif
 
+    {{-- Fotos: até 3, sempre em retrato; o navegador recorta e compacta antes de enviar --}}
+    @if (\App\Support\FotosAnimal::disponivel())
+    <div class="painel-aba painel-aba--oculto" id="aba-fotos">
+        <section class="cartao"><h2>Fotos</h2>
+            <p class="suave" style="margin-bottom:1rem">Até {{ \App\Support\FotosAnimal::MAXIMO }} fotos por animal, sempre em retrato (em pé). Pode enviar a foto do celular do jeito que estiver: o sistema recorta o centro e compacta sozinho. A primeira é a foto principal.</p>
+            <div class="fotos-animal" id="fotosAnimal" data-largura="{{ \App\Support\FotosAnimal::LARGURA }}" data-altura="{{ \App\Support\FotosAnimal::ALTURA }}">
+                @for ($n = 1; $n <= \App\Support\FotosAnimal::MAXIMO; $n++)
+                @php $foto = $fotos->get($n); @endphp
+                <div class="foto-animal" data-foto="{{ $n }}">
+                    <div class="foto-animal__quadro">
+                        <img data-foto-previa alt="Foto {{ $n }} de {{ $animal->nome ?: 'animal' }}" @if ($foto) src="{{ route('painel.animais.foto', [$animal, $n]) }}?v={{ $foto->id }}-{{ $foto->bytes }}" @else hidden @endif>
+                        <span data-foto-vazio @if ($foto) hidden @endif>{{ $n === 1 ? 'Foto principal' : 'Foto '.$n }}</span>
+                    </div>
+                    <label class="botao botao--contorno botao--pequeno foto-animal__escolher">{{ $foto ? 'Trocar foto' : 'Escolher foto' }}
+                        <input type="file" name="fotos[{{ $n }}]" accept="image/jpeg,image/png,image/webp" data-foto-arquivo hidden>
+                    </label>
+                    @if ($foto)<label class="foto-animal__remover"><input type="checkbox" name="remover_foto[{{ $n }}]" value="1" data-foto-remover> Remover</label>@endif
+                    <small class="suave" data-foto-aviso aria-live="polite"></small>
+                    @error('fotos.'.$n)<small style="color:#b42318">{{ $message }}</small>@enderror
+                </div>
+                @endfor
+            </div>
+        </section>
+    </div>
+    @endif
+
     {{-- Observações --}}
     <div class="painel-aba painel-aba--oculto" id="aba-observacoes">
         <section class="cartao"><h2>Observações</h2>
@@ -243,6 +270,7 @@
     <div class="acoes-form"><a href="{{ route('painel.animais') }}" class="botao botao--contorno">Cancelar</a><button class="botao botao--primario">{{ $animal->exists ? 'Salvar' : 'Cadastrar animal' }}</button></div>
 </form>
 
+<script src="{{ asset('js/fotos-animal.js') }}?v=1"></script>
 <script>
 // Nº plantel: o botão busca o próximo número da sequência da propriedade; digitar à mão continua valendo.
 (function () {
@@ -269,6 +297,7 @@
     var erros = @json($errors->keys());
     if (!erros.length && location.hash && document.getElementById('aba-' + location.hash.slice(1))) { var alvo = location.hash.slice(1), bs = document.getElementById('botaoSociedade'); abrir(alvo === 'sociedade' && bs && bs.hidden ? 'aquisicao' : alvo); }
     if (erros.some(function (n) { return n === 'sociedade' || n.indexOf('socios.') === 0; })) { abrir('sociedade'); return; }
+    if (erros.some(function (n) { return n.indexOf('fotos') === 0; }) && document.getElementById('aba-fotos')) { abrir('fotos'); return; }
     erros.some(function (nome) { var c = document.querySelector('.formulario [name="' + nome + '"]'); var p = c && c.closest('.painel-aba'); if (p) { abrir(p.id.replace('aba-', '')); return true; } return false; });
 })();
 

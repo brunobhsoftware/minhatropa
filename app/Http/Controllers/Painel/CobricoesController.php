@@ -16,7 +16,6 @@ class CobricoesController extends Controller
     public function index(Request $request)
     {
         $empresa = $request->attributes->get('haras');
-        Licenca::exigir($empresa);
 
         $query = Cobricao::where('empresa_id', $empresa->id)->whereNull('excluido_em');
 
@@ -34,7 +33,6 @@ class CobricoesController extends Controller
 
     public function create(Request $request)
     {
-        Licenca::exigir($request->attributes->get('haras'));
         $empresa = $request->attributes->get('haras');
 
         return view('painel.cobricoes.form', [
@@ -48,7 +46,6 @@ class CobricoesController extends Controller
     public function store(Request $request)
     {
         $empresa = $request->attributes->get('haras');
-        Licenca::exigir($empresa);
         $dados = $this->validar($request);
         $cobricao = Cobricao::create($dados + ['empresa_id' => $empresa->id, 'criado_por' => $request->user()->id]);
         Auditoria::registrar('cobricao.criar', $cobricao);

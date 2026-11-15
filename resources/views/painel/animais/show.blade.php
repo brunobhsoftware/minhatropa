@@ -12,6 +12,23 @@
     </div>
 </div>
 
+@if (\App\Support\FotosAnimal::disponivel())
+<section class="cartao" id="fotos">
+    <div class="cartao__titulo"><h2>Fotos</h2><a href="{{ route('painel.animais.editar', $animal) }}#fotos">{{ $fotos->isEmpty() ? 'Adicionar fotos' : 'Alterar' }}</a></div>
+    @if ($fotos->isEmpty())
+        <p class="suave">Ainda sem fotos. Dá para enviar até {{ \App\Support\FotosAnimal::MAXIMO }}, em retrato.</p>
+    @else
+    <div class="fotos-animal fotos-animal--ficha">
+        @foreach ($fotos as $foto)
+        <a class="foto-animal__quadro" href="{{ route('painel.animais.foto', [$animal, $foto->posicao]) }}?v={{ $foto->id }}-{{ $foto->bytes }}" target="_blank" rel="noopener" data-foto-ficha="{{ $foto->posicao }}">
+            <img src="{{ route('painel.animais.foto', [$animal, $foto->posicao]) }}?v={{ $foto->id }}-{{ $foto->bytes }}" alt="Foto {{ $foto->posicao }} de {{ $animal->nome }}" loading="lazy" width="{{ $foto->largura }}" height="{{ $foto->altura }}">
+        </a>
+        @endforeach
+    </div>
+    @endif
+</section>
+@endif
+
 @if (\App\Support\Sociedade::disponivel())
 <section class="cartao" id="sociedade">
     <div class="cartao__titulo"><h2>Sociedade</h2><a href="{{ route('painel.animais.editar', $animal) }}#sociedade">Alterar</a></div>

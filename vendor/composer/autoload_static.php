@@ -547,6 +547,7 @@ class ComposerStaticInit01491554d920b3ff2852f7e60c354b75
         'App\\Support\\Documento' => __DIR__ . '/../..' . '/app/Support/Documento.php',
         'App\\Support\\Email' => __DIR__ . '/../..' . '/app/Support/Email.php',
         'App\\Support\\Esquema' => __DIR__ . '/../..' . '/app/Support/Esquema.php',
+        'App\\Support\\FotosAnimal' => __DIR__ . '/../..' . '/app/Support/FotosAnimal.php',
         'App\\Support\\Geografia' => __DIR__ . '/../..' . '/app/Support/Geografia.php',
         'App\\Support\\HarasAtual' => __DIR__ . '/../..' . '/app/Support/HarasAtual.php',
         'App\\Support\\Licenca' => __DIR__ . '/../..' . '/app/Support/Licenca.php',

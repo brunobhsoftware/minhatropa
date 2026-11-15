@@ -72,6 +72,7 @@ return array(
     'App\\Support\\Documento' => $baseDir . '/app/Support/Documento.php',
     'App\\Support\\Email' => $baseDir . '/app/Support/Email.php',
     'App\\Support\\Esquema' => $baseDir . '/app/Support/Esquema.php',
+    'App\\Support\\FotosAnimal' => $baseDir . '/app/Support/FotosAnimal.php',
     'App\\Support\\Geografia' => $baseDir . '/app/Support/Geografia.php',
     'App\\Support\\HarasAtual' => $baseDir . '/app/Support/HarasAtual.php',
     'App\\Support\\Licenca' => $baseDir . '/app/Support/Licenca.php',

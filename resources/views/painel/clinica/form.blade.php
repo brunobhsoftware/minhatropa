@@ -4,7 +4,7 @@
 @php $editando = $evento->exists; @endphp
 <div class="cabecalho">
     <div>
-        <a href="{{ route('painel.clinica') }}" class="suave" style="font-size:.85rem">Clínica ›</a>
+        <a href="{{ route('painel.clinica') }}" class="suave" style="font-size:.85rem">Saúde animal ›</a>
         <h1>{{ $editando ? 'Editar registro' : 'Novo registro de saúde' }}</h1>
     </div>
 </div>

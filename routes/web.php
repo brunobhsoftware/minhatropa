@@ -68,6 +68,7 @@ Route::middleware(['auth', 'haras'])->prefix('painel')->group(function () {
             Route::post('/animais', [$p.'\AnimaisController', 'store'])->name('animais.criar');
             Route::get('/animais/{animal}', [$p.'\AnimaisController', 'show'])->name('animais.show');
             Route::get('/animais/{animal}/editar', [$p.'\AnimaisController', 'edit'])->name('animais.editar');
+            Route::get('/animais/{animal}/foto/{posicao}', [$p.'\AnimaisController', 'foto'])->name('animais.foto')->whereIn('posicao', ['1', '2', '3']);
             Route::put('/animais/{animal}', [$p.'\AnimaisController', 'update'])->name('animais.salvar');
             Route::put('/animais/{animal}/morte', [$p.'\AnimaisController', 'morte'])->name('animais.morte');
             Route::get('/animais-buscar-genitor', [$p.'\AnimaisController', 'buscarGenitor'])->name('animais.buscar-genitor');
