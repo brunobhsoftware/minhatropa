@@ -158,8 +158,34 @@ class Licenca
         ] + ($paga && $empresa->situacao === 'teste' ? ['situacao' => 'ativo'] : []));
     }
 
-    public static function exigir(Empresa $empresa): void
+    /** Ferramentas dos planos pagos, pelo começo do nome da rota (para dizer na tela qual delas a pessoa tentou abrir). */
+    public const FERRAMENTAS = ['painel.agenda' => 'Agenda e rotinas', 'painel.rotinas' => 'Agenda e rotinas', 'painel.clinica' => 'Saúde animal', 'painel.financeiro' => 'Financeiro'];
+
+    /**
+     * Ferramenta dos planos pagos: sem faixa paga (nem cortesia), em vez de uma tela de erro a pessoa vê uma página
+     * do painel dizendo o que é, por que não abriu e onde contratar (Bruno, 15/11/2026).
+     */
+    public static function exigir(Empresa $empresa, ?string $ferramenta = null): void
     {
-        abort_unless(self::ativa($empresa), 403, 'Esta ferramenta faz parte dos planos pagos. Faça o upgrade da faixa de plantel para acessar.');
+        if (self::ativa($empresa)) {
+            return;
+        }
+        if (request()->expectsJson()) {
+            abort(403, 'Esta ferramenta faz parte dos planos pagos.');
+        }
+        if ($ferramenta === null) {
+            $rota = (string) request()->route()?->getName();
+            foreach (self::FERRAMENTAS as $inicio => $nome) {
+                if (str_starts_with($rota, $inicio)) {
+                    $ferramenta = $nome;
+                    break;
+                }
+            }
+        }
+        throw new \Illuminate\Http\Exceptions\HttpResponseException(response()->view('painel.indisponivel', [
+            'ferramenta' => $ferramenta ?? 'Esta ferramenta',
+            'faixa' => self::faixaAtual($empresa),
+            'proxima' => self::proximaFaixa($empresa),
+        ], 403));
     }
 }

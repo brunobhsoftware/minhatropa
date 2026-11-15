@@ -50,6 +50,7 @@ class AnimaisController extends Controller
 
         return view('painel.animais.index', [
             'animais' => $animais,
+            'fotos' => FotosAnimal::principais($animais->pluck('id')),
             'totais' => $totais,
             'podeCadastrar' => Licenca::podeCadastrarAnimal($empresa),
             'ativosPlantel' => Licenca::animais($empresa),

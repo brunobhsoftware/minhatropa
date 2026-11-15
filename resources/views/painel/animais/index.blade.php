@@ -36,7 +36,9 @@
         <tbody>
         @forelse ($animais as $a)
             <tr>
-                <td>@if($v5)<a href="{{ route('painel.animais.show', $a) }}"><b>{{ $a->nome }}</b></a>@else <b>{{ $a->nome }}</b>@endif</td>
+                <td><span class="animal-nome">@php $ft = $fotos->get($a->id); @endphp
+                    @if ($ft)<img class="animal-mini" src="{{ route('painel.animais.foto', [$a, $ft->posicao]) }}?v={{ $ft->id }}-{{ $ft->bytes }}" alt="" width="36" height="48" loading="lazy" data-mini>@elseif (\App\Support\FotosAnimal::disponivel())<span class="animal-mini animal-mini--vazia" aria-hidden="true"></span>@endif
+                    @if($v5)<a href="{{ route('painel.animais.show', $a) }}"><b>{{ $a->nome }}</b></a>@else <b>{{ $a->nome }}</b>@endif</span></td>
                 @if($v5)<td>{{ $a->especieTexto() }}</td>@endif
                 <td>{{ $a->categoriaTexto() }}</td>
                 <td>{{ $a->raca ?: '—' }}</td>

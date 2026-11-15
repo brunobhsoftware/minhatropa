@@ -149,6 +149,16 @@ class Esquema
         }
     }
 
+    /** V017: classificados (animais à venda). */
+    public static function temV017(): bool
+    {
+        try {
+            return self::$cache['v017'] ??= Schema::hasTable('classificado');
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
     public static function temV015(): bool
     {
         try {

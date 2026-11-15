@@ -284,3 +284,34 @@ a[href^="mailto:"]{overflow-wrap:anywhere}
 .topo__opcoes-lista small{color:var(--suave);font-size:.8rem}
 @media(max-width:1060px){.topo__opcoes>summary{width:100%;justify-content:center}.topo__opcoes-lista{position:static;margin-top:8px;box-shadow:none}}
 @media(max-width:560px){.escolha-cadastro{grid-template-columns:1fr}}
+
+/* Classificados: animais à venda */
+.classificados{padding-top:56px}
+.classificados__filtro{display:flex;gap:10px;flex-wrap:wrap;margin:24px 0 28px}
+.classificados__filtro input,.classificados__filtro select{padding:11px 14px;border:1px solid var(--cinza-2);border-radius:10px;font:inherit;background:#fff;min-width:0}
+.classificados__filtro input{flex:1 1 220px}
+.classificados__vazio{padding:40px 0;color:#475467}
+.classificados__grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:22px}
+.anuncio{display:flex;flex-direction:column;gap:4px;color:inherit;text-decoration:none;background:#fff;border:1px solid var(--cinza-2);border-radius:14px;overflow:hidden;padding-bottom:14px;transition:box-shadow .15s,transform .15s}
+.anuncio:hover{box-shadow:0 10px 30px rgba(16,24,40,.12);transform:translateY(-2px)}
+.anuncio__foto{display:flex;align-items:center;justify-content:center;aspect-ratio:3/4;background:var(--cinza);color:#667085;font-size:.9rem;margin-bottom:8px}
+.anuncio__foto img{width:100%;height:100%;object-fit:cover;display:block}
+.anuncio__nome,.anuncio__dados,.anuncio__preco,.anuncio__origem{padding:0 14px}
+.anuncio__nome{font:700 1.08rem var(--fonte)}
+.anuncio__dados,.anuncio__origem{font-size:.86rem;color:#475467}
+.anuncio__preco{font:700 1.15rem var(--fonte);color:var(--azul-hero);margin-top:4px}
+.classificados__paginas{display:flex;gap:14px;align-items:center;justify-content:center;margin-top:32px}
+.classificados__voltar{margin:0 0 18px}
+.anuncio-pagina{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:36px;align-items:start}
+.anuncio-pagina__fotos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.anuncio-pagina__fotos img{width:100%;height:auto;border-radius:12px;display:block}
+.anuncio-pagina__fotos img:first-child{grid-column:1/-1}
+.anuncio-pagina__dados h1{font:700 2rem var(--fonte);margin:6px 0}
+.anuncio-pagina__preco{font:700 1.7rem var(--fonte);color:var(--azul-hero);margin:0 0 18px}
+.anuncio-pagina__ficha{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 18px;margin:0 0 18px}
+.anuncio-pagina__ficha dt{font-size:.78rem;color:#667085;text-transform:uppercase;letter-spacing:.06em}
+.anuncio-pagina__ficha dd{margin:0;font-weight:600}
+.anuncio-pagina__origem{display:flex;flex-direction:column;gap:2px;padding:14px 16px;background:var(--cinza);border-radius:12px;margin:18px 0}
+.anuncio-pagina__aviso{font-size:.82rem;color:#667085;margin-top:14px}
+@media(max-width:760px){.anuncio-pagina{grid-template-columns:1fr}.classificados__grade{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}}
+.classificados .botao--contorno{border:1px solid var(--cinza-2);background:#fff;color:var(--azul)}

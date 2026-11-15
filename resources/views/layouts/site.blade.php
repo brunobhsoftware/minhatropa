@@ -36,6 +36,7 @@
                 <a href="{{ route('inicio') }}#solucoes">Soluções</a>
                 <a href="{{ route('inicio') }}#recursos">Recursos</a>
                 <a href="{{ route('inicio') }}#implantacao">Implantação</a>
+                <a href="{{ route('classificados') }}">Classificados</a>
                 <a href="{{ route('inicio') }}#contato">Contato</a>
                 <span class="topo__acoes">
                     {{-- Entrar e cadastrar: a pessoa escolhe entre o Haras / Fazenda e o ambiente do profissional --}}
