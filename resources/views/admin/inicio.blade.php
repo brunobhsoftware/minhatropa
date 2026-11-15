@@ -35,5 +35,6 @@
         @endforelse
     </section>
 </div>
-<p class="suave rodape-info"><small>{{ $totalUsuarios }} usuário(s) ativo(s) na plataforma.</small></p>
+<p class="suave rodape-info"><small>{{ $totalUsuarios }} usuário(s) ativo(s) na plataforma.
+@if (isset($mpConfigurado)) · Mercado Pago: {{ $mpConfigurado ? 'configurado' : 'pendente' }}.@endif</small></p>
 @endsection

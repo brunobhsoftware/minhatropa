@@ -138,6 +138,16 @@ class Esquema
         }
     }
 
+    /** V015: pagamentos (Mercado Pago), webhooks e fila de e-mails. */
+    public static function temV015(): bool
+    {
+        try {
+            return self::$cache['v015'] ??= Schema::hasTable('gateway') && Schema::hasTable('mensagem_envio');
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
     /** O banco tem tudo o que as telas atuais usam (até o V007)? */
     public static function atual(): bool
     {
