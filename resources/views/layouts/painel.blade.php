@@ -51,7 +51,12 @@
             ['texto' => 'Novo registro', 'url' => route('painel.clinica.novo'), 'ativo' => $rota('painel.clinica.novo'), 'ver' => $pode('animais', true)],
         ]],
         ['texto' => 'Controle de estoque', 'icone' => 'nutricao', 'itens' => [$modulo('Ração, medicamentos, ferramentas', 'nutricao'), $breve('Leitura de nota fiscal')]],
-        ['texto' => 'Financeiro', 'icone' => 'plano', 'itens' => [$breve('Contratos'), $breve('Boletos a receber e a pagar'), $breve('Gráficos de custos')]],
+        ['texto' => 'Financeiro', 'icone' => 'plano', 'itens' => [
+            ['texto' => 'Receitas e despesas', 'url' => route('painel.financeiro'), 'ativo' => $rota('painel.financeiro*') && ! $rota('painel.financeiro.novo')],
+            ['texto' => 'Novo lançamento', 'url' => route('painel.financeiro.novo'), 'ativo' => $rota('painel.financeiro.novo'), 'ver' => $pode('propriedade', true)],
+            $breve('Contratos'),
+            $breve('Gráficos de custos'),
+        ]],
         ['texto' => 'RH', 'icone' => 'usuarios', 'itens' => [
             ['texto' => 'Cadastro da equipe', 'url' => route('painel.profissionais'), 'ativo' => $rota('painel.profissionais*'), 'ver' => $pode('equipe')],
             $modulo('Acesso externo da equipe', 'equipe') + ['ver' => $dono || (($modulosHaras['equipe'] ?? null) !== 'ativo')],

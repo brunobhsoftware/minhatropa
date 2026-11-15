@@ -29,6 +29,9 @@ class ModulosController extends Controller
             if ($modulo->codigo === Modulos::EQUIPE) {
                 return redirect()->route('painel.profissionais');
             }
+            if ($modulo->codigo === Modulos::NUTRICAO) {
+                return redirect()->route('painel.estoque');
+            }
         }
 
         return view('painel.modulo', [
