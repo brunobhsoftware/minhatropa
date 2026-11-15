@@ -16,7 +16,6 @@ class NascimentosController extends Controller
     public function index(Request $request)
     {
         $empresa = $request->attributes->get('haras');
-        Licenca::exigir($empresa);
 
         return view('painel.nascimentos.index', [
             'nascimentos' => Nascimento::where('empresa_id', $empresa->id)->whereNull('excluido_em')
@@ -28,7 +27,6 @@ class NascimentosController extends Controller
     public function create(Request $request)
     {
         $empresa = $request->attributes->get('haras');
-        Licenca::exigir($empresa);
 
         return view('painel.nascimentos.form', [
             'nascimento' => new Nascimento,
@@ -42,7 +40,6 @@ class NascimentosController extends Controller
     public function store(Request $request)
     {
         $empresa = $request->attributes->get('haras');
-        Licenca::exigir($empresa);
         $dados = $this->validar($request);
 
         $nascimento = Nascimento::create($dados + ['empresa_id' => $empresa->id, 'criado_por' => $request->user()->id]);

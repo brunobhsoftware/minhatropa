@@ -37,16 +37,16 @@ class PainelController extends Controller
     {
         $empresa = $request->attributes->get('haras');
         $papel = $request->attributes->get('papel');
-        $licenca = Licenca::ativa($empresa);
-        $conta = fn (string $tabela) => $licenca ? DB::table($tabela)->where('empresa_id', $empresa->id)->count() : null;
+        // Ocorrências do plantel valem para todas as faixas, inclusive o plano gratuito (Bruno, 15/11/2026).
+        $conta = fn (string $tabela) => DB::table($tabela)->where('empresa_id', $empresa->id)->count();
 
         return view('painel.ocorrencias', [
-            'licenca' => $licenca,
+            'licenca' => true,
             'reproducao' => Permissao::pode($papel, 'reproducao'),
             'transferir' => Permissao::pode($papel, 'transferencias'),
             'nascimentos' => $conta('nascimento'),
             'cobricoes' => $conta('cobricao'),
-            'transferencias' => $licenca ? DB::table('transferencia')->where(fn ($q) => $q->where('empresa_origem_id', $empresa->id)->orWhere('empresa_destino_id', $empresa->id))->count() : null,
+            'transferencias' => DB::table('transferencia')->where(fn ($q) => $q->where('empresa_origem_id', $empresa->id)->orWhere('empresa_destino_id', $empresa->id))->count(),
             'mortes' => Animal::where('empresa_id', $empresa->id)->whereNull('excluido_em')->where('situacao', 'morto')->count(),
         ]);
     }

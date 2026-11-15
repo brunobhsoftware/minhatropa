@@ -104,11 +104,11 @@ const mascara = (d) => d.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
   // ---------- Módulos adicionais (feature flags) ----------
   // menu limpo: só os itens principais aparecem; os subitens abrem ao clicar, um grupo por vez
   const grupos = await c.locator('.menu-lateral .menu-grupo > summary').allTextContents();
-  conf(['Meu Plantel', 'Ocorrências', 'Reprodução', 'Comércio', 'Clínica veterinária', 'Controle de estoque', 'Financeiro', 'RH'].every((g) => grupos.some((t) => t.includes(g))), 'menu com os itens combinados: ' + grupos.map((t) => t.trim()).join(' | '));
+  conf(['Meu Plantel', 'Ocorrências', 'Reprodução', 'Comércio', 'Saúde animal', 'Controle de estoque', 'Financeiro', 'RH'].every((g) => grupos.some((t) => t.includes(g))), 'menu com os itens combinados: ' + grupos.map((t) => t.trim()).join(' | '));
   conf(!(await c.locator('.menu-lateral').textContent()).includes('Animais\n') && await c.locator('.menu-lateral a.desativado:has-text("Agenda de eventos")').count() === 1, 'Agenda de eventos em breve, com cadeado');
   conf(await c.locator('.menu-grupo[open]').count() === 0 && await c.locator('[data-modulo=nutricao]').first().isHidden(), 'no início nenhum grupo aberto: subitens escondidos');
   await c.click('summary:has-text("Reprodução")'); conf(await c.locator('.menu-grupo[open] .menu-sub--breve').count() === 4, 'Reprodução abre os 4 subitens em breve');
-  await c.click('summary:has-text("Clínica veterinária")');
+  await c.click('summary:has-text("Saúde animal")');
   await c.waitForFunction(() => document.querySelectorAll('.menu-grupo[open]').length === 1, null, { timeout: 3000 }).catch(() => {});
   conf(await c.locator('.menu-grupo[open]').count() === 1 && await c.locator('[data-grupo=reproducao]').evaluate((d) => !d.open), 'abrir um grupo fecha o outro');
   conf(await c.locator('[data-modulo][data-liberado="0"]').count() === 2 && (await c.locator('[data-grupo=controle-de-estoque]').textContent()).split('Módulo adicional').length - 1 === 1, 'módulos não contratados com cadeado e "Módulo adicional"');
@@ -125,7 +125,7 @@ const mascara = (d) => d.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
   conf((await a.content()).includes('Gestão de Equipe e Acesso Externo" ativado'), 'admin ativa módulos');
   await c.goto(B + '/painel/modulos/saude'); conf((await c.content()).includes('Módulo ativo'), 'módulo de saúde liberado');
   conf(await c.locator('[data-modulo=equipe][data-liberado="1"]').count() === 1 && await c.locator('[data-modulo=nutricao][data-liberado="0"]').count() === 1, 'menu reflete o que está liberado');
-  conf(await c.locator('[data-grupo=clinica-veterinaria].menu-grupo--fechado').count() === 0 && await c.locator('[data-grupo=controle-de-estoque].menu-grupo--fechado').count() === 1, 'cadeado do grupo some quando há módulo liberado');
+  conf(await c.locator('[data-grupo=saude-animal].menu-grupo--fechado').count() === 0 && await c.locator('[data-grupo=controle-de-estoque].menu-grupo--fechado').count() === 1, 'cadeado do grupo some quando há módulo liberado');
 
   // ---------- Meu Plantel e Ocorrências ----------
   await c.goto(B + '/painel/animais'); h = await c.content();

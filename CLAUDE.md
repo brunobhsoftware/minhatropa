@@ -38,7 +38,7 @@ Projeto irmão (mesma estrutura, mesma conta Hostinger): **foradafila.com.br** (
   Ordem: Início · **Meu Plantel** (Animais do plantel, Cadastrar animal, Organograma*) · **Ocorrências** (Ocorrências do plantel =
   `/painel/ocorrencias`, que reúne nascimentos, cobrições, transferências e mortes; Ocorrências do Haras* = avisos entre pessoas) ·
   Reprodução* (coleta, pedido de sêmen, embrião, notificação ao sócio) · Comércio* (pregão on-line, venda permanente de coberturas,
-  classificados) · Clínica veterinária (módulos `manejo` e `saude`) · Controle de estoque (módulo `nutricao`; leitura de NF*) ·
+  classificados) · **Saúde animal** (era "Clínica veterinária"; eventos de saúde, V012; exige faixa paga) · Controle de estoque (módulo `nutricao`; leitura de NF*) ·
   Financeiro* (contratos, boletos, gráficos) · RH (Cadastro da equipe, acesso externo = módulo `equipe`, Escala*) · Agenda de eventos* ·
   Configuração (Dados, Plano e módulos). `*` = "em breve", só no menu, sem tela. Ocorrências é menu independente, não é do plantel.
 - **A definir com o Bruno (não inventar):** pacotes Simples (módulos que ele escolher) e Completo (todos), além dos módulos avulsos;
@@ -62,7 +62,16 @@ Projeto irmão (mesma estrutura, mesma conta Hostinger): **foradafila.com.br** (
   **100%** (padrão) ou **Personalizado**. Com 100% a seção Sociedade não aparece; com Personalizado ela é liberada para lançar os
   sócios. "Nº plantel" aceita digitação e tem o botão "Próximo nº" (`/painel/animais-proximo-numero`): maior número já usado na
   propriedade + 1, mantendo zeros à esquerda (conta vendidos, mortos e excluídos, para não repetir).
-- Cobrições, nascimentos e transferências continuam exigindo faixa paga (`empresa.licenca_ativa`, ligada ao definir a faixa).
+- **Ocorrências do plantel no plano gratuito (Bruno, 15/11/2026):** cobrições, nascimentos, transferências e mortes valem para
+  todas as faixas, inclusive a gratuita (até 5 animais). `Licenca::exigir()` (faixa paga ou cortesia) continua em Agenda e rotinas,
+  Saúde animal e Financeiro.
+- **Saúde animal (Bruno, 15/11/2026):** o menu "Clínica veterinária" passou a se chamar "Saúde animal". Quem atende é sempre um
+  **profissional (CPF)**: mesmo quando é uma clínica, a autorização de acesso é dada a pessoas, pelo CPF, nunca ao CNPJ.
+- **Fotos do animal (V016, Bruno, 15/11/2026):** até 3 por animal (seção "Fotos" do cadastro; aparecem na ficha). Formato único:
+  retrato 3:4, 900 x 1200, JPEG qualidade 80. O arquivo **não** fica no banco: vai para o disco `midia`
+  (`animais/<empresa_id>/<animal_id>/…`) e a tabela `animal_foto` guarda só o caminho. O navegador recorta o centro e compacta
+  antes de enviar (`public/js/fotos-animal.js`) e o servidor refaz com GD (`App\Support\FotosAnimal`), seja qual for o tamanho do
+  original. Servidas por `/painel/animais/<uuid>/foto/<1-3>`, só para quem acessa a propriedade.
 
 ## Onde está cada coisa
 
@@ -70,7 +79,7 @@ Projeto irmão (mesma estrutura, mesma conta Hostinger): **foradafila.com.br** (
 | --- | --- |
 | `plataforma/` | Aplicação **Laravel 12** (site público + `/admin`). Publicada pela Action na branch `publicacao` |
 | `plataforma/database/atualizacoes/V0xx__*.sql` | Scripts versionados do banco (idempotentes). Aplicados pela tela `/admin/banco` |
-| `plataforma/tests/e2e/` | Testes de ponta a ponta (Playwright) contra banco limpo + `php artisan serve`: `fluxo-admin.js` (57), `fluxo-cadastro.js` (93) e `fluxo-profissional.js` (79), nessa ordem; apoio em `apoio.js` |
+| `plataforma/tests/e2e/` | Testes de ponta a ponta (Playwright) contra banco limpo + `php artisan serve`: `fluxo-admin.js` (57), `fluxo-cadastro.js` (93) e `fluxo-profissional.js` (87), nessa ordem; apoio em `apoio.js` |
 | `docs/identidade-visual/` | Logos recortadas (PNG transparente) e o kit original enviado pelo Bruno em `kit-original/` |
 | `.github/workflows/build-plataforma.yml` | Publicação: `composer install --no-dev` e grava em `publicacao` |
 | `.hostinger/site.json` | Alvo da publicação na Hostinger |
@@ -108,7 +117,7 @@ Projeto irmão (mesma estrutura, mesma conta Hostinger): **foradafila.com.br** (
 - **Área do Haras** (`/entrar`, `/painel`, middleware `haras` = `App\Http\Middleware\IdentificarHaras` + `App\Support\HarasAtual`
   na sessão; quem tem vários Haras escolhe em `/painel/escolher`): Início, Animais, Cobrições, Nascimentos, Transferências,
   Criador e equipe, Dados da propriedade, Plano e módulos, e os módulos adicionais.
-- Testes: `fluxo-admin.js` (57), `fluxo-cadastro.js` (93) e `fluxo-profissional.js` (79), nessa ordem, contra banco limpo (`NODE_PATH` com o playwright; `SENHA_BANCO` = senha do `.env`).
+- Testes: `fluxo-admin.js` (57), `fluxo-cadastro.js` (93) e `fluxo-profissional.js` (87), nessa ordem, contra banco limpo (`NODE_PATH` com o playwright; `SENHA_BANCO` = senha do `.env`).
 - **Identificação única:** `empresa.documento` (CPF ou CNPJ) é obrigatório e único (`uk_empresa_documento`). Cadastro começa pela
   titularidade (PF/PJ). **Toda propriedade em CPF fica ligada a um `profissional`** (titular: `empresa.titular_profissional_id`,
   `empresa_profissional.titular`). CPF já na base: os dados são puxados. **CPF novo: sem aviso e sem desvio (pedido do Bruno,

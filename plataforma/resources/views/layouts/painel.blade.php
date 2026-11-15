@@ -46,7 +46,7 @@
         ]],
         ['texto' => 'Reprodução', 'icone' => 'mais', 'itens' => [$breve('Solicitação de coleta'), $breve('Pedido de sêmen'), $breve('Acompanhamento de embrião'), $breve('Notificação ao sócio')]],
         ['texto' => 'Comércio', 'icone' => 'site', 'itens' => [$breve('Pregão on-line'), $breve('Venda permanente de coberturas'), $breve('Classificados')]],
-        ['texto' => 'Clínica veterinária', 'icone' => 'saude', 'itens' => [
+        ['texto' => 'Saúde animal', 'icone' => 'saude', 'itens' => [
             ['texto' => 'Eventos de saúde', 'url' => route('painel.clinica'), 'ativo' => $rota('painel.clinica*') && ! $rota('painel.clinica.novo')],
             ['texto' => 'Novo registro', 'url' => route('painel.clinica.novo'), 'ativo' => $rota('painel.clinica.novo'), 'ver' => $pode('animais', true)],
         ]],

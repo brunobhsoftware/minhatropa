@@ -1,8 +1,8 @@
 @extends('layouts.painel')
-@section('titulo', 'Clínica veterinária')
+@section('titulo', 'Saúde animal')
 @section('conteudo')
 <div class="cabecalho">
-    <div><h1>Clínica veterinária</h1><p>Eventos de saúde dos animais.</p></div>
+    <div><h1>Saúde animal</h1><p>Eventos de saúde dos animais.</p></div>
     <a href="{{ route('painel.clinica.novo') }}" class="botao botao--primario"><x-icone nome="mais" :tamanho="18" /> Novo registro</a>
 </div>
 

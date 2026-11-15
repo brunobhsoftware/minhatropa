@@ -139,6 +139,16 @@ class Esquema
     }
 
     /** V015: pagamentos (Mercado Pago), webhooks e fila de e-mails. */
+    /** V016: fotos do animal. */
+    public static function temV016(): bool
+    {
+        try {
+            return self::$cache['v016'] ??= Schema::hasTable('animal_foto');
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
     public static function temV015(): bool
     {
         try {

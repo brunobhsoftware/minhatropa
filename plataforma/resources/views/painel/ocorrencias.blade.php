@@ -7,12 +7,6 @@
     <a href="{{ route('painel.animais') }}" class="botao botao--contorno"><x-icone nome="cavalo" :tamanho="18" /> Meu Plantel</a>
 </div>
 
-@unless ($licenca)
-<div class="faixa-gratis">
-    <div><b>Nascimentos, cobrições e transferências fazem parte dos planos pagos</b><p>No plano gratuito você registra o plantel e as mortes. As demais ocorrências são liberadas ao mudar de faixa.</p></div>
-    @if ($dono)<a href="{{ route('painel.plano') }}" class="botao botao--escuro">Ver plano e módulos</a>@endif
-</div>
-@endunless
 
 @php
     $cartoes = [

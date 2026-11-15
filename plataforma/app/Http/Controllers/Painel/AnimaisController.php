@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Animal;
 use App\Support\Auditoria;
 use App\Support\Esquema;
+use App\Support\FotosAnimal;
 use App\Support\Licenca;
 use App\Support\Sociedade;
 use Illuminate\Http\Request;
@@ -66,13 +67,14 @@ class AnimaisController extends Controller
             return redirect()->route('painel.animais')->with('limite_plantel', true);
         }
 
-        return view('painel.animais.form', ['animal' => new Animal, 'socios' => collect()]);
+        return view('painel.animais.form', ['animal' => new Animal, 'socios' => collect(), 'fotos' => collect()]);
     }
 
     public function store(Request $request)
     {
         $empresa = $request->attributes->get('haras');
         $dados = $this->validar($request);
+        $request->validate(FotosAnimal::regras(), FotosAnimal::mensagens());
         $socios = Sociedade::validar($request, $empresa);
         // Só animal que entra no plantel ativo conta para a faixa (vendido, transferido e morto ficam de fora).
         $contaNoPlantel = ! in_array($dados['situacao'] ?? 'ativo', Licenca::FORA_DO_PLANTEL, true);
@@ -82,6 +84,12 @@ class AnimaisController extends Controller
         $animal = Animal::create($dados + ['empresa_id' => $empresa->id, 'criado_por' => $request->user()->id]);
         Sociedade::salvar($animal, $socios, $request->user()->id);
         Auditoria::registrar('animal.criar', $animal, null, $socios ? ['socios' => $socios] : null);
+        try {
+            $this->salvarFotos($request, $animal);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // O animal já está cadastrado: volta para a edição só para trocar a foto que não deu certo.
+            return redirect()->to(route('painel.animais.editar', $animal).'#fotos')->withErrors($e->errors())->with('ok', "{$animal->nome} cadastrado(a). Falta só acertar a foto.");
+        }
 
         // Com sócios, abre a ficha: é lá que ficam os links de convite para enviar a quem ainda não tem cadastro.
         return $socios
@@ -95,6 +103,7 @@ class AnimaisController extends Controller
 
         return view('painel.animais.show', [
             'animal' => $animal,
+            'fotos' => FotosAnimal::doAnimal($animal),
             'socios' => Sociedade::doAnimal($animal),
             'parteDaPropriedade' => Sociedade::parteDaPropriedade($animal),
             'arvore' => $animal->arvoreGenealogica(3),
@@ -105,7 +114,7 @@ class AnimaisController extends Controller
     {
         $this->doHaras($request, $animal);
 
-        return view('painel.animais.form', ['animal' => $animal, 'socios' => Sociedade::doAnimal($animal)]);
+        return view('painel.animais.form', ['animal' => $animal, 'socios' => Sociedade::doAnimal($animal), 'fotos' => FotosAnimal::doAnimal($animal)]);
     }
 
     public function update(Request $request, Animal $animal)
@@ -113,6 +122,7 @@ class AnimaisController extends Controller
         $this->doHaras($request, $animal);
         $antes = $animal->getAttributes();
         $dados = $this->validar($request);
+        $request->validate(FotosAnimal::regras(), FotosAnimal::mensagens());
         $socios = Sociedade::validar($request, $request->attributes->get('haras'));
         // Voltar um animal ao plantel ativo também respeita o limite da faixa.
         $estavaFora = in_array($animal->situacao, Licenca::FORA_DO_PLANTEL, true);
@@ -125,6 +135,7 @@ class AnimaisController extends Controller
             Sociedade::salvar($animal, $socios, $request->user()->id);
         }
         Auditoria::registrar('animal.editar', $animal, $antes, $socios ? ['socios' => $socios] : null);
+        $this->salvarFotos($request, $animal);
 
         return redirect()->route('painel.animais.show', $animal)->with('ok', "Dados de {$animal->nome} salvos.");
     }
@@ -214,6 +225,25 @@ class AnimaisController extends Controller
             'registro' => $a->registro ?? '',
             'haras' => $a->empresa?->nome ?? '',
         ]));
+    }
+
+    /** Foto do animal (posição 1 a 3), só para quem acessa a propriedade. O arquivo fica fora do public_html. */
+    public function foto(Request $request, Animal $animal, int $posicao)
+    {
+        $this->doHaras($request, $animal);
+        $foto = FotosAnimal::doAnimal($animal)->get($posicao);
+        $disco = \Illuminate\Support\Facades\Storage::disk('midia');
+        abort_unless($foto && str_starts_with($foto->arquivo, 'animais/'.$animal->empresa_id.'/') && $disco->exists($foto->arquivo), 404);
+
+        return response()->file($disco->path($foto->arquivo), ['Content-Type' => 'image/jpeg', 'Cache-Control' => 'private, max-age=604800', 'X-Content-Type-Options' => 'nosniff']);
+    }
+
+    private function salvarFotos(Request $request, Animal $animal): void
+    {
+        $mudou = FotosAnimal::salvar($request, $animal, $request->user()->id);
+        if ($mudou) {
+            Auditoria::registrar('animal.fotos', $animal, null, ['posicoes' => $mudou]);
+        }
     }
 
     private function doHaras(Request $request, Animal $animal): void

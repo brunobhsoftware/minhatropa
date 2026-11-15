@@ -167,6 +167,30 @@ fs.writeFileSync(PNG, Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kA
   await p.goto(B + '/painel/animais/novo'); await p.click('#btnProximoNumero'); await p.waitForFunction(() => document.getElementById('campoNumeroPlantel').value !== '');
   conf(await p.inputValue('#campoNumeroPlantel') === '0042', 'nº plantel: próximo número segue o maior já usado e mantém os zeros');
 
+  // ---------- Fotos do animal: até 3, retrato 900 x 1200, compactadas ----------
+  await p.fill('[name=nome]', 'Fotogênico'); await p.click('[data-aba=fotos]');
+  conf(await p.locator('#aba-fotos [data-foto]').count() === 3, 'cadastro de animal tem a seção Fotos com 3 posições');
+  // imagem grande e deitada (2400 x 1500, PNG com ruído), como uma foto de celular
+  const png = Buffer.from(await p.evaluate(() => { const c = document.createElement('canvas'); c.width = 2400; c.height = 1500; const x = c.getContext('2d'); const d = x.createImageData(2400, 1500); for (let i = 0; i < d.data.length; i += 4) { d.data[i] = Math.random() * 255; d.data[i + 1] = Math.random() * 255; d.data[i + 2] = Math.random() * 255; d.data[i + 3] = 255; } x.putImageData(d, 0, 0); return c.toDataURL('image/png').split(',')[1]; }), 'base64');
+  await p.setInputFiles('[name="fotos[1]"]', { name: 'celular.png', mimeType: 'image/png', buffer: png });
+  await p.waitForFunction(() => document.querySelector('[data-foto="1"]').dataset.pronto === '1');
+  const enviado = await p.evaluate(() => { const f = document.querySelector('[name="fotos[1]"]').files[0]; return { tipo: f.type, bytes: f.size }; });
+  conf(enviado.tipo === 'image/jpeg' && enviado.bytes < png.length / 3 && (await p.textContent('[data-foto="1"] [data-foto-aviso]')).includes('Pronta'), 'o navegador recorta e compacta a foto antes de enviar');
+  await p.click('button:has-text("Cadastrar animal")'); await p.waitForLoadState();
+  await p.click('a:has-text("Fotogênico")'); await p.waitForLoadState();
+  conf(await p.locator('#fotos [data-foto-ficha]').count() === 1, 'ficha do animal mostra a foto enviada');
+  const urlFoto = await p.getAttribute('#fotos [data-foto-ficha="1"]', 'href');
+  const medida = await p.evaluate(async (u) => { const r = await fetch(u); const b = await r.blob(); const i = await createImageBitmap(b); return { status: r.status, tipo: r.headers.get('content-type'), l: i.width, a: i.height, bytes: b.size }; }, urlFoto);
+  conf(medida.status === 200 && medida.tipo === 'image/jpeg' && medida.l === 900 && medida.a === 1200, 'foto gravada no formato único: JPEG retrato 900 x 1200');
+  conf(medida.bytes < png.length / 3, 'arquivo gravado bem menor que o original');
+  const fora = await b.newContext(); const visitante = await fora.newPage();
+  conf((await visitante.goto(urlFoto)).url().includes('/entrar') || (await visitante.content()).includes('Entrar'), 'foto não abre para quem não está logado');
+  await fora.close();
+  await p.click('#fotos >> text=Alterar'); await p.waitForLoadState();
+  conf(await p.locator('#aba-fotos').isVisible() && await p.locator('[data-foto="1"] [data-foto-previa]').isVisible(), 'Alterar abre a seção Fotos com a foto atual');
+  await p.check('[name="remover_foto[1]"]'); await p.click('button:has-text("Salvar")'); await p.waitForLoadState();
+  conf(await p.locator('#fotos [data-foto-ficha]').count() === 0 && (await p.textContent('#fotos')).includes('Ainda sem fotos') && (await p.goto(urlFoto)).status() === 404, 'remover a foto apaga da ficha e do servidor');
+
   // ---------- Profissional cadastrado por um Haras ativa o próprio acesso ----------
   await p.goto(B + '/painel/profissionais/novo?cpf=' + CPF_CARLA);
   await p.fill('[name=nome]', 'Carla Treinadora'); await p.fill('[name=email]', 'carla@exemplo.com.br'); await p.check('[name="funcoes[]"][value=treinador]');
@@ -185,7 +209,7 @@ fs.writeFileSync(PNG, Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kA
 
   // ---------- Cortesia: a Administração libera tudo gratuitamente para quem está testando ----------
   await z.goto(B + '/painel'); h = await z.content();
-  conf(h.includes('Plano Gratuito') && await z.locator('[data-modulo][data-liberado="1"]').count() === 0 && (await z.goto(B + '/painel/cobricoes')).status() === 403, 'antes da cortesia: plano gratuito, módulos e cobrições bloqueados');
+  conf(h.includes('Plano Gratuito') && await z.locator('[data-modulo][data-liberado="1"]').count() === 0 && (await z.goto(B + '/painel/cobricoes')).status() === 200 && (await z.goto(B + '/painel/financeiro')).status() === 403, 'antes da cortesia: plano gratuito tem Ocorrências do plantel; módulos e ferramentas pagas bloqueados');
   const a = await pagina(b); await a.goto(B + '/admin/entrar'); await a.fill('[name=email]', 'bruno@bhsoftware.com.br'); await a.fill('[name=senha]', 'OutraSenha456'); await a.click('button:has-text("Entrar")'); await a.waitForLoadState();
   await a.goto(B + '/admin/haras?busca=Serra'); await a.click('text=Haras Serra Azul'); await a.waitForLoadState();
   conf((await a.textContent('#cortesia')).includes('Sem cortesia') && await a.isChecked('#cortesia [name=cortesia_plantel]'), 'ficha da propriedade tem a rotina de cortesia');
@@ -203,7 +227,7 @@ fs.writeFileSync(PNG, Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kA
   await a.goto(B + '/admin/haras?busca=Serra'); await a.click('text=Haras Serra Azul'); await a.waitForLoadState(); await a.click('button:has-text("Retirar cortesia")'); await a.waitForLoadState();
   conf((await a.content()).includes('Cortesia retirada'), 'cortesia retirada');
   await z.goto(B + '/painel'); h = await z.content();
-  conf(h.includes('Plano Gratuito') && await z.locator('[data-modulo][data-liberado="1"]').count() === 0 && (await z.goto(B + '/painel/cobricoes')).status() === 403, 'sem cortesia volta ao contratado');
+  conf(h.includes('Plano Gratuito') && await z.locator('[data-modulo][data-liberado="1"]').count() === 0 && (await z.goto(B + '/painel/financeiro')).status() === 403, 'sem cortesia volta ao contratado');
   await z.goto(B + '/painel/animais/novo'); conf(z.url().endsWith('/painel/animais') && await z.locator('#modalLimite').count() === 1 && (await z.content()).includes('A6'), 'limite da faixa volta a valer, sem apagar os animais cadastrados');
 
   // celular
