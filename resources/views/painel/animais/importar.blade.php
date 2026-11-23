@@ -83,10 +83,13 @@
     <h2 style="margin-top:0">Como preencher a planilha</h2>
     <ul class="lista-ajuda">
         <li><b>Não mexa na coluna "Código".</b> É ela que liga a linha ao animal: linha com código atualiza o animal; linha <b>sem código</b> (as que você acrescentar) cadastra um animal novo.</li>
-        <li>Só o <b>Nome</b> é obrigatório. Os outros campos podem ficar em branco.</li>
-        <li>Nas colunas de lista (Espécie, Sexo, Categoria, Pelagem, Situação, Forma de aquisição, Associação), escreva o nome como aparece no sistema — maiúsculas e acentos não importam. O que não for reconhecido fica em branco e entra como aviso, sem perder a linha.</li>
+        <li>Só o <b>Nome</b> é obrigatório. Os outros campos podem ficar em branco — e o sistema preenche sozinho o que der.</li>
+        <li><b>Preenchimento automático quando a célula fica em branco:</b> Nome de registro recebe o próprio nome; Apelido recebe o primeiro nome; Espécie vira Equino; Situação vira Ativo.</li>
+        <li><b>Sexo:</b> aceita Macho/Fêmea ou só <b>M</b> / <b>F</b>.</li>
+        <li><b>Raça:</b> aceita o nome por extenso ou a sigla — ex.: <b>MM</b> = Mangalarga Marchador, QM = Quarto de Milha, PSI = Puro Sangue Inglês. O que não for sigla conhecida entra como foi digitado.</li>
+        <li>Nas demais colunas de lista (Categoria, Pelagem, Forma de aquisição, Associação), escreva o nome como aparece no sistema — maiúsculas e acentos não importam. O que não for reconhecido fica em branco e entra como aviso, sem perder a linha.</li>
         <li><b>Datas</b> no formato dia/mês/ano (ex.: 15/03/2021). <b>Sim/Não</b> nas colunas Castrado, DNA coletado e Registro definitivo. Valores em R$ com vírgula (ex.: 12.000,00).</li>
-        <li>A planilha é o retrato do plantel: numa linha já existente, uma célula apagada <b>limpa</b> aquele campo do animal.</li>
+        <li>A planilha é o retrato do plantel: numa linha já existente, uma célula apagada <b>limpa</b> aquele campo do animal (menos os de preenchimento automático acima).</li>
     </ul>
 
     <details style="margin-top:1rem">
@@ -103,12 +106,13 @@
                             @case('data') Data (dia/mês/ano). @break
                             @case('bool') Sim ou Não. @break
                             @case('decimal') Número (ex.: 1.200,50). @break
-                            @case('especie') {{ implode(', ', \App\Models\Animal::ESPECIES) }}. @break
-                            @case('sexo') Macho ou Fêmea. @break
+                            @case('especie') {{ implode(', ', \App\Models\Animal::ESPECIES) }} (em branco: Equino). @break
+                            @case('sexo') Macho ou Fêmea (também M ou F). @break
+                            @case('raca') Nome da raça ou sigla (MM = Mangalarga Marchador). @break
                             @case('categoria') Garanhão, Matriz (Égua), Potro, Cavalo… @break
                             @case('pelagem') Nome da pelagem (fora da lista vira "Outra"). @break
                             @case('associacao') Sigla da associação (ABCCMM, ABQM, ABCCC…). @break
-                            @case('situacao') {{ implode(', ', \App\Models\Animal::SITUACOES) }}. @break
+                            @case('situacao') {{ implode(', ', \App\Models\Animal::SITUACOES) }} (em branco: Ativo). @break
                             @case('forma') {{ implode(', ', \App\Models\Animal::FORMAS_AQUISICAO) }}. @break
                             @default Texto livre.
                         @endswitch
