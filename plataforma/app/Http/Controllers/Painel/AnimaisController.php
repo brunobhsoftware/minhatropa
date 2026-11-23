@@ -7,9 +7,11 @@ use App\Models\Animal;
 use App\Support\Auditoria;
 use App\Support\Esquema;
 use App\Support\FotosAnimal;
+use App\Support\ImportacaoTropa;
 use App\Support\Licenca;
 use App\Support\Sociedade;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class AnimaisController extends Controller
@@ -59,6 +61,65 @@ class AnimaisController extends Controller
             'limite' => Licenca::limite($empresa),
             'faixa' => Licenca::faixaAtual($empresa),
         ]);
+    }
+
+    /** Tela "Importar tropa": baixar a planilha-modelo com a tropa atual e enviar o arquivo preenchido. */
+    public function importar(Request $request)
+    {
+        $empresa = $request->attributes->get('haras');
+
+        return view('painel.animais.importar', [
+            'colunas' => ImportacaoTropa::colunas(),
+            'total' => Animal::where('empresa_id', $empresa->id)->whereNull('excluido_em')->count(),
+            'limite' => Licenca::limite($empresa),
+            'ativos' => Licenca::animais($empresa),
+            'podeEscrever' => \App\Support\Permissao::pode($request->attributes->get('papel'), 'animais', true),
+            'resultado' => session('resultado_importacao'),
+        ]);
+    }
+
+    /** Baixa um .xlsx com toda a tropa, na estrutura do banco: serve de modelo e de backup para reimportar. */
+    public function exportar(Request $request)
+    {
+        $empresa = $request->attributes->get('haras');
+        $caminho = ImportacaoTropa::exportar($empresa);
+        $nome = 'tropa-'.(Str::slug($empresa->nome) ?: 'minhatropa').'-'.now('America/Sao_Paulo')->format('Y-m-d').'.xlsx';
+        Auditoria::registrar('animal.exportar', $empresa, null, [
+            'total' => Animal::where('empresa_id', $empresa->id)->whereNull('excluido_em')->count(),
+        ]);
+
+        return response()->download($caminho, $nome, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ])->deleteFileAfterSend(true);
+    }
+
+    /** Recebe a planilha preenchida e cadastra/atualiza a tropa de uma vez (resultado mostrado na própria tela). */
+    public function importarProcessar(Request $request)
+    {
+        $empresa = $request->attributes->get('haras');
+        $request->validate(
+            ['arquivo' => ['required', 'file', 'max:10240']],
+            [
+                'arquivo.required' => 'Escolha a planilha preenchida para importar.',
+                'arquivo.file' => 'Envio inválido. Tente de novo.',
+                'arquivo.max' => 'A planilha é muito grande (máximo 10 MB).',
+            ]
+        );
+
+        $arquivo = $request->file('arquivo');
+        $ext = strtolower($arquivo->getClientOriginalExtension());
+        if (! in_array($ext, ['xlsx', 'csv', 'txt'], true)) {
+            return back()->withErrors(['arquivo' => 'Formato não aceito. Use o modelo em Excel (.xlsx) ou um arquivo .csv.']);
+        }
+
+        try {
+            $resultado = ImportacaoTropa::importar($empresa, $arquivo->getRealPath(), $request->user()->id);
+        } catch (\Throwable $e) {
+            return back()->withErrors(['arquivo' => 'Não foi possível ler a planilha. Confira se é o modelo em .xlsx (ou .csv) e tente de novo.']);
+        }
+        Licenca::esquecerFaixas();
+
+        return redirect()->route('painel.animais.importar')->with('resultado_importacao', $resultado);
     }
 
     public function create(Request $request)

@@ -9,6 +9,7 @@
         @if (\App\Support\Permissao::pode($papel, 'animais', true))
         {{-- No limite da faixa o botão continua aqui: o clique mostra o aviso com a oferta de upgrade. --}}
         <a href="{{ route('painel.animais.novo') }}" class="botao {{ $podeCadastrar ? 'botao--primario' : 'botao--escuro' }}"><x-icone nome="mais" :tamanho="18" /> Cadastrar animal</a>
+        <a href="{{ route('painel.animais.importar') }}" class="botao botao--contorno"><x-icone nome="banco" :tamanho="18" /> Importar tropa</a>
         @endif
     </div>
 </div>

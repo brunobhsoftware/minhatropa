@@ -69,6 +69,10 @@ Route::middleware(['auth', 'haras'])->prefix('painel')->group(function () {
             // Ocorrências do plantel: nascimentos, cobrições, mortes e transferências num só lugar
             Route::get('/ocorrencias', [$p.'\PainelController', 'ocorrencias'])->name('ocorrencias');
             Route::get('/animais', [$p.'\AnimaisController', 'index'])->name('animais');
+            // Importar / exportar a tropa por planilha (caminhos com hífen para não cair no curinga /animais/{animal})
+            Route::get('/animais-importar', [$p.'\AnimaisController', 'importar'])->name('animais.importar');
+            Route::get('/animais-exportar', [$p.'\AnimaisController', 'exportar'])->name('animais.exportar');
+            Route::post('/animais-importar', [$p.'\AnimaisController', 'importarProcessar'])->name('animais.importar.processar');
             Route::get('/animais/novo', [$p.'\AnimaisController', 'create'])->name('animais.novo');
             Route::post('/animais', [$p.'\AnimaisController', 'store'])->name('animais.criar');
             Route::get('/animais/{animal}', [$p.'\AnimaisController', 'show'])->name('animais.show');
