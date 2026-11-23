@@ -21,6 +21,32 @@ use Illuminate\Validation\Rule;
  */
 class ImportacaoTropa
 {
+    /**
+     * Siglas aceitas na coluna Raça (além do nome por extenso). Fáceis de ampliar.
+     * O que não casar por sigla nem pelo nome da lista entra como foi digitado (texto livre).
+     */
+    public const RACAS_SIGLAS = [
+        'MM' => 'Mangalarga Marchador',
+        'MMC' => 'Mangalarga Marchador',
+        'ML' => 'Mangalarga',
+        'MGL' => 'Mangalarga',
+        'CP' => 'Campolina',
+        'CPL' => 'Campolina',
+        'QM' => 'Quarto de Milha',
+        'CR' => 'Crioulo',
+        'LUS' => 'Lusitano',
+        'PSL' => 'Lusitano',
+        'PSI' => 'Puro Sangue Inglês',
+        'BH' => 'Brasileiro de Hipismo',
+        'ARA' => 'Árabe',
+        'PH' => 'Paint Horse',
+        'APP' => 'Appaloosa',
+        'PANT' => 'Pantaneiro',
+        'AND' => 'Andaluz',
+        'FRI' => 'Friesian',
+        'PERCH' => 'Percheron',
+    ];
+
     /** Colunas da planilha, na ordem: chave do campo => [rótulo visível, tipo de conversão]. */
     public static function colunas(): array
     {
@@ -32,7 +58,7 @@ class ImportacaoTropa
             'especie' => ['Espécie', 'especie'],
             'sexo' => ['Sexo', 'sexo'],
             'categoria' => ['Categoria', 'categoria'],
-            'raca' => ['Raça', 'texto'],
+            'raca' => ['Raça', 'raca'],
             'pelagem' => ['Pelagem', 'pelagem'],
             'pelagem_complemento' => ['Pelagem (outra, qual)', 'texto'],
             'data_nascimento' => ['Data de nascimento', 'data'],
@@ -306,19 +332,30 @@ class ImportacaoTropa
                     break;
 
                 case 'especie':
+                    // Em branco (ou não reconhecida) vira sempre Equino, como no cadastro individual.
                     $cod = self::casar($valor, Animal::ESPECIES);
                     if ($valor !== '' && $cod === null) {
                         $avisos[] = "Linha {$numeroLinha}: espécie \"{$valor}\" não reconhecida — usado Equino.";
                     }
-                    $dados['especie'] = $cod ?? ($novo ? 'equino' : ($existente->especie ?? 'equino'));
+                    $dados['especie'] = $cod ?? 'equino';
                     break;
 
                 case 'sexo':
-                    $cod = self::casar($valor, ['macho' => 'Macho', 'femea' => 'Fêmea']);
+                    // Aceita M/F além de Macho/Fêmea.
+                    $n = self::normalizar($valor);
+                    $cod = match ($n) {
+                        'm' => 'macho',
+                        'f' => 'femea',
+                        default => self::casar($valor, ['macho' => 'Macho', 'femea' => 'Fêmea']),
+                    };
                     if ($valor !== '' && $cod === null) {
                         $avisos[] = "Linha {$numeroLinha}: sexo \"{$valor}\" não reconhecido — deixado em branco.";
                     }
                     $dados['sexo'] = $cod; // nulo quando em branco ou não reconhecido
+                    break;
+
+                case 'raca':
+                    $dados['raca'] = self::raca($valor);
                     break;
 
                 case 'categoria':
@@ -355,12 +392,16 @@ class ImportacaoTropa
                     break;
 
                 case 'situacao':
+                    // Em branco vira sempre Ativo (pedido do Bruno). Valor não reconhecido mantém o atual do animal.
                     $cod = self::casar($valor, Animal::SITUACOES);
-                    if ($valor !== '' && $cod === null) {
+                    if ($valor === '') {
+                        $dados['situacao'] = 'ativo';
+                    } elseif ($cod !== null) {
+                        $dados['situacao'] = $cod;
+                    } else {
                         $avisos[] = "Linha {$numeroLinha}: situação \"{$valor}\" não reconhecida — mantida a atual.";
+                        $dados['situacao'] = $novo ? 'ativo' : ($existente->situacao ?? 'ativo');
                     }
-                    // Em branco: animal novo entra como Ativo; existente mantém a situação de hoje.
-                    $dados['situacao'] = $cod ?? ($novo ? 'ativo' : ($existente->situacao ?? 'ativo'));
                     break;
 
                 case 'pelagem':
@@ -381,7 +422,42 @@ class ImportacaoTropa
             }
         }
 
+        // Preenchimentos automáticos (iguais ao cadastro individual), só quando a célula veio em branco:
+        //  - Nome de registro em branco copia o nome; Apelido em branco recebe o primeiro nome.
+        $nome = trim((string) ($dados['nome'] ?? ''));
+        if ($nome !== '') {
+            if (empty($dados['nome_registro'])) {
+                $dados['nome_registro'] = mb_substr($nome, 0, 150);
+            }
+            if (empty($dados['apelido'])) {
+                $primeiro = preg_split('/\s+/', $nome)[0] ?? $nome;
+                $dados['apelido'] = mb_substr($primeiro, 0, 80);
+            }
+        }
+
         return [$dados, $avisos];
+    }
+
+    /** Raça: casa por sigla (MM → Mangalarga Marchador) ou pelo nome da lista; o resto entra como foi digitado. */
+    private static function raca(string $valor): ?string
+    {
+        $valor = trim($valor);
+        if ($valor === '') {
+            return null;
+        }
+        $alvo = self::normalizar($valor);
+        foreach (self::RACAS_SIGLAS as $sigla => $nome) {
+            if (self::normalizar($sigla) === $alvo) {
+                return $nome;
+            }
+        }
+        foreach (\App\Models\Empresa::RACAS as $nome) {
+            if (self::normalizar($nome) === $alvo) {
+                return $nome;
+            }
+        }
+
+        return mb_substr($valor, 0, 80);
     }
 
     /** Monta o mapa campo => índice da coluna física, pelo cabeçalho enviado (rótulo ou chave, sem acento/maiúsculas). */
