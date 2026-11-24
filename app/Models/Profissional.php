@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\TemUuid;
 use App\Support\Documento;
+use App\Support\Texto;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
@@ -12,6 +13,12 @@ class Profissional extends Model
     use TemUuid;
 
     protected $table = 'profissional';
+
+    // Nome de pessoa (proprietário / criador / profissional) sempre em MAIÚSCULAS, padrão do sistema.
+    public function setNomeAttribute($valor): void
+    {
+        $this->attributes['nome'] = Texto::maiusculas($valor);
+    }
 
     const CREATED_AT = 'criado_em';
 
