@@ -33,6 +33,7 @@
             ['texto' => 'Animais do plantel', 'url' => route('painel.animais'), 'ativo' => $rota('painel.animais*') && ! $rota('painel.animais.novo')],
             ['texto' => 'Cadastrar animal', 'url' => route('painel.animais.novo'), 'ativo' => $rota('painel.animais.novo'), 'ver' => $pode('animais', true)],
             ['texto' => 'Importar tropa', 'url' => route('painel.animais.importar'), 'ativo' => $rota('painel.animais.importar'), 'ver' => $pode('animais', true)],
+            ['texto' => 'Consulta de animais', 'url' => route('painel.consulta'), 'ativo' => $rota('painel.consulta*')],
             $breve('Organograma do plantel'),
         ]],
         ['texto' => 'Ocorrências', 'icone' => 'historico', 'itens' => [

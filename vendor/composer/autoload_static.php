@@ -498,6 +498,7 @@ class ComposerStaticInit01491554d920b3ff2852f7e60c354b75
         'App\\Http\\Controllers\\Painel\\ClassificadosController' => __DIR__ . '/../..' . '/app/Http/Controllers/Painel/ClassificadosController.php',
         'App\\Http\\Controllers\\Painel\\ClinicaController' => __DIR__ . '/../..' . '/app/Http/Controllers/Painel/ClinicaController.php',
         'App\\Http\\Controllers\\Painel\\CobricoesController' => __DIR__ . '/../..' . '/app/Http/Controllers/Painel/CobricoesController.php',
+        'App\\Http\\Controllers\\Painel\\ConsultaController' => __DIR__ . '/../..' . '/app/Http/Controllers/Painel/ConsultaController.php',
         'App\\Http\\Controllers\\Painel\\EstoqueController' => __DIR__ . '/../..' . '/app/Http/Controllers/Painel/EstoqueController.php',
         'App\\Http\\Controllers\\Painel\\FinanceiroController' => __DIR__ . '/../..' . '/app/Http/Controllers/Painel/FinanceiroController.php',
         'App\\Http\\Controllers\\Painel\\ModulosController' => __DIR__ . '/../..' . '/app/Http/Controllers/Painel/ModulosController.php',

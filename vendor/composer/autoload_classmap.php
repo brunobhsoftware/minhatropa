@@ -23,6 +23,7 @@ return array(
     'App\\Http\\Controllers\\Painel\\ClassificadosController' => $baseDir . '/app/Http/Controllers/Painel/ClassificadosController.php',
     'App\\Http\\Controllers\\Painel\\ClinicaController' => $baseDir . '/app/Http/Controllers/Painel/ClinicaController.php',
     'App\\Http\\Controllers\\Painel\\CobricoesController' => $baseDir . '/app/Http/Controllers/Painel/CobricoesController.php',
+    'App\\Http\\Controllers\\Painel\\ConsultaController' => $baseDir . '/app/Http/Controllers/Painel/ConsultaController.php',
     'App\\Http\\Controllers\\Painel\\EstoqueController' => $baseDir . '/app/Http/Controllers/Painel/EstoqueController.php',
     'App\\Http\\Controllers\\Painel\\FinanceiroController' => $baseDir . '/app/Http/Controllers/Painel/FinanceiroController.php',
     'App\\Http\\Controllers\\Painel\\ModulosController' => $baseDir . '/app/Http/Controllers/Painel/ModulosController.php',

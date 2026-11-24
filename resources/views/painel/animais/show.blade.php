@@ -16,6 +16,7 @@
                 <a href="{{ route('painel.classificados.novo', ['animal' => $animal->uuid]) }}" class="botao botao--contorno" data-anunciar>Colocar à venda</a>
             @endif
         @endif
+        <a href="{{ route('painel.consulta.show', $animal) }}" class="botao botao--contorno">Ocorrências</a>
         <a href="{{ route('painel.animais.editar', $animal) }}" class="botao botao--primario"><x-icone nome="editar" :tamanho="16" /> Editar</a>
     </div>
 </div>
