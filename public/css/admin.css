@@ -204,13 +204,17 @@ input[type=checkbox],input[type=radio]{width:auto}
 .numero b{overflow-wrap:anywhere}
 
 /* Abas do cadastro completo */
-.abas-cadastro{display:flex;gap:0;border-bottom:2px solid #e5e7eb;margin-bottom:1.5rem;overflow-x:auto;-webkit-overflow-scrolling:touch}
-.aba-cadastro{background:none;border:none;padding:10px 18px;font-size:.9rem;color:var(--suave);cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;margin-bottom:-2px;transition:color .15s,border-color .15s}
-.aba-cadastro:hover{color:var(--texto)}
+.abas-cadastro{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:1.5rem;padding:0;background:var(--cinza,#f3f4f6);border-radius:10px;overflow:hidden}
+.aba-cadastro{background:none;border:none;padding:11px 20px;font-size:.88rem;color:#4b5563;cursor:pointer;white-space:nowrap;transition:background .2s,color .2s,box-shadow .2s;border-radius:8px;margin:4px 2px;font-weight:500}
+.aba-cadastro:hover{background:#e5e7eb;color:var(--texto)}
 .aba-cadastro[hidden]{display:none}
 .campo-com-botao{display:flex;gap:8px;align-items:stretch}.campo-com-botao input{flex:1;min-width:0}.campo-com-botao .botao{white-space:nowrap}
-.aba-cadastro--ativa{color:var(--azul);border-bottom-color:var(--amarelo);font-weight:600}
+.aba-cadastro--ativa{background:var(--azul,#101828);color:#fff;font-weight:600;box-shadow:0 2px 6px rgba(16,24,40,.18)}
 .painel-aba--oculto{display:none}
+/* Botão cadastro rápido */
+.btn-cadastro-rapido{display:inline-flex;align-items:center;gap:6px;background:#fffbe6;border:1px solid #ffd60a;color:#92400e;padding:7px 16px;border-radius:8px;font-size:.85rem;font-weight:600;cursor:pointer;transition:background .15s}
+.btn-cadastro-rapido:hover{background:#fef3c7}
+.cadastro-rapido-painel{background:#fffbe6;border:1px solid #ffd60a;border-radius:10px;padding:16px;margin-bottom:1.2rem}
 
 /* Grade de opções (checkboxes de raças, marchas, finalidades) */
 .grade-opcoes{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px 16px}
@@ -226,7 +230,7 @@ input[type=checkbox],input[type=radio]{width:auto}
 /* Grade 3 flexível */
 .grade-3-flex{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:var(--gap)}
 
-@media(max-width:640px){.abas-cadastro{gap:0}.aba-cadastro{padding:8px 12px;font-size:.82rem}}
+@media(max-width:640px){.abas-cadastro{gap:2px}.aba-cadastro{padding:8px 12px;font-size:.8rem;margin:3px 1px}}
 
 /* UF → Município em cascata (IBGE) */
 .geo{display:contents}
@@ -298,8 +302,6 @@ input[type=checkbox],input[type=radio]{width:auto}
 .cores-previa__topo{background:var(--p);color:var(--sp,#fff);padding:14px;display:flex;justify-content:space-between;align-items:center;gap:10px}
 .cores-previa__topo span{background:var(--sp,#fff);color:var(--p);border-radius:999px;padding:3px 12px;font-weight:600}
 .cores-previa__corpo{background:var(--f);color:var(--sf,#101828);padding:14px}
-.abas-cadastro{overflow-x:auto}
-
 /* Entrar: Haras / Fazenda ou Profissional; menu do ambiente do profissional */
 .escolha-ambiente{border:0;padding:0;margin:0;display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .escolha-ambiente label{position:relative;cursor:pointer}

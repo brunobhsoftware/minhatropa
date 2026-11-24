@@ -39,15 +39,17 @@
 </form>
 @else
     @if (! $animal->exists)
-    <section class="cartao" style="margin-bottom:1.5rem">
-        <h2>Cadastro rápido</h2>
-        <p class="suave" style="margin-bottom:.5rem">Cole os dados do animal (da ficha da associação) no campo abaixo. O sistema lê e preenche os campos automaticamente.</p>
-        <div style="display:flex;gap:8px;align-items:flex-start">
-            <textarea id="txtCadastroRapido" rows="4" style="flex:1;font-size:13px" placeholder="Cole aqui a string completa dos dados do animal (formato ABCCMM ou similar)…"></textarea>
-            <button type="button" class="botao botao--primario" id="btnCadastroRapido">Ler e preencher</button>
+    <div style="margin-bottom:1rem">
+        <button type="button" class="btn-cadastro-rapido" id="btnAbrirRapido" onclick="var p=document.getElementById('painelRapido');p.hidden=!p.hidden;this.hidden=!p.hidden">⚡ Cadastro rápido</button>
+        <div id="painelRapido" class="cadastro-rapido-painel" hidden>
+            <p class="suave" style="margin:0 0 .5rem;font-size:.85rem">Cole os dados do animal (ficha da associação) e clique em "Ler e preencher".</p>
+            <div style="display:flex;gap:8px;align-items:flex-start">
+                <textarea id="txtCadastroRapido" rows="3" style="flex:1;font-size:13px" placeholder="Cole aqui os dados do animal…"></textarea>
+                <button type="button" class="botao botao--primario" id="btnCadastroRapido">Ler e preencher</button>
+            </div>
+            <small id="avisoCadastroRapido" class="suave" aria-live="polite"></small>
         </div>
-        <small id="avisoCadastroRapido" class="suave" aria-live="polite"></small>
-    </section>
+    </div>
     @endif
 
     <div class="abas-cadastro">
