@@ -204,11 +204,8 @@ class PainelController extends Controller
         }
 
         $check = Sufixo::conferir($empresa);
-        $empresa->refresh();
 
-        $resultados = Sufixo::buscar($sufixo);
-
-        return response()->json($check + ['resultados' => $resultados]);
+        return response()->json($check);
     }
 
     /** Plano: faixa de plantel em vigor, as demais faixas e os módulos adicionais. Só o proprietário vê. */
