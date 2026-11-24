@@ -156,21 +156,31 @@
     <div class="painel-aba painel-aba--oculto" id="aba-trilha">
         <section class="cartao"><h2>Trilha da vida</h2>
             <p class="suave" style="margin-bottom:1rem">Histórico de onde o animal nasceu, quem criou e quem é o proprietário atual. Esses dados vêm automaticamente no cadastro rápido.</p>
+            @php
+                $criadorPadrao = ! $animal->exists && ! old('criador_nome');
+                $proprietarioPadrao = ! $animal->exists && ! old('proprietario_nome');
+            @endphp
             <h3>Local de nascimento</h3>
             <div class="grade-3">
-                <label class="campo campo--duplo"><span>Local / propriedade de nascimento</span><input name="local_nascimento" value="{{ $v('local_nascimento') }}" maxlength="200" placeholder="Ex.: Fazenda Santa Lúcia"></label>
+                <label class="campo campo--duplo"><span>Local / propriedade de nascimento</span><input name="local_nascimento" id="campoLocalNasc" value="{{ $v('local_nascimento') ?: ($animal->exists ? '' : $haras->nome) }}" maxlength="200" placeholder="Ex.: Fazenda Santa Lúcia"></label>
             </div>
-            <h3 style="margin-top:1.5rem">Criador</h3>
-            <div class="grade-3">
-                <label class="campo"><span>Nome do criador</span><input name="criador_nome" value="{{ $v('criador_nome') }}" maxlength="150"></label>
-                <label class="campo"><span>Cidade</span><input name="criador_cidade" value="{{ $v('criador_cidade') }}" maxlength="100"></label>
-                <label class="campo"><span>UF</span><input name="criador_uf" value="{{ $v('criador_uf') }}" maxlength="2" style="max-width:80px"></label>
+            <div style="display:flex;align-items:center;gap:1rem;margin-top:1.5rem;flex-wrap:wrap">
+                <h3 style="margin:0">Criador</h3>
+                <button type="button" class="botao botao--contorno botao--pequeno" id="btnCriadorHaras" title="Preencher com os dados desta propriedade">Esta propriedade</button>
             </div>
-            <h3 style="margin-top:1.5rem">Proprietário atual</h3>
-            <div class="grade-3">
-                <label class="campo"><span>Nome do proprietário</span><input name="proprietario_nome" value="{{ $v('proprietario_nome') }}" maxlength="150"></label>
-                <label class="campo"><span>Cidade</span><input name="proprietario_cidade" value="{{ $v('proprietario_cidade') }}" maxlength="100"></label>
-                <label class="campo"><span>UF</span><input name="proprietario_uf" value="{{ $v('proprietario_uf') }}" maxlength="2" style="max-width:80px"></label>
+            <div class="grade-3" style="margin-top:.5rem">
+                <label class="campo"><span>Nome do criador</span><input name="criador_nome" id="campoCriadorNome" value="{{ $v('criador_nome') ?: ($criadorPadrao ? ($haras->sufixo ?: $haras->nome) : '') }}" maxlength="150"></label>
+                <label class="campo"><span>Cidade</span><input name="criador_cidade" id="campoCriadorCidade" value="{{ $v('criador_cidade') ?: ($criadorPadrao ? $haras->cidade : '') }}" maxlength="100"></label>
+                <label class="campo"><span>UF</span><input name="criador_uf" id="campoCriadorUf" value="{{ $v('criador_uf') ?: ($criadorPadrao ? $haras->uf : '') }}" maxlength="2" style="max-width:80px"></label>
+            </div>
+            <div style="display:flex;align-items:center;gap:1rem;margin-top:1.5rem;flex-wrap:wrap">
+                <h3 style="margin:0">Proprietário atual</h3>
+                <button type="button" class="botao botao--contorno botao--pequeno" id="btnProprietarioHaras" title="Preencher com os dados desta propriedade">Esta propriedade</button>
+            </div>
+            <div class="grade-3" style="margin-top:.5rem">
+                <label class="campo"><span>Nome do proprietário</span><input name="proprietario_nome" id="campoProprietarioNome" value="{{ $v('proprietario_nome') ?: ($proprietarioPadrao ? ($haras->sufixo ?: $haras->nome) : '') }}" maxlength="150"></label>
+                <label class="campo"><span>Cidade</span><input name="proprietario_cidade" id="campoProprietarioCidade" value="{{ $v('proprietario_cidade') ?: ($proprietarioPadrao ? $haras->cidade : '') }}" maxlength="100"></label>
+                <label class="campo"><span>UF</span><input name="proprietario_uf" id="campoProprietarioUf" value="{{ $v('proprietario_uf') ?: ($proprietarioPadrao ? $haras->uf : '') }}" maxlength="2" style="max-width:80px"></label>
             </div>
         </section>
     </div>
@@ -596,6 +606,23 @@ document.getElementById('buscaMae').addEventListener('keydown', function(e) { if
         })
         .catch(function () { aviso.textContent = 'Não foi possível interpretar os dados. Confira o formato.'; aviso.style.color = '#b42318'; })
         .finally(function () { btn.disabled = false; });
+    });
+})();
+// Botões "Esta propriedade" na trilha da vida
+(function () {
+    var dados = @json(['nome' => $haras->sufixo ?: $haras->nome, 'cidade' => $haras->cidade, 'uf' => $haras->uf]);
+    var btnC = document.getElementById('btnCriadorHaras');
+    var btnP = document.getElementById('btnProprietarioHaras');
+    if (btnC) btnC.addEventListener('click', function () {
+        document.getElementById('campoCriadorNome').value = dados.nome || '';
+        document.getElementById('campoCriadorCidade').value = dados.cidade || '';
+        document.getElementById('campoCriadorUf').value = dados.uf || '';
+        document.getElementById('campoLocalNasc').value = document.getElementById('campoLocalNasc').value || dados.nome || '';
+    });
+    if (btnP) btnP.addEventListener('click', function () {
+        document.getElementById('campoProprietarioNome').value = dados.nome || '';
+        document.getElementById('campoProprietarioCidade').value = dados.cidade || '';
+        document.getElementById('campoProprietarioUf').value = dados.uf || '';
     });
 })();
 </script>
