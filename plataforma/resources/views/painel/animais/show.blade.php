@@ -133,6 +133,7 @@
                     @if ($animal->paiAnimal->raca) · {{ $animal->paiAnimal->raca }}@endif
                 @else
                     {{ $animal->pai ?: '—' }}
+                    @if ($animal->pai_registro) <small class="suave">Reg.: {{ $animal->pai_registro }}</small>@endif
                 @endif
             </dd></div>
             <div><dt>Mãe</dt><dd>
@@ -141,6 +142,7 @@
                     @if ($animal->maeAnimal->raca) · {{ $animal->maeAnimal->raca }}@endif
                 @else
                     {{ $animal->mae ?: '—' }}
+                    @if ($animal->mae_registro) <small class="suave">Reg.: {{ $animal->mae_registro }}</small>@endif
                 @endif
             </dd></div>
         </dl>
@@ -207,6 +209,34 @@
                 @endif
             </div>
         </div>
+    </div>
+</section>
+@endif
+
+{{-- Trilha da vida --}}
+@if ($animal->local_nascimento || $animal->criador_nome || $animal->proprietario_nome)
+<section class="cartao">
+    <h2>Trilha da vida</h2>
+    <div class="grade-3">
+        @if ($animal->local_nascimento || $animal->criador_nome)
+        <div>
+            <h3 style="font-size:.95rem;margin-bottom:.5rem">Nascimento e criação</h3>
+            <dl class="dados">
+                @if ($animal->local_nascimento)<div><dt>Local de nascimento</dt><dd>{{ $animal->local_nascimento }}</dd></div>@endif
+                @if ($animal->criador_nome)<div><dt>Criador</dt><dd>{{ $animal->criador_nome }}</dd></div>@endif
+                @if ($animal->criador_cidade || $animal->criador_uf)<div><dt>Cidade/UF</dt><dd>{{ $animal->criador_cidade }}{{ $animal->criador_uf ? '/'.$animal->criador_uf : '' }}</dd></div>@endif
+            </dl>
+        </div>
+        @endif
+        @if ($animal->proprietario_nome)
+        <div>
+            <h3 style="font-size:.95rem;margin-bottom:.5rem">Proprietário atual</h3>
+            <dl class="dados">
+                <div><dt>Nome</dt><dd>{{ $animal->proprietario_nome }}</dd></div>
+                @if ($animal->proprietario_cidade || $animal->proprietario_uf)<div><dt>Cidade/UF</dt><dd>{{ $animal->proprietario_cidade }}{{ $animal->proprietario_uf ? '/'.$animal->proprietario_uf : '' }}</dd></div>@endif
+            </dl>
+        </div>
+        @endif
     </div>
 </section>
 @endif

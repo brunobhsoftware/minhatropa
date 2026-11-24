@@ -6,6 +6,7 @@
         ['rota' => 'admin.haras', 'icone' => 'haras', 'texto' => 'Haras / Fazendas'],
         ['rota' => 'admin.profissionais', 'icone' => 'usuarios', 'texto' => 'Profissionais'],
         ['rota' => 'admin.planos', 'icone' => 'plano', 'texto' => 'Planos e módulos'],
+        ['rota' => 'admin.sufixos', 'icone' => 'historico', 'texto' => 'Sufixos das associações'],
         ['rota' => 'admin.contatos', 'icone' => 'mensagem', 'texto' => 'Contatos do site'],
         ['rota' => 'admin.usuarios', 'icone' => 'usuarios', 'texto' => 'Administradores'],
         ['rota' => 'admin.banco', 'icone' => 'banco', 'texto' => 'Atualizações do banco'],

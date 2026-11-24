@@ -107,7 +107,7 @@ class CadastroController extends Controller
         $pessoaNova = $pf && ! $profissional;
 
         $dados = $request->validate([
-            'tipo_propriedade' => ['required', Rule::in(array_keys(Empresa::TIPOS_CADASTRO))],
+            'tipo_propriedade' => ['required', Rule::in(array_keys(Empresa::TIPOS_PROPRIEDADE))],
             'titularidade' => ['required', Rule::in(array_keys(Empresa::TITULARIDADES))],
             'documento' => ['required', 'string', function ($a, $v, $falha) use ($pf) {
                 if (strlen($v) !== ($pf ? 11 : 14) || ! Documento::valido($v)) {
@@ -115,6 +115,7 @@ class CadastroController extends Controller
                 }
             }, Rule::unique('empresa', 'documento')],
             'haras' => ['required', 'string', 'max:150'],
+            'sufixo' => ['nullable', 'string', 'max:120'],
             'razao_social' => [$pf ? 'nullable' : 'required', 'string', 'max:190'],
             'quantidade_animais' => ['required', Rule::in(Empresa::QUANTIDADES)],
             'nome' => [$pf && ! $pessoaNova ? 'nullable' : 'required', 'string', 'max:150'],
@@ -123,10 +124,10 @@ class CadastroController extends Controller
             'senha' => ['required', 'confirmed', Password::min(8)->letters()->numbers()],
             'aceite' => ['accepted'],
         ] + Geografia::regras($request, '', true), [
-            'tipo_propriedade.required' => 'Escolha se a propriedade é um Haras ou uma Fazenda.',
+            'tipo_propriedade.required' => 'O tipo de propriedade é obrigatório.',
             'titularidade.required' => 'Escolha a titularidade: Pessoa Física (CPF) ou Pessoa Jurídica (CNPJ).',
             'documento.required' => $pf ? 'Informe o CPF do proprietário.' : 'Informe o CNPJ.',
-            'documento.unique' => 'Já existe um Haras / Fazenda cadastrado com esse '.($pf ? 'CPF' : 'CNPJ').'. Entre com a sua senha ou fale com o atendimento.',
+            'documento.unique' => 'Já existe uma propriedade cadastrada com esse '.($pf ? 'CPF' : 'CNPJ').'. Entre com a sua senha ou fale com o atendimento.',
             'aceite.accepted' => 'Confirme que leu e concorda com as condições do plano gratuito.',
         ] + Geografia::mensagens(), ['haras' => 'nome do Haras / Fazenda', 'razao_social' => 'razão social', 'nome' => 'seu nome completo', 'senha' => 'senha', 'telefone' => 'WhatsApp']);
 
@@ -191,7 +192,7 @@ class CadastroController extends Controller
         }
 
         $dados = $request->validate([
-            'tipo_propriedade' => ['required', Rule::in(array_keys(Empresa::TIPOS_CADASTRO))],
+            'tipo_propriedade' => ['required', Rule::in(array_keys(Empresa::TIPOS_PROPRIEDADE))],
             'titularidade' => ['required', Rule::in(array_keys(Empresa::TITULARIDADES))],
             'documento' => ['required', 'string', function ($a, $v, $falha) use ($pf) {
                 if (strlen($v) !== ($pf ? 11 : 14) || ! Documento::valido($v)) {
@@ -199,6 +200,7 @@ class CadastroController extends Controller
                 }
             }, Rule::unique('empresa', 'documento')],
             'haras' => ['required', 'string', 'max:150'],
+            'sufixo' => ['nullable', 'string', 'max:120'],
             'razao_social' => [$pf ? 'nullable' : 'required', 'string', 'max:190'],
             'quantidade_animais' => ['required', Rule::in(Empresa::QUANTIDADES)],
             'aceite' => ['accepted'],
@@ -224,7 +226,7 @@ class CadastroController extends Controller
         $local = Geografia::colunas(['uf' => $dados['uf'], 'municipio_id' => $dados['municipio_id']]);
         $titular = $titularPf ?: $criador;
         $empresa = Empresa::create($local + [
-            'nome' => $dados['haras'], 'tipo_propriedade' => $dados['tipo_propriedade'],
+            'nome' => $dados['haras'], 'tipo_propriedade' => $dados['tipo_propriedade'], 'sufixo' => $dados['sufixo'] ?? null,
             'tipo_documento' => $dados['titularidade'], 'documento' => $dados['documento'],
             'razao_social' => $titularPf ? $titularPf->nome : $dados['razao_social'],
             'titular_profissional_id' => $titular?->id,

@@ -168,6 +168,25 @@ class Esquema
         }
     }
 
+    /** V018: sufixo da propriedade, cadastro rápido e trilha da vida. */
+    public static function temV018(): bool
+    {
+        try {
+            return self::$cache['v018'] ??= Schema::hasTable('sufixo_associacao') && Schema::hasColumn('empresa', 'sufixo');
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    public static function temTabela(string $tabela): bool
+    {
+        try {
+            return self::$cache['t_'.$tabela] ??= Schema::hasTable($tabela);
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
     /** O banco tem tudo o que as telas atuais usam (até o V007)? */
     public static function atual(): bool
     {

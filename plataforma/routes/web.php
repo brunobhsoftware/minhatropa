@@ -53,6 +53,7 @@ Route::middleware(['auth', 'haras'])->prefix('painel')->group(function () {
         Route::middleware('permissao:propriedade')->group(function () use ($p) {
             Route::get('/haras', [$p.'\PainelController', 'haras'])->name('haras');
             Route::put('/haras', [$p.'\PainelController', 'salvarHaras'])->name('haras.salvar');
+            Route::get('/haras-buscar-sufixo', [$p.'\PainelController', 'buscarSufixo'])->name('haras.buscar-sufixo');
         });
 
         // Assinatura: faixa de plantel e módulos (só o proprietário)
@@ -89,6 +90,7 @@ Route::middleware(['auth', 'haras'])->prefix('painel')->group(function () {
             Route::get('/animais-buscar-genitor', [$p.'\AnimaisController', 'buscarGenitor'])->name('animais.buscar-genitor');
             Route::get('/animais-buscar-socio', [$p.'\AnimaisController', 'buscarSocio'])->name('animais.buscar-socio');
             Route::get('/animais-proximo-numero', [$p.'\AnimaisController', 'proximoNumero'])->name('animais.proximo-numero');
+            Route::post('/animais-cadastro-rapido', [$p.'\AnimaisController', 'cadastroRapido'])->name('animais.cadastro-rapido');
         });
 
         Route::middleware('permissao:reproducao')->group(function () use ($p) {
@@ -238,6 +240,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::get('/banco', [Admin\BancoController::class, 'index'])->name('banco');
         Route::post('/banco', [Admin\BancoController::class, 'aplicar'])->name('banco.aplicar')->middleware('throttle:30,10,admin-banco');
+
+        Route::get('/sufixos', [Admin\SufixosController::class, 'index'])->name('sufixos');
+        Route::post('/sufixos/importar', [Admin\SufixosController::class, 'importar'])->name('sufixos.importar');
 
         Route::get('/auditoria', [Admin\AdminController::class, 'auditoria'])->name('auditoria');
 

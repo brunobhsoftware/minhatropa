@@ -41,7 +41,7 @@ class Empresa extends Model
     public const TIPOS_CADASTRO = ['haras' => 'Haras', 'fazenda' => 'Fazenda'];
 
     /** Como o sistema chama a propriedade quando não sabe o tipo. */
-    public const GENERICO = 'Haras / Fazenda';
+    public const GENERICO = 'Propriedade';
 
     public const TITULARIDADES = ['cpf' => 'Pessoa Física (CPF)', 'cnpj' => 'Pessoa Jurídica (CNPJ)'];
 
@@ -88,7 +88,7 @@ class Empresa extends Model
         'venda' => 'Venda',
     ];
 
-    public const CAMPOS = ['nome', 'tipo_propriedade', 'razao_social', 'tipo_documento', 'documento', 'inscricao_estadual', 'email', 'telefone', 'whatsapp',
+    public const CAMPOS = ['nome', 'sufixo', 'sufixo_codigo', 'sufixo_associacao_id', 'tipo_propriedade', 'razao_social', 'tipo_documento', 'documento', 'inscricao_estadual', 'email', 'telefone', 'whatsapp',
         'responsavel_nome', 'responsavel_email', 'responsavel_telefone', 'telefone_residencial', 'telefone_celular', 'telefone_comercial',
         'cep', 'logradouro', 'numero', 'complemento', 'bairro', 'cidade', 'uf', 'estado_id', 'municipio_id', 'latitude', 'longitude', 'como_chegar',
         'corresp_cep', 'corresp_logradouro', 'corresp_numero', 'corresp_complemento', 'corresp_bairro', 'corresp_cidade', 'corresp_uf', 'corresp_estado_id', 'corresp_municipio_id',
@@ -121,6 +121,11 @@ class Empresa extends Model
     public function setResponsavelNomeAttribute($valor): void
     {
         $this->attributes['responsavel_nome'] = Texto::maiusculas($valor);
+    }
+
+    public function setSufixoAttribute($valor): void
+    {
+        $this->attributes['sufixo'] = Texto::maiusculas($valor);
     }
 
     public function scopeNaoExcluidas($query)

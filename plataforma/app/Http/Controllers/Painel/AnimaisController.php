@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Painel;
 use App\Http\Controllers\Controller;
 use App\Models\Animal;
 use App\Support\Auditoria;
+use App\Support\CadastroRapido;
 use App\Support\Esquema;
 use App\Support\FotosAnimal;
 use App\Support\ImportacaoTropa;
@@ -297,6 +298,14 @@ class AnimaisController extends Controller
         return redirect()->route('painel.animais')->with($n > 0 ? 'ok' : 'aviso', $msg);
     }
 
+    public function cadastroRapido(Request $request)
+    {
+        $request->validate(['texto' => ['required', 'string', 'max:10000']]);
+        $dados = CadastroRapido::interpretar($request->input('texto'));
+
+        return response()->json($dados);
+    }
+
     public function buscarGenitor(Request $request)
     {
         $q = $request->input('q', '');
@@ -380,8 +389,16 @@ class AnimaisController extends Controller
             'pelagem' => ['nullable', Rule::in(array_keys(Animal::PELAGENS))],
             'pelagem_complemento' => ['nullable', 'string', 'max:80'],
             'data_nascimento' => ['nullable', 'date', 'before_or_equal:today'],
+            'local_nascimento' => ['nullable', 'string', 'max:200'],
+            'criador_nome' => ['nullable', 'string', 'max:150'],
+            'criador_cidade' => ['nullable', 'string', 'max:100'],
+            'criador_uf' => ['nullable', 'string', 'size:2'],
+            'proprietario_nome' => ['nullable', 'string', 'max:150'],
+            'proprietario_cidade' => ['nullable', 'string', 'max:100'],
+            'proprietario_uf' => ['nullable', 'string', 'size:2'],
             'registro' => ['nullable', 'string', 'max:60'],
             'registro_associacao' => ['nullable', Rule::in(array_keys(Animal::ASSOCIACOES))],
+            'id_associacao' => ['nullable', 'string', 'max:30'],
             'registro_definitivo' => ['nullable', 'boolean'],
             'microchip' => ['nullable', 'string', 'max:40'],
             'dna_coletado' => ['nullable', 'boolean'],
@@ -392,8 +409,10 @@ class AnimaisController extends Controller
             'castrado' => ['nullable', 'boolean'],
             'pai' => ['nullable', 'string', 'max:120'],
             'pai_id' => ['nullable', 'integer', 'exists:animal,id'],
+            'pai_registro' => ['nullable', 'string', 'max:60'],
             'mae' => ['nullable', 'string', 'max:120'],
             'mae_id' => ['nullable', 'integer', 'exists:animal,id'],
+            'mae_registro' => ['nullable', 'string', 'max:60'],
             'data_aquisicao' => ['nullable', 'date', 'before_or_equal:today'],
             'forma_aquisicao' => ['nullable', Rule::in(array_keys(Animal::FORMAS_AQUISICAO))],
             'valor_aquisicao' => ['nullable', 'numeric', 'min:0'],

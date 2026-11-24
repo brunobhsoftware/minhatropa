@@ -13,7 +13,9 @@ use App\Support\Licenca;
 use App\Support\Modulos;
 use App\Support\PaginaPropriedade;
 use App\Support\Permissao;
+use App\Support\Sufixo;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -123,6 +125,9 @@ class PainelController extends Controller
             'preferencias_marcha' => ['nullable', 'string', 'max:300'],
             'marca_descricao' => ['nullable', 'string', 'max:500'],
             'site_url' => ['nullable', 'url:http,https', 'max:255'],
+            'sufixo' => ['nullable', 'string', 'max:120'],
+            'sufixo_codigo' => ['nullable', 'string', 'max:30'],
+            'sufixo_associacao_id' => ['nullable', 'integer'],
         ] + Geografia::regras($request, '', true) + Geografia::regras($request, 'corresp_') + PaginaPropriedade::regras($empresa),
             Geografia::mensagens() + Geografia::mensagens('corresp_') + PaginaPropriedade::mensagens() + ['site_url.url' => 'Informe o endereço completo do site, começando com https://.']);
 
@@ -140,7 +145,25 @@ class PainelController extends Controller
         PaginaPropriedade::salvarImagens($request, $empresa);
         Auditoria::registrar('haras.configurar', $empresa, $antes);
 
+        // Sufixo: se foi vinculado, gera o slug da página a partir dele
+        if ($empresa->sufixo && ! $empresa->subsite_slug) {
+            $slug = Str::slug($empresa->sufixo);
+            if ($slug && ! DB::table('empresa')->where('subsite_slug', $slug)->where('id', '!=', $empresa->id)->exists()) {
+                $empresa->update(['subsite_slug' => $slug]);
+            }
+        }
+
         return redirect()->route('painel.haras')->with('ok', "Dados {$empresa->doRotulo()} salvos.".($empresa->paginaUrl() ? ' Página no ar: '.$empresa->paginaUrl() : ''));
+    }
+
+    public function buscarSufixo(Request $request)
+    {
+        $q = trim($request->input('q', ''));
+        if (strlen($q) < 2) {
+            return response()->json([]);
+        }
+
+        return response()->json(Sufixo::buscar($q));
     }
 
     /** Plano: faixa de plantel em vigor, as demais faixas e os módulos adicionais. Só o proprietário vê. */

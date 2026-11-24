@@ -122,11 +122,14 @@ class Animal extends Model
     public const CAMPOS = [
         'nome', 'nome_registro', 'apelido', 'especie', 'sexo', 'categoria', 'raca',
         'pelagem', 'pelagem_complemento', 'data_nascimento',
-        'registro', 'registro_associacao', 'registro_definitivo', 'microchip', 'dna_coletado',
+        'local_nascimento', 'criador_nome', 'criador_cidade', 'criador_uf',
+        'proprietario_nome', 'proprietario_cidade', 'proprietario_uf',
+        'registro', 'registro_associacao', 'id_associacao', 'registro_definitivo', 'microchip', 'dna_coletado',
         'numero_plantel', 'local_baia', 'peso_kg', 'altura_cm', 'castrado',
-        'pai', 'pai_id', 'mae', 'mae_id',
+        'pai', 'pai_id', 'pai_registro',
+        'mae', 'mae_id', 'mae_registro',
         'data_aquisicao', 'forma_aquisicao', 'valor_aquisicao',
-        'situacao', 'situacao_data', 'situacao_motivo',
+        'situacao', 'vivo', 'bloqueado', 'situacao_data', 'situacao_motivo',
         'morte_data', 'morte_causa', 'morte_laudo',
         'foto_principal', 'observacoes',
     ];
