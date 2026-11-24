@@ -165,28 +165,39 @@
                 $criadorPadrao = ! $animal->exists && ! old('criador_nome');
                 $proprietarioPadrao = ! $animal->exists && ! old('proprietario_nome');
             @endphp
-            <h3>Local de nascimento</h3>
-            <div class="grade-3">
-                <label class="campo campo--duplo"><span>Local / propriedade de nascimento</span><input name="local_nascimento" id="campoLocalNasc" value="{{ $v('local_nascimento') ?: ($animal->exists ? '' : $haras->nome) }}" maxlength="200" placeholder="Ex.: Fazenda Santa Lúcia"></label>
-            </div>
-            <div style="display:flex;align-items:center;gap:1rem;margin-top:1.5rem;flex-wrap:wrap">
+            <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
                 <h3 style="margin:0">Criador</h3>
                 <button type="button" class="botao botao--contorno botao--pequeno" id="btnCriadorHaras" title="Preencher com os dados desta propriedade">Esta propriedade</button>
+                <button type="button" class="botao botao--contorno botao--pequeno" id="btnBuscarHarasCriador" title="Pesquisar Haras / Fazenda cadastrados">🔍 Pesquisar</button>
             </div>
             <div class="grade-3" style="margin-top:.5rem">
                 <label class="campo"><span>Nome do criador</span><input name="criador_nome" id="campoCriadorNome" value="{{ $v('criador_nome') ?: ($criadorPadrao ? ($haras->sufixo ?: $haras->nome) : '') }}" maxlength="150"></label>
-                <label class="campo"><span>Cidade</span><input name="criador_cidade" id="campoCriadorCidade" value="{{ $v('criador_cidade') ?: ($criadorPadrao ? $haras->cidade : '') }}" maxlength="100"></label>
-                <label class="campo"><span>UF</span><input name="criador_uf" id="campoCriadorUf" value="{{ $v('criador_uf') ?: ($criadorPadrao ? $haras->uf : '') }}" maxlength="2" style="max-width:80px"></label>
             </div>
+            <div class="grade-3" style="margin-top:.5rem">
+                <x-uf-municipio prefixo="criador_" :uf="old('criador_uf', $animal->criador_uf ?: ($criadorPadrao ? $haras->uf : ''))" :municipio-id="old('criador_municipio_id', $animal->criador_municipio_id ?: ($criadorPadrao ? $haras->municipio_id : null))" :cidade="old('criador_cidade', $animal->criador_cidade ?: ($criadorPadrao ? $haras->cidade : ''))" />
+            </div>
+            <div id="buscaHarasCriador" hidden style="margin-top:.5rem;padding:12px;border:1px solid #d0d5dd;border-radius:8px;background:#f9fafb">
+                <div style="display:flex;gap:8px;align-items:center">
+                    <input type="text" id="inputBuscaHarasCriador" placeholder="Digite o nome do Haras / Fazenda…" class="campo__input" style="flex:1">
+                    <button type="button" class="botao botao--pequeno" id="btnExecBuscaCriador">Buscar</button>
+                </div>
+                <div id="resultBuscaHarasCriador" style="margin-top:8px"></div>
+            </div>
+
             <div style="display:flex;align-items:center;gap:1rem;margin-top:1.5rem;flex-wrap:wrap">
                 <h3 style="margin:0">Proprietário atual</h3>
                 <button type="button" class="botao botao--contorno botao--pequeno" id="btnProprietarioHaras" title="Preencher com os dados desta propriedade">Esta propriedade</button>
             </div>
             <div class="grade-3" style="margin-top:.5rem">
                 <label class="campo"><span>Nome do proprietário</span><input name="proprietario_nome" id="campoProprietarioNome" value="{{ $v('proprietario_nome') ?: ($proprietarioPadrao ? ($haras->sufixo ?: $haras->nome) : '') }}" maxlength="150"></label>
-                <label class="campo"><span>Cidade</span><input name="proprietario_cidade" id="campoProprietarioCidade" value="{{ $v('proprietario_cidade') ?: ($proprietarioPadrao ? $haras->cidade : '') }}" maxlength="100"></label>
-                <label class="campo"><span>UF</span><input name="proprietario_uf" id="campoProprietarioUf" value="{{ $v('proprietario_uf') ?: ($proprietarioPadrao ? $haras->uf : '') }}" maxlength="2" style="max-width:80px"></label>
             </div>
+            <div class="grade-3" style="margin-top:.5rem">
+                <x-uf-municipio prefixo="proprietario_" :uf="old('proprietario_uf', $animal->proprietario_uf ?: ($proprietarioPadrao ? $haras->uf : ''))" :municipio-id="old('proprietario_municipio_id', $animal->proprietario_municipio_id ?: ($proprietarioPadrao ? $haras->municipio_id : null))" :cidade="old('proprietario_cidade', $animal->proprietario_cidade ?: ($proprietarioPadrao ? $haras->cidade : ''))" />
+            </div>
+
+            <h3 style="margin-top:1.5rem">Local de nascimento</h3>
+            <p class="suave" id="legendaLocalNasc">{{ $v('local_nascimento') ?: ($animal->exists ? '—' : $haras->nome) }}</p>
+            <input type="hidden" name="local_nascimento" id="campoLocalNasc" value="{{ $v('local_nascimento') ?: ($animal->exists ? '' : $haras->nome) }}">
         </section>
     </div>
 
@@ -598,12 +609,11 @@ document.getElementById('buscaMae').addEventListener('keydown', function(e) { if
             set('mae_registro', mae.registro);
             // Trilha da vida (criador e proprietário)
             set('criador_nome', cr.nome);
-            set('criador_cidade', cr.cidade);
-            set('criador_uf', cr.uf);
+            if (cr.uf) { var gc = document.querySelector('[name="criador_uf"]'); if (gc) { gc.value = cr.uf; gc.dispatchEvent(new Event('change')); } }
             if (cr.propriedade) set('local_nascimento', cr.propriedade);
+            if (cr.nome) { var ln = document.getElementById('legendaLocalNasc'); if (ln) ln.textContent = cr.propriedade || cr.nome; }
             set('proprietario_nome', pr.nome);
-            set('proprietario_cidade', pr.cidade);
-            set('proprietario_uf', pr.uf);
+            if (pr.uf) { var gp = document.querySelector('[name="proprietario_uf"]'); if (gp) { gp.value = pr.uf; gp.dispatchEvent(new Event('change')); } }
             // Idade
             var idadeTexto = a.idade_texto || '';
             aviso.textContent = 'Dados preenchidos!' + (idadeTexto ? ' Idade informada: ' + idadeTexto : '') + ' Confira e ajuste o que precisar.';
@@ -615,20 +625,81 @@ document.getElementById('buscaMae').addEventListener('keydown', function(e) { if
 })();
 // Botões "Esta propriedade" na trilha da vida
 (function () {
-    var dados = @json(['nome' => $haras->sufixo ?: $haras->nome, 'cidade' => $haras->cidade, 'uf' => $haras->uf]);
+    var dados = @json(['nome' => $haras->sufixo ?: $haras->nome, 'cidade' => $haras->cidade, 'uf' => $haras->uf, 'municipio_id' => $haras->municipio_id]);
+
+    function preencherGeo(prefixo, uf, municipioId) {
+        var geoEl = document.querySelector('[name="' + prefixo + 'uf"]');
+        if (!geoEl) return;
+        var container = geoEl.closest('[data-geo]');
+        if (container && container.geoDefinirPorId) {
+            container.geoDefinirPorId(uf || '', municipioId || '');
+        } else {
+            geoEl.value = uf || '';
+            geoEl.dispatchEvent(new Event('change'));
+        }
+    }
+
+    function atualizarLocalNasc() {
+        var nome = document.getElementById('campoCriadorNome').value;
+        document.getElementById('campoLocalNasc').value = nome;
+        var legenda = document.getElementById('legendaLocalNasc');
+        if (legenda) legenda.textContent = nome || '—';
+    }
+
     var btnC = document.getElementById('btnCriadorHaras');
-    var btnP = document.getElementById('btnProprietarioHaras');
     if (btnC) btnC.addEventListener('click', function () {
         document.getElementById('campoCriadorNome').value = dados.nome || '';
-        document.getElementById('campoCriadorCidade').value = dados.cidade || '';
-        document.getElementById('campoCriadorUf').value = dados.uf || '';
-        document.getElementById('campoLocalNasc').value = document.getElementById('campoLocalNasc').value || dados.nome || '';
+        preencherGeo('criador_', dados.uf, dados.municipio_id);
+        atualizarLocalNasc();
     });
+
+    var btnP = document.getElementById('btnProprietarioHaras');
     if (btnP) btnP.addEventListener('click', function () {
         document.getElementById('campoProprietarioNome').value = dados.nome || '';
-        document.getElementById('campoProprietarioCidade').value = dados.cidade || '';
-        document.getElementById('campoProprietarioUf').value = dados.uf || '';
+        preencherGeo('proprietario_', dados.uf, dados.municipio_id);
     });
+
+    // Atualizar local de nascimento ao digitar o nome do criador
+    var campoCriador = document.getElementById('campoCriadorNome');
+    if (campoCriador) campoCriador.addEventListener('input', atualizarLocalNasc);
+
+    // Pesquisa de Haras para o criador
+    var btnBuscar = document.getElementById('btnBuscarHarasCriador');
+    var painel = document.getElementById('buscaHarasCriador');
+    if (btnBuscar && painel) {
+        btnBuscar.addEventListener('click', function () { painel.hidden = !painel.hidden; if (!painel.hidden) document.getElementById('inputBuscaHarasCriador').focus(); });
+        document.getElementById('btnExecBuscaCriador').addEventListener('click', function () {
+            var q = document.getElementById('inputBuscaHarasCriador').value.trim();
+            if (q.length < 2) return;
+            var div = document.getElementById('resultBuscaHarasCriador');
+            div.innerHTML = '<span class="suave">Buscando…</span>';
+            fetch('{{ route("painel.animais.buscar-haras") }}?q=' + encodeURIComponent(q))
+                .then(function (r) { return r.json(); })
+                .then(function (lista) {
+                    if (!lista.length) { div.innerHTML = '<span class="suave">Nenhum Haras / Fazenda encontrado.</span>'; return; }
+                    div.innerHTML = '';
+                    lista.forEach(function (h) {
+                        var btn = document.createElement('button');
+                        btn.type = 'button';
+                        btn.className = 'botao botao--contorno botao--pequeno';
+                        btn.style.cssText = 'margin:4px 4px 4px 0;white-space:normal;text-align:left';
+                        btn.textContent = h.nome + (h.cidade ? ' — ' + h.cidade + '/' + (h.uf || '') : '');
+                        btn.addEventListener('click', function () {
+                            document.getElementById('campoCriadorNome').value = h.nome;
+                            preencherGeo('criador_', h.uf, h.municipio_id);
+                            atualizarLocalNasc();
+                            painel.hidden = true;
+                            div.innerHTML = '';
+                        });
+                        div.appendChild(btn);
+                    });
+                })
+                .catch(function () { div.innerHTML = '<span style="color:#b42318">Erro na busca.</span>'; });
+        });
+        document.getElementById('inputBuscaHarasCriador').addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') { e.preventDefault(); document.getElementById('btnExecBuscaCriador').click(); }
+        });
+    }
 })();
 </script>
 @endif

@@ -119,6 +119,10 @@
       if (!sigla || !uf.querySelector('option[value="' + sigla + '"]')) return;
       uf.value = sigla; trocarUf(ibge, true);
     };
+    caixa.geoDefinirPorId = function (sigla, id) { // usado pela busca de Haras / "Esta propriedade"
+      if (!sigla || !uf.querySelector('option[value="' + sigla + '"]')) return;
+      uf.value = sigla; trocarUf(id);
+    };
     if (uf.value) trocarUf(caixa.getAttribute('data-geo-municipio'));
   }
 
