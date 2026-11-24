@@ -13,12 +13,12 @@
 <div class="abas-cadastro">
     <button type="button" class="aba-cadastro aba-cadastro--ativa" data-aba="identificacao">Identificação</button>
     <button type="button" class="aba-cadastro" data-aba="registro">Registro</button>
-    @if ($animal->local_nascimento || $animal->criador_nome || $animal->proprietario_nome)<button type="button" class="aba-cadastro" data-aba="trilha">Trilha da vida</button>@endif
+    <button type="button" class="aba-cadastro" data-aba="trilha">Trilha da vida</button>
     <button type="button" class="aba-cadastro" data-aba="aquisicao">Aquisição</button>
     <button type="button" class="aba-cadastro" data-aba="genealogia">Genealogia</button>
     @if (\App\Support\FotosAnimal::disponivel())<button type="button" class="aba-cadastro" data-aba="fotos">Fotos</button>@endif
     @if (\App\Support\Sociedade::disponivel())<button type="button" class="aba-cadastro" data-aba="sociedade">Sociedade</button>@endif
-    @if ($animal->observacoes)<button type="button" class="aba-cadastro" data-aba="observacoes">Observações</button>@endif
+    <button type="button" class="aba-cadastro" data-aba="observacoes">Observações</button>
     @if ($animal->situacao === 'morto' || $animal->situacao === 'ativo')<button type="button" class="aba-cadastro" data-aba="obito">Óbito</button>@endif
 </div>
 
@@ -28,16 +28,17 @@
         <h2>Identificação</h2>
         <dl class="dados">
             <div><dt>Nome</dt><dd>{{ $animal->nome }}</dd></div>
-            @if ($animal->nome_registro)<div><dt>Nome de registro</dt><dd>{{ $animal->nome_registro }}</dd></div>@endif
-            @if ($animal->apelido)<div><dt>Apelido</dt><dd>{{ $animal->apelido }}</dd></div>@endif
+            <div><dt>Nome de registro</dt><dd>{{ $animal->nome_registro ?: '—' }}</dd></div>
+            <div><dt>Apelido</dt><dd>{{ $animal->apelido ?: '—' }}</dd></div>
             <div><dt>Espécie</dt><dd>{{ $animal->especieTexto() }}</dd></div>
             <div><dt>Sexo</dt><dd>{{ $animal->sexo === 'macho' ? 'Macho' : ($animal->sexo === 'femea' ? 'Fêmea' : '—') }}</dd></div>
             <div><dt>Categoria</dt><dd>{{ $animal->categoriaTexto() }}</dd></div>
             <div><dt>Raça</dt><dd>{{ $animal->raca ?: '—' }}</dd></div>
             <div><dt>Pelagem</dt><dd>{{ $animal->pelagemTexto() }}</dd></div>
-            <div><dt>Nascimento</dt><dd>{{ $animal->data_nascimento ? $animal->data_nascimento->format('d/m/Y') : '—' }} ({{ $animal->idade() }})</dd></div>
-            @if ($animal->numero_plantel)<div><dt>Nº plantel</dt><dd>{{ $animal->numero_plantel }}</dd></div>@endif
-            @if ($animal->local_baia)<div><dt>Local / baia</dt><dd>{{ $animal->local_baia }}</dd></div>@endif
+            <div><dt>Complemento da pelagem</dt><dd>{{ $animal->pelagem_complemento ?: '—' }}</dd></div>
+            <div><dt>Nascimento</dt><dd>{{ $animal->data_nascimento ? $animal->data_nascimento->format('d/m/Y') : '—' }}@if ($animal->data_nascimento) ({{ $animal->idade() }})@endif</dd></div>
+            <div><dt>Nº plantel</dt><dd>{{ $animal->numero_plantel ?: '—' }}</dd></div>
+            <div><dt>Local / baia</dt><dd>{{ $animal->local_baia ?: '—' }}</dd></div>
         </dl>
     </section>
 </div>
@@ -48,46 +49,46 @@
         <h2>Registro</h2>
         <dl class="dados">
             <div><dt>Registro</dt><dd>{{ $animal->registro ?: '—' }}</dd></div>
-            @if ($animal->registro_associacao)<div><dt>Associação</dt><dd>{{ \App\Models\Animal::ASSOCIACOES[$animal->registro_associacao] ?? $animal->registro_associacao }}</dd></div>@endif
+            <div><dt>Associação</dt><dd>{{ isset(\App\Models\Animal::ASSOCIACOES[$animal->registro_associacao]) ? \App\Models\Animal::ASSOCIACOES[$animal->registro_associacao] : '—' }}</dd></div>
+            <div><dt>ID na associação</dt><dd>{{ $animal->id_associacao ?: '—' }}</dd></div>
             <div><dt>Registro definitivo</dt><dd>{{ $animal->registro_definitivo ? 'Sim' : 'Não' }}</dd></div>
             <div><dt>Microchip</dt><dd>{{ $animal->microchip ?: '—' }}</dd></div>
             <div><dt>DNA coletado</dt><dd>{{ $animal->dna_coletado ? 'Sim' : 'Não' }}</dd></div>
-            @if ($animal->peso_kg)<div><dt>Peso</dt><dd>{{ $animal->peso_kg }} kg</dd></div>@endif
-            @if ($animal->altura_cm)<div><dt>Altura</dt><dd>{{ $animal->altura_cm }} cm</dd></div>@endif
+            <div><dt>Peso</dt><dd>{{ $animal->peso_kg ? $animal->peso_kg . ' kg' : '—' }}</dd></div>
+            <div><dt>Altura</dt><dd>{{ $animal->altura_cm ? $animal->altura_cm . ' cm' : '—' }}</dd></div>
             <div><dt>Castrado</dt><dd>{{ $animal->castrado ? 'Sim' : 'Não' }}</dd></div>
         </dl>
     </section>
 </div>
 
 {{-- Trilha da vida --}}
-@if ($animal->local_nascimento || $animal->criador_nome || $animal->proprietario_nome)
 <div class="painel-aba painel-aba--oculto" id="aba-trilha">
     <section class="cartao">
         <h2>Trilha da vida</h2>
         <div class="grade-3">
-            @if ($animal->local_nascimento || $animal->criador_nome)
             <div>
-                <h3 style="font-size:.95rem;margin-bottom:.5rem">Nascimento e criação</h3>
+                <h3 style="font-size:.95rem;margin-bottom:.5rem">Local de nascimento</h3>
                 <dl class="dados">
-                    @if ($animal->local_nascimento)<div><dt>Local de nascimento</dt><dd>{{ $animal->local_nascimento }}</dd></div>@endif
-                    @if ($animal->criador_nome)<div><dt>Criador</dt><dd>{{ $animal->criador_nome }}</dd></div>@endif
-                    @if ($animal->criador_cidade || $animal->criador_uf)<div><dt>Cidade/UF</dt><dd>{{ $animal->criador_cidade }}{{ $animal->criador_uf ? '/'.$animal->criador_uf : '' }}</dd></div>@endif
+                    <div><dt>Local / propriedade</dt><dd>{{ $animal->local_nascimento ?: '—' }}</dd></div>
                 </dl>
             </div>
-            @endif
-            @if ($animal->proprietario_nome)
+            <div>
+                <h3 style="font-size:.95rem;margin-bottom:.5rem">Criador</h3>
+                <dl class="dados">
+                    <div><dt>Nome</dt><dd>{{ $animal->criador_nome ?: '—' }}</dd></div>
+                    <div><dt>Cidade/UF</dt><dd>{{ $animal->criador_cidade ?: '—' }}{{ $animal->criador_uf ? '/'.$animal->criador_uf : '' }}</dd></div>
+                </dl>
+            </div>
             <div>
                 <h3 style="font-size:.95rem;margin-bottom:.5rem">Proprietário atual</h3>
                 <dl class="dados">
-                    <div><dt>Nome</dt><dd>{{ $animal->proprietario_nome }}</dd></div>
-                    @if ($animal->proprietario_cidade || $animal->proprietario_uf)<div><dt>Cidade/UF</dt><dd>{{ $animal->proprietario_cidade }}{{ $animal->proprietario_uf ? '/'.$animal->proprietario_uf : '' }}</dd></div>@endif
+                    <div><dt>Nome</dt><dd>{{ $animal->proprietario_nome ?: '—' }}</dd></div>
+                    <div><dt>Cidade/UF</dt><dd>{{ $animal->proprietario_cidade ?: '—' }}{{ $animal->proprietario_uf ? '/'.$animal->proprietario_uf : '' }}</dd></div>
                 </dl>
             </div>
-            @endif
         </div>
     </section>
 </div>
-@endif
 
 {{-- Aquisição --}}
 <div class="painel-aba painel-aba--oculto" id="aba-aquisicao">
@@ -96,10 +97,10 @@
         <dl class="dados">
             <div><dt>Data de aquisição</dt><dd>{{ $animal->data_aquisicao ? $animal->data_aquisicao->format('d/m/Y') : '—' }}</dd></div>
             <div><dt>Forma</dt><dd>{{ \App\Models\Animal::FORMAS_AQUISICAO[$animal->forma_aquisicao] ?? '—' }}</dd></div>
-            @if ($animal->valor_aquisicao)<div><dt>Valor</dt><dd>R$ {{ number_format($animal->valor_aquisicao, 2, ',', '.') }}</dd></div>@endif
+            <div><dt>Valor</dt><dd>{{ $animal->valor_aquisicao ? 'R$ ' . number_format($animal->valor_aquisicao, 2, ',', '.') : '—' }}</dd></div>
             <div><dt>Situação</dt><dd><span class="selo selo--{{ $animal->situacao }}">{{ $animal->situacaoTexto() }}</span></dd></div>
-            @if ($animal->situacao_data)<div><dt>Data da situação</dt><dd>{{ $animal->situacao_data->format('d/m/Y') }}</dd></div>@endif
-            @if ($animal->situacao_motivo)<div><dt>Motivo</dt><dd>{{ $animal->situacao_motivo }}</dd></div>@endif
+            <div><dt>Data da situação</dt><dd>{{ $animal->situacao_data ? $animal->situacao_data->format('d/m/Y') : '—' }}</dd></div>
+            <div><dt>Motivo</dt><dd>{{ $animal->situacao_motivo ?: '—' }}</dd></div>
         </dl>
     </section>
 </div>
@@ -288,11 +289,9 @@
 @endif
 
 {{-- Observações --}}
-@if ($animal->observacoes)
 <div class="painel-aba painel-aba--oculto" id="aba-observacoes">
-    <section class="cartao"><h2>Observações</h2><p class="pre">{{ $animal->observacoes }}</p></section>
+    <section class="cartao"><h2>Observações</h2><p class="pre">{{ $animal->observacoes ?: '—' }}</p></section>
 </div>
-@endif
 
 {{-- Óbito --}}
 @if ($animal->situacao === 'morto' && $animal->morte_data)
@@ -301,8 +300,8 @@
         <h2>Óbito registrado</h2>
         <dl class="dados">
             <div><dt>Data</dt><dd>{{ $animal->morte_data->format('d/m/Y') }}</dd></div>
-            @if ($animal->morte_causa)<div><dt>Causa</dt><dd>{{ $animal->morte_causa }}</dd></div>@endif
-            @if ($animal->morte_laudo)<div><dt>Laudo</dt><dd class="pre">{{ $animal->morte_laudo }}</dd></div>@endif
+            <div><dt>Causa</dt><dd>{{ $animal->morte_causa ?: '—' }}</dd></div>
+            <div><dt>Laudo</dt><dd class="pre">{{ $animal->morte_laudo ?: '—' }}</dd></div>
         </dl>
     </section>
 </div>
