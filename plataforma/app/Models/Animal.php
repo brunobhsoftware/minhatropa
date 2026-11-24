@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\TemUuid;
+use App\Support\Texto;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -146,6 +147,22 @@ class Animal extends Model
             'peso_kg' => 'decimal:1',
             'altura_cm' => 'decimal:1',
         ];
+    }
+
+    // Nomes do animal sempre em MAIÚSCULAS (padrão do sistema), qualquer que seja a origem do cadastro.
+    public function setNomeAttribute($valor): void
+    {
+        $this->attributes['nome'] = Texto::maiusculas($valor);
+    }
+
+    public function setNomeRegistroAttribute($valor): void
+    {
+        $this->attributes['nome_registro'] = Texto::maiusculas($valor);
+    }
+
+    public function setApelidoAttribute($valor): void
+    {
+        $this->attributes['apelido'] = Texto::maiusculas($valor);
     }
 
     public function idade(): string

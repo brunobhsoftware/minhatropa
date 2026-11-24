@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\TemUuid;
 use App\Support\Documento;
+use App\Support\Texto;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -104,6 +105,22 @@ class Empresa extends Model
     protected function casts(): array
     {
         return ['area_hectares' => 'decimal:2', 'latitude' => 'decimal:12', 'longitude' => 'decimal:12', 'excluido_em' => 'datetime', 'licenca_ativa' => 'boolean', 'cortesia' => 'boolean', 'cortesia_plantel' => 'boolean', 'cortesia_em' => 'datetime', 'pagina_ativa' => 'boolean', 'pagina_mostrar_contato' => 'boolean', 'pagina_mostrar_endereco' => 'boolean', 'licenca_liberada_em' => 'datetime'];
+    }
+
+    // Nomes sempre em MAIÚSCULAS (padrão do sistema): nome do Haras / Fazenda, razão social e responsável.
+    public function setNomeAttribute($valor): void
+    {
+        $this->attributes['nome'] = Texto::maiusculas($valor);
+    }
+
+    public function setRazaoSocialAttribute($valor): void
+    {
+        $this->attributes['razao_social'] = Texto::maiusculas($valor);
+    }
+
+    public function setResponsavelNomeAttribute($valor): void
+    {
+        $this->attributes['responsavel_nome'] = Texto::maiusculas($valor);
     }
 
     public function scopeNaoExcluidas($query)
