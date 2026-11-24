@@ -348,12 +348,15 @@ class ImportacaoTropa
                     break;
 
                 case 'sexo':
-                    // Aceita M/F além de Macho/Fêmea.
+                    // Acha "macho"/"fêmea" em qualquer parte do texto (ex.: "PROVISÓRIO FÊMEA", "DEFINITIVO MACHO");
+                    // também aceita só M/F.
                     $n = self::normalizar($valor);
-                    $cod = match ($n) {
-                        'm' => 'macho',
-                        'f' => 'femea',
-                        default => self::casar($valor, ['macho' => 'Macho', 'femea' => 'Fêmea']),
+                    $cod = match (true) {
+                        str_contains($n, 'femea') => 'femea',
+                        str_contains($n, 'macho') => 'macho',
+                        $n === 'f' => 'femea',
+                        $n === 'm' => 'macho',
+                        default => null,
                     };
                     if ($valor !== '' && $cod === null) {
                         $avisos[] = "Linha {$numeroLinha}: sexo \"{$valor}\" não reconhecido — deixado em branco.";
@@ -446,10 +449,31 @@ class ImportacaoTropa
             }
         }
 
+        // Deduções cruzadas, com tudo já convertido:
+        //  - Raça de cavalo reconhecida (MM etc.) implica espécie Equino.
+        if (! empty($dados['raca']) && in_array($dados['raca'], \App\Models\Empresa::RACAS, true) && $dados['raca'] !== 'Outras') {
+            $dados['especie'] = 'equino';
+        }
+        //  - Associação em branco: deduz pela raça (MM → ABCCMM, QM → ABQM…).
+        if (array_key_exists('registro_associacao', $dados) && empty($dados['registro_associacao'])) {
+            $dados['registro_associacao'] = self::assocDaRaca($dados['raca'] ?? null);
+        }
+        //  - Categoria em branco num equino: fêmea → Égua, macho → Garanhão (padrão).
+        if (empty($dados['categoria']) && ($dados['especie'] ?? null) === 'equino') {
+            $dados['categoria'] = match ($dados['sexo'] ?? null) {
+                'femea' => 'egua',
+                'macho' => 'garanhao',
+                default => $dados['categoria'] ?? null,
+            };
+        }
+
         return [$dados, $avisos];
     }
 
-    /** Raça: casa por sigla (MM → Mangalarga Marchador) ou pelo nome da lista; o resto entra como foi digitado. */
+    /**
+     * Raça: nome da lista, sigla exata, ou sigla no início do texto (ex.: "MM1 - PROVISÓRIO FÊMEA" → Mangalarga
+     * Marchador). O que não casar entra como foi digitado.
+     */
     private static function raca(string $valor): ?string
     {
         $valor = trim($valor);
@@ -457,18 +481,53 @@ class ImportacaoTropa
             return null;
         }
         $alvo = self::normalizar($valor);
-        foreach (self::RACAS_SIGLAS as $sigla => $nome) {
-            if (self::normalizar($sigla) === $alvo) {
-                return $nome;
-            }
-        }
+
+        // Nome por extenso da lista.
         foreach (\App\Models\Empresa::RACAS as $nome) {
             if (self::normalizar($nome) === $alvo) {
                 return $nome;
             }
         }
+        // Sigla exata.
+        foreach (self::RACAS_SIGLAS as $sigla => $nome) {
+            if (self::normalizar($sigla) === $alvo) {
+                return $nome;
+            }
+        }
+        // Sigla no início (siglas mais longas primeiro), seguida de não-letra (dígito, espaço, traço) ou fim.
+        $siglas = self::RACAS_SIGLAS;
+        uksort($siglas, fn ($a, $b) => mb_strlen((string) $b) <=> mb_strlen((string) $a));
+        foreach ($siglas as $sigla => $nome) {
+            $s = self::normalizar((string) $sigla);
+            if ($s !== '' && str_starts_with($alvo, $s)) {
+                $depois = mb_substr($alvo, mb_strlen($s), 1);
+                if ($depois === '' || ! preg_match('/\p{L}/u', $depois)) {
+                    return $nome;
+                }
+            }
+        }
 
         return mb_substr($valor, 0, 80);
+    }
+
+    /** Associação padrão pela raça (MM → ABCCMM etc.), usada quando a coluna Associação vem em branco. */
+    private static function assocDaRaca(?string $raca): ?string
+    {
+        $mapa = [
+            'Mangalarga Marchador' => 'ABCCMM',
+            'Mangalarga' => 'ABCCMangalarga',
+            'Campolina' => 'ABCCC',
+            'Quarto de Milha' => 'ABQM',
+            'Crioulo' => 'ABCCC_Crioulo',
+            'Lusitano' => 'ABPSL',
+            'Puro Sangue Inglês' => 'JCB',
+            'Brasileiro de Hipismo' => 'ABCCH',
+            'Árabe' => 'ABCCA',
+            'Paint Horse' => 'APHA',
+            'Appaloosa' => 'ABCA',
+        ];
+
+        return $raca ? ($mapa[$raca] ?? null) : null;
     }
 
     /** Monta o mapa campo => índice da coluna física, pelo cabeçalho enviado (rótulo ou chave, sem acento/maiúsculas). */
