@@ -68,6 +68,9 @@ Route::middleware(['auth', 'haras'])->prefix('painel')->group(function () {
         Route::middleware('permissao:animais')->group(function () use ($p) {
             // Ocorrências do plantel: nascimentos, cobrições, mortes e transferências num só lugar
             Route::get('/ocorrencias', [$p.'\PainelController', 'ocorrencias'])->name('ocorrencias');
+            // Consulta cross-Haras (qualquer animal da plataforma)
+            Route::get('/consulta', [$p.'\ConsultaController', 'index'])->name('consulta');
+            Route::get('/consulta/{animal}', [$p.'\ConsultaController', 'show'])->name('consulta.show');
             Route::get('/animais', [$p.'\AnimaisController', 'index'])->name('animais');
             // Importar / exportar a tropa por planilha (caminhos com hífen para não cair no curinga /animais/{animal})
             Route::get('/animais-importar', [$p.'\AnimaisController', 'importar'])->name('animais.importar');
