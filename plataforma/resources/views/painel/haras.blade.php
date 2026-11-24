@@ -21,17 +21,24 @@
         <button type="button" class="aba-cadastro" data-aba="endereco">Endereço</button>
         <button type="button" class="aba-cadastro" data-aba="correspondencia">Correspondência</button>
         <button type="button" class="aba-cadastro" data-aba="criacao">Criação</button>
-        <button type="button" class="aba-cadastro" data-aba="sufixo">Sufixo</button>
         @if ($temPagina)<button type="button" class="aba-cadastro" data-aba="pagina">Página e marca</button>@endif
     </nav>
 
     <div class="painel-aba" id="aba-identificacao">
         <section class="cartao"><h2>Identificação</h2>
+            <input type="hidden" name="tipo_propriedade" value="{{ $haras->tipo_propriedade ?: 'fazenda' }}">
             <div class="grade-2">
-                <label class="campo"><span>Tipo de propriedade *</span><select name="tipo_propriedade" required>
-                    @foreach (\App\Models\Empresa::TIPOS_PROPRIEDADE as $valor => $texto)<option value="{{ $valor }}" @selected($v('tipo_propriedade') === $valor)>{{ $texto }}</option>@endforeach
-                </select><small>Define como o sistema chama a propriedade nas telas.</small></label>
-                <label class="campo"><span>Nome {{ $haras->doRotulo() }} *</span><input name="nome" value="{{ $v('nome') }}" required maxlength="150"></label>
+                <label class="campo"><span>Nome da fazenda *</span><input name="nome" value="{{ $v('nome') }}" required maxlength="150"></label>
+                <div class="campo"><span>Nome do Haras (sufixo)</span>
+                    <div class="campo-com-botao">
+                        <input name="sufixo" id="campoSufixoNome" value="{{ $v('sufixo') }}" maxlength="120" placeholder="Ex.: DA AGROTEXAS" autocomplete="off">
+                        <button type="button" class="botao botao--contorno botao--pequeno" id="btnVerificarSufixo">Verificar sufixo</button>
+                    </div>
+                    <small>O "sobrenome" dos animais na associação.</small>
+                    <div id="resultadoSufixo" style="margin-top:.5rem"></div>
+                    <input type="hidden" name="sufixo_codigo" id="campoSufixoCodigo" value="{{ $v('sufixo_codigo') }}">
+                    <input type="hidden" name="sufixo_associacao_id" id="campoSufixoAssocId" value="{{ $v('sufixo_associacao_id') }}">
+                </div>
                 <label class="campo"><span>Titularidade</span><input value="{{ \App\Models\Empresa::TITULARIDADES[$haras->tipo_documento] ?? 'Não informada' }}" disabled></label>
                 <label class="campo"><span>{{ $pf ? 'CPF do proprietário' : 'CNPJ' }}</span><input value="{{ $haras->documentoFormatado() }}" disabled><small>É a identificação única da propriedade. Para alterar, fale com o atendimento.</small></label>
                 <label class="campo"><span>{{ $pf ? 'Proprietário' : 'Razão social' }}</span><input name="razao_social" value="{{ $v('razao_social') }}" maxlength="190" @if ($pf && $titular) readonly @endif></label>
@@ -118,30 +125,6 @@
         </section>
     </div>
 
-    <div class="painel-aba painel-aba--oculto" id="aba-sufixo">
-        <section class="cartao"><h2>Sufixo — nome do criatório na associação</h2>
-            <p class="suave" style="margin-bottom:1rem">O sufixo é o "sobrenome" dado aos animais da propriedade (ex.: DA AGROTEXAS). Ele é único no sistema e é registrado junto à associação de raça. O sufixo também será o endereço da sua página pública.</p>
-            @if ($haras->sufixo)
-            <div class="aviso aviso--ok" style="margin-bottom:1rem">Sufixo vinculado: <b>{{ $haras->sufixo }}</b> @if ($haras->sufixo_codigo) (código {{ $haras->sufixo_codigo }})@endif</div>
-            @endif
-            <div class="grade-3">
-                <div class="campo"><span>Buscar sufixo na associação</span>
-                    <div class="campo-com-botao">
-                        <input id="buscaSufixo" placeholder="Nome, código ou proprietário" autocomplete="off" maxlength="120">
-                        <button type="button" class="botao botao--contorno botao--pequeno" id="btnBuscarSufixo">Buscar</button>
-                    </div>
-                </div>
-            </div>
-            <div id="resultadoSufixo" style="margin-top:1rem"></div>
-            <input type="hidden" name="sufixo" id="campoSufixo" value="{{ $v('sufixo') }}">
-            <input type="hidden" name="sufixo_codigo" id="campoSufixoCodigo" value="{{ $v('sufixo_codigo') }}">
-            <input type="hidden" name="sufixo_associacao_id" id="campoSufixoAssocId" value="{{ $v('sufixo_associacao_id') }}">
-            @if ($haras->sufixo)
-            <p style="margin-top:1rem"><small class="suave">Página pública: <a href="/h/{{ \Illuminate\Support\Str::slug($haras->sufixo) }}" target="_blank">/h/{{ \Illuminate\Support\Str::slug($haras->sufixo) }}</a></small></p>
-            @endif
-        </section>
-    </div>
-
     @if ($temPagina)
     <div class="painel-aba painel-aba--oculto" id="aba-pagina">
         @include('partes.pagina-propriedade', ['empresa' => $haras])
@@ -171,37 +154,43 @@ document.addEventListener('DOMContentLoaded', function () {
   if (alvo && f.querySelector('#aba-' + alvo)) abrir(alvo);
 });
 
-// Busca de sufixo na base da associação
+// Verificar sufixo na base da associação
 (function () {
-    var campo = document.getElementById('buscaSufixo'), botao = document.getElementById('btnBuscarSufixo'), resultado = document.getElementById('resultadoSufixo');
+    var campo = document.getElementById('campoSufixoNome'), botao = document.getElementById('btnVerificarSufixo'), resultado = document.getElementById('resultadoSufixo');
     if (!campo || !botao) return;
     var selecionar = function (id, sufixo, codigo) {
-        document.getElementById('campoSufixo').value = sufixo;
+        campo.value = sufixo;
         document.getElementById('campoSufixoCodigo').value = codigo;
         document.getElementById('campoSufixoAssocId').value = id;
-        resultado.innerHTML = '<div class="aviso aviso--ok">Sufixo selecionado: <b>' + sufixo + '</b> (código ' + codigo + '). Salve para confirmar.</div>';
+        resultado.innerHTML = '<div class="aviso aviso--ok" style="margin-top:.5rem"><b>✓ ' + sufixo + '</b> (código ' + codigo + '). Salve para confirmar.</div>';
     };
-    var buscar = function () {
+    var verificar = function () {
         var q = campo.value.trim();
-        if (q.length < 2) { resultado.innerHTML = '<p class="suave">Digite ao menos 2 caracteres.</p>'; return; }
-        resultado.innerHTML = '<p class="suave">Buscando…</p>';
+        if (q.length < 2) { resultado.innerHTML = '<p class="suave">Digite o nome do Haras para verificar.</p>'; return; }
+        resultado.innerHTML = '<p class="suave">Verificando…</p>';
+        document.getElementById('campoSufixoCodigo').value = '';
+        document.getElementById('campoSufixoAssocId').value = '';
         fetch('{{ route("painel.haras.buscar-sufixo") }}?q=' + encodeURIComponent(q), { headers: { Accept: 'application/json' } })
             .then(function (r) { return r.json(); })
             .then(function (dados) {
-                if (!dados.length) { resultado.innerHTML = '<p class="suave">Nenhum sufixo encontrado com esse termo.</p>'; return; }
-                var html = '<div class="tabela-rolagem"><table class="tabela"><thead><tr><th>Sufixo</th><th>Código</th><th>Proprietário</th><th>Cidade/UF</th><th></th></tr></thead><tbody>';
+                if (!dados.length) { resultado.innerHTML = '<p class="suave" style="color:#b45309">Sufixo não encontrado na base da associação. Você pode salvar mesmo assim — quando a base for atualizada ele será vinculado.</p>'; return; }
+                if (dados.length === 1 && dados[0].sufixo.toUpperCase() === q.toUpperCase()) {
+                    selecionar(dados[0].id, dados[0].sufixo, dados[0].codigo);
+                    return;
+                }
+                var html = '<div class="tabela-rolagem" style="margin-top:.5rem"><table class="tabela tabela--compacta"><thead><tr><th>Sufixo</th><th>Código</th><th>Proprietário</th><th>Cidade/UF</th><th></th></tr></thead><tbody>';
                 dados.forEach(function (s) {
                     html += '<tr><td><b>' + s.sufixo + '</b></td><td>' + s.codigo + '</td><td>' + (s.proprietario_nome || '—') + '</td><td>' + (s.cidade || '') + (s.uf ? '/' + s.uf : '') + '</td>';
-                    html += '<td><button type="button" class="botao botao--primario botao--pequeno" onclick="window._selecionarSufixo(' + s.id + ',\'' + s.sufixo.replace(/'/g, "\\'") + '\',\'' + s.codigo.replace(/'/g, "\\'") + '\')">Vincular</button></td></tr>';
+                    html += '<td><button type="button" class="botao botao--primario botao--pequeno" onclick="window._selecionarSufixo(' + s.id + ',\'' + s.sufixo.replace(/'/g, "\\'") + '\',\'' + s.codigo.replace(/'/g, "\\'") + '\')">Usar este</button></td></tr>';
                 });
                 html += '</tbody></table></div>';
                 resultado.innerHTML = html;
             })
-            .catch(function () { resultado.innerHTML = '<p class="suave" style="color:#b42318">Não foi possível buscar agora.</p>'; });
+            .catch(function () { resultado.innerHTML = '<p class="suave" style="color:#b42318">Não foi possível verificar agora.</p>'; });
     };
     window._selecionarSufixo = selecionar;
-    botao.addEventListener('click', buscar);
-    campo.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); buscar(); } });
+    botao.addEventListener('click', verificar);
+    campo.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); verificar(); } });
 })();
 </script>
 @endsection
