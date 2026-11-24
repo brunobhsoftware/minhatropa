@@ -105,9 +105,14 @@
                 </div>
                 <label class="campo"><span>Pelagem</span>
                     <select name="pelagem" id="selPelagem"><option value=""></option>
-                        @foreach (\App\Models\Animal::PELAGENS as $k => $t)
-                        <option value="{{ $k }}" @selected($v('pelagem') === $k)>{{ $t }}</option>
+                        @foreach (\App\Models\Animal::PELAGENS_GRUPOS as $grupo => $chaves)
+                        <optgroup label="{{ $grupo }}">
+                            @foreach ($chaves as $k)
+                            <option value="{{ $k }}" @selected($v('pelagem') === $k)>{{ \App\Models\Animal::PELAGENS[$k] }}</option>
+                            @endforeach
+                        </optgroup>
                         @endforeach
+                        <option value="outra" @selected($v('pelagem') === 'outra')>Outra (digitar)</option>
                     </select>
                 </label>
                 <label class="campo"><span id="rotuloPelagemComp">Complemento da pelagem</span><input name="pelagem_complemento" id="campoPelagemComp" value="{{ $v('pelagem_complemento') }}" maxlength="80" placeholder="Variação ou detalhe"></label>

@@ -64,26 +64,94 @@ class Animal extends Model
     ];
 
     public const PELAGENS = [
-        'alaza' => 'Alazã',
-        'alaza_queimada' => 'Alazã-queimada',
-        'baia' => 'Baia',
-        'baia_amarilha' => 'Baia-amarilha',
-        'baia_cereja' => 'Baia-cereja',
-        'baia_escura' => 'Baia-escura',
+        // Branca
         'branca' => 'Branca',
-        'castanha' => 'Castanha',
-        'castanha_escura' => 'Castanha-escura',
-        'lobuna' => 'Lobuna',
-        'pampa_alaza' => 'Pampa de alazã',
-        'pampa_baia' => 'Pampa de baia',
-        'pampa_castanha' => 'Pampa de castanha',
-        'pampa_preta' => 'Pampa de preta',
+        'branca_pseudo_albino' => 'Branca Pseudo-albino',
+        // Preta
         'preta' => 'Preta',
-        'rosilha' => 'Rosilha',
-        'ruca' => 'Ruça',
+        'preta_maltinta' => 'Preta Maltinta',
+        'preta_azeviche' => 'Preta Azeviche',
+        // Alazã
+        'alaza' => 'Alazã',
+        'alaza_amarilha' => 'Alazã Amarilha',
+        'alaza_amarilha_escura' => 'Alazã Amarilha Escura',
+        'alaza_amarilha_escura_apatacada' => 'Alazã Amarilha Escura Apatacada',
+        'alaza_cereja' => 'Alazã Cereja',
+        'alaza_acima_de_baia' => 'Alazã Acima de Baia',
+        'alaza_tostada_crinalva' => 'Alazã Tostada Crinalva',
+        'alaza_clara_bragada' => 'Alazã Clara Bragada',
+        // Castanha
+        'castanha' => 'Castanha',
+        'castanha_clara' => 'Castanha Clara',
+        'castanha_escura' => 'Castanha Escura',
+        'castanha_zaina' => 'Castanha Zaina',
+        'castanha_pinhao' => 'Castanha Pinhão',
+        // Baia
+        'baia' => 'Baia',
+        'baia_clara' => 'Baia Clara',
+        'baia_clara_apatacada' => 'Baia Clara Apatacada',
+        'baia_palha' => 'Baia Palha',
+        'baia_escura_apatacada' => 'Baia Escura Apatacada',
+        'baia_encerada' => 'Baia Encerada',
+        // Pelo de Rato
+        'pelo_de_rato' => 'Pelo de Rato',
+        // Tordilha
         'tordilha' => 'Tordilha',
-        'zaina' => 'Zaina',
-        'outra' => 'Outra',
+        'tordilha_negra' => 'Tordilha Negra',
+        'tordilha_escura_apatacada' => 'Tordilha Escura Apatacada',
+        'tordilha_clara_apatacada' => 'Tordilha Clara Apatacada',
+        'tordilha_clara' => 'Tordilha Clara',
+        'tordilha_ruca' => 'Tordilha Ruça',
+        'tordilha_carda_clara' => 'Tordilha Carda Clara',
+        'tordilha_carda_escura' => 'Tordilha Carda Escura',
+        'tordilha_pedres' => 'Tordilha Pedrês',
+        // Rosilha
+        'rosilha_castanha' => 'Rosilha Castanha',
+        'rosilha_castanha_escura' => 'Rosilha Castanha Escura',
+        'rosilha_baia' => 'Rosilha Baia',
+        'rosilha_preta' => 'Rosilha Preta',
+        // Lobuna
+        'lobuna_clara' => 'Lobuna Clara',
+        'lobuna_escura' => 'Lobuna Escura',
+        // Ruão
+        'ruao_claro' => 'Ruão Claro',
+        'ruao_escuro' => 'Ruão Escuro',
+        // Pampa
+        'pampa_de_preto' => 'Pampa de Preto',
+        'preto_pampa' => 'Preto Pampa',
+        'pampa_de_alaza' => 'Pampa de Alazã',
+        'alaza_pampa' => 'Alazã Pampa',
+        'pampa_de_castanha' => 'Pampa de Castanha',
+        'castanha_pampa' => 'Castanha Pampa',
+        'pampa_de_tordilha' => 'Pampa de Tordilha',
+        'rosilha_castanha_pampa' => 'Rosilha Castanha Pampa',
+        // Apalusa
+        'alaza_apalusa' => 'Alazã Apalusa',
+        'apalusa_mantada' => 'Apalusa Mantada',
+        'tordilha_apalusa_mantada' => 'Tordilha Apalusa Mantada',
+        'tostada_mantada' => 'Tostada Mantada',
+        'preta_apalusa_mantada' => 'Preta Apalusa Mantada',
+        'preta_nevada' => 'Preta Nevada',
+        'castanha_nevada' => 'Castanha Nevada',
+        'alaza_tostada_persa' => 'Alazã Tostada Persa',
+        // Outra
+        'outra' => 'Outra (digitar)',
+    ];
+
+    /** Pelagens agrupadas para o <select> com <optgroup>. */
+    public const PELAGENS_GRUPOS = [
+        'Branca' => ['branca', 'branca_pseudo_albino'],
+        'Preta' => ['preta', 'preta_maltinta', 'preta_azeviche'],
+        'Alazã' => ['alaza', 'alaza_amarilha', 'alaza_amarilha_escura', 'alaza_amarilha_escura_apatacada', 'alaza_cereja', 'alaza_acima_de_baia', 'alaza_tostada_crinalva', 'alaza_clara_bragada'],
+        'Castanha' => ['castanha', 'castanha_clara', 'castanha_escura', 'castanha_zaina', 'castanha_pinhao'],
+        'Baia' => ['baia', 'baia_clara', 'baia_clara_apatacada', 'baia_palha', 'baia_escura_apatacada', 'baia_encerada'],
+        'Pelo de Rato' => ['pelo_de_rato'],
+        'Tordilha' => ['tordilha', 'tordilha_negra', 'tordilha_escura_apatacada', 'tordilha_clara_apatacada', 'tordilha_clara', 'tordilha_ruca', 'tordilha_carda_clara', 'tordilha_carda_escura', 'tordilha_pedres'],
+        'Rosilha' => ['rosilha_castanha', 'rosilha_castanha_escura', 'rosilha_baia', 'rosilha_preta'],
+        'Lobuna' => ['lobuna_clara', 'lobuna_escura'],
+        'Ruão' => ['ruao_claro', 'ruao_escuro'],
+        'Pampa' => ['pampa_de_preto', 'preto_pampa', 'pampa_de_alaza', 'alaza_pampa', 'pampa_de_castanha', 'castanha_pampa', 'pampa_de_tordilha', 'rosilha_castanha_pampa'],
+        'Apalusa' => ['alaza_apalusa', 'apalusa_mantada', 'tordilha_apalusa_mantada', 'tostada_mantada', 'preta_apalusa_mantada', 'preta_nevada', 'castanha_nevada', 'alaza_tostada_persa'],
     ];
 
     public const SITUACOES = [
