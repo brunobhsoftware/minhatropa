@@ -246,6 +246,30 @@ class Animal extends Model
         return $d->y > 0 ? $d->y.' ano'.($d->y > 1 ? 's' : '') : $d->m.' mes'.($d->m === 1 ? '' : 'es');
     }
 
+    /**
+     * Promove potro/potra com mais de 36 meses para a categoria adulta.
+     * Macho: Garanhão (se tem registro) ou Cavalo.  Fêmea: Égua.
+     * Retorna true se promoveu.
+     */
+    public function promoverSeAdulto(): bool
+    {
+        if (! $this->data_nascimento || ! in_array($this->categoria, ['potro', 'potra'], true)) {
+            return false;
+        }
+        $meses = (int) $this->data_nascimento->diffInMonths(now());
+        if ($meses < 36) {
+            return false;
+        }
+        if ($this->categoria === 'potro') {
+            $this->categoria = $this->registro ? 'garanhao' : 'cavalo';
+        } else {
+            $this->categoria = 'egua';
+        }
+        $this->save();
+
+        return true;
+    }
+
     public function empresa(): BelongsTo
     {
         return $this->belongsTo(Empresa::class, 'empresa_id');
