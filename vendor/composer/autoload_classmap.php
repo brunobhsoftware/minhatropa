@@ -86,6 +86,7 @@ return array(
     'App\\Support\\Permissao' => $baseDir . '/app/Support/Permissao.php',
     'App\\Support\\Planilha' => $baseDir . '/app/Support/Planilha.php',
     'App\\Support\\Sociedade' => $baseDir . '/app/Support/Sociedade.php',
+    'App\\Support\\Texto' => $baseDir . '/app/Support/Texto.php',
     'App\\Support\\Titular' => $baseDir . '/app/Support/Titular.php',
     'Attribute' => $vendorDir . '/symfony/polyfill-php80/Resources/stubs/Attribute.php',
     'Brick\\Math\\BigDecimal' => $vendorDir . '/brick/math/src/BigDecimal.php',

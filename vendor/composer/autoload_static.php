@@ -561,6 +561,7 @@ class ComposerStaticInit01491554d920b3ff2852f7e60c354b75
         'App\\Support\\Permissao' => __DIR__ . '/../..' . '/app/Support/Permissao.php',
         'App\\Support\\Planilha' => __DIR__ . '/../..' . '/app/Support/Planilha.php',
         'App\\Support\\Sociedade' => __DIR__ . '/../..' . '/app/Support/Sociedade.php',
+        'App\\Support\\Texto' => __DIR__ . '/../..' . '/app/Support/Texto.php',
         'App\\Support\\Titular' => __DIR__ . '/../..' . '/app/Support/Titular.php',
         'Attribute' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/Attribute.php',
         'Brick\\Math\\BigDecimal' => __DIR__ . '/..' . '/brick/math/src/BigDecimal.php',

@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Models\Animal;
 use App\Models\Empresa;
+use App\Support\Texto;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
@@ -332,8 +333,14 @@ class ImportacaoTropa
                     break;
 
                 case 'especie':
-                    // Em branco (ou não reconhecida) vira sempre Equino, como no cadastro individual.
-                    $cod = self::casar($valor, Animal::ESPECIES);
+                    // Aceita a inicial (E = equino, A = asinino, M = muar). Em branco (ou não reconhecida) vira Equino.
+                    $n = self::normalizar($valor);
+                    $cod = match ($n) {
+                        'e' => 'equino',
+                        'a' => 'asinino',
+                        'm' => 'muar',
+                        default => self::casar($valor, Animal::ESPECIES),
+                    };
                     if ($valor !== '' && $cod === null) {
                         $avisos[] = "Linha {$numeroLinha}: espécie \"{$valor}\" não reconhecida — usado Equino.";
                     }
@@ -392,8 +399,9 @@ class ImportacaoTropa
                     break;
 
                 case 'situacao':
-                    // Em branco vira sempre Ativo (pedido do Bruno). Valor não reconhecido mantém o atual do animal.
-                    $cod = self::casar($valor, Animal::SITUACOES);
+                    // Em branco vira sempre Ativo (pedido do Bruno). "Vivo" também conta como Ativo.
+                    // Valor não reconhecido mantém o atual do animal.
+                    $cod = self::normalizar($valor) === 'vivo' ? 'ativo' : self::casar($valor, Animal::SITUACOES);
                     if ($valor === '') {
                         $dados['situacao'] = 'ativo';
                     } elseif ($cod !== null) {
@@ -422,16 +430,19 @@ class ImportacaoTropa
             }
         }
 
-        // Preenchimentos automáticos (iguais ao cadastro individual), só quando a célula veio em branco:
+        // Nomes 100% em MAIÚSCULAS (como no cadastro individual) e preenchimento do que faltou:
         //  - Nome de registro em branco copia o nome; Apelido em branco recebe o primeiro nome.
-        $nome = trim((string) ($dados['nome'] ?? ''));
-        if ($nome !== '') {
-            if (empty($dados['nome_registro'])) {
-                $dados['nome_registro'] = mb_substr($nome, 0, 150);
-            }
+        $nome = Texto::maiusculas(trim((string) ($dados['nome'] ?? '')));
+        if ($nome !== null && $nome !== '') {
+            $dados['nome'] = mb_substr($nome, 0, 120);
+            $dados['nome_registro'] = empty($dados['nome_registro'])
+                ? mb_substr($nome, 0, 150)
+                : mb_substr((string) Texto::maiusculas($dados['nome_registro']), 0, 150);
             if (empty($dados['apelido'])) {
                 $primeiro = preg_split('/\s+/', $nome)[0] ?? $nome;
                 $dados['apelido'] = mb_substr($primeiro, 0, 80);
+            } else {
+                $dados['apelido'] = mb_substr((string) Texto::maiusculas($dados['apelido']), 0, 80);
             }
         }
 
