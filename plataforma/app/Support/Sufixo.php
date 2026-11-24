@@ -13,11 +13,12 @@ class Sufixo
 
     public static function buscar(string $termo, string $associacao = 'ABCCMM', int $limite = 20): array
     {
+        $codigoLimpo = self::limparCodigo($termo);
         return DB::table('sufixo_associacao')
             ->where('associacao', $associacao)
-            ->where(function ($q) use ($termo) {
+            ->where(function ($q) use ($termo, $codigoLimpo) {
                 $q->where('sufixo', 'like', "%{$termo}%")
-                  ->orWhere('codigo', 'like', "%{$termo}%")
+                  ->orWhere('codigo', 'like', "%{$codigoLimpo}%")
                   ->orWhere('proprietario_nome', 'like', "%{$termo}%");
             })
             ->limit($limite)
@@ -25,11 +26,16 @@ class Sufixo
             ->toArray();
     }
 
+    public static function limparCodigo(string $codigo): string
+    {
+        return preg_replace('/\D/', '', trim($codigo));
+    }
+
     public static function porCodigo(string $codigo, string $associacao = 'ABCCMM'): ?object
     {
         return DB::table('sufixo_associacao')
             ->where('associacao', $associacao)
-            ->where('codigo', $codigo)
+            ->where('codigo', self::limparCodigo($codigo))
             ->first();
     }
 
@@ -55,7 +61,7 @@ class Sufixo
     {
         $n = 0;
         foreach ($linhas as $l) {
-            $codigo = trim($l['codigo'] ?? '');
+            $codigo = self::limparCodigo($l['codigo'] ?? '');
             $sufixo = Texto::maiusculas(trim($l['sufixo'] ?? ''));
             if (! $codigo || ! $sufixo) {
                 continue;
