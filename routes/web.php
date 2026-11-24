@@ -93,6 +93,7 @@ Route::middleware(['auth', 'haras'])->prefix('painel')->group(function () {
             Route::get('/animais-buscar-socio', [$p.'\AnimaisController', 'buscarSocio'])->name('animais.buscar-socio');
             Route::get('/animais-proximo-numero', [$p.'\AnimaisController', 'proximoNumero'])->name('animais.proximo-numero');
             Route::post('/animais-cadastro-rapido', [$p.'\AnimaisController', 'cadastroRapido'])->name('animais.cadastro-rapido');
+            Route::get('/animais-buscar-haras', [$p.'\AnimaisController', 'buscarHaras'])->name('animais.buscar-haras');
         });
 
         Route::middleware('permissao:reproducao')->group(function () use ($p) {

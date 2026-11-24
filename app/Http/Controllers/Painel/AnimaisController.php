@@ -11,6 +11,7 @@ use App\Support\FotosAnimal;
 use App\Support\Genealogia;
 use App\Support\ImportacaoTropa;
 use App\Support\Licenca;
+use App\Support\Geografia;
 use App\Support\Sociedade;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -235,6 +236,23 @@ class AnimaisController extends Controller
         return response()->json(['numero' => $proximo, 'ultimo' => $maior]);
     }
 
+    public function buscarHaras(Request $request)
+    {
+        $q = trim($request->input('q', ''));
+        if (strlen($q) < 2) {
+            return response()->json([]);
+        }
+
+        return response()->json(
+            \App\Models\Empresa::where('situacao', 'ativo')
+                ->where(function ($qb) use ($q) {
+                    $qb->where('nome', 'like', "%{$q}%")->orWhere('sufixo', 'like', "%{$q}%");
+                })
+                ->limit(10)->get(['id', 'nome', 'cidade', 'uf', 'municipio_id'])
+                ->map(fn ($e) => ['nome' => $e->nome, 'cidade' => $e->cidade, 'uf' => $e->uf, 'municipio_id' => $e->municipio_id])
+        );
+    }
+
     /** Busca de sócio pelo CPF ou CNPJ (JSON): diz se já tem cadastro no MinhaTropa e traz o nome. */
     public function buscarSocio(Request $request)
     {
@@ -422,9 +440,11 @@ class AnimaisController extends Controller
             'criador_nome' => ['nullable', 'string', 'max:150'],
             'criador_cidade' => ['nullable', 'string', 'max:100'],
             'criador_uf' => ['nullable', 'string', 'size:2'],
+            'criador_municipio_id' => ['nullable', 'integer'],
             'proprietario_nome' => ['nullable', 'string', 'max:150'],
             'proprietario_cidade' => ['nullable', 'string', 'max:100'],
             'proprietario_uf' => ['nullable', 'string', 'size:2'],
+            'proprietario_municipio_id' => ['nullable', 'integer'],
             'registro' => ['nullable', 'string', 'max:60'],
             'registro_associacao' => ['nullable', Rule::in(array_keys(Animal::ASSOCIACOES))],
             'id_associacao' => ['nullable', 'string', 'max:30'],
@@ -460,6 +480,8 @@ class AnimaisController extends Controller
             $r = preg_replace('/\D/', '', $dados['registro']);
             $dados['registro'] = $r !== '' ? ltrim($r, '0') ?: '0' : '';
         }
+        $dados = Geografia::colunas($dados, 'criador_');
+        $dados = Geografia::colunas($dados, 'proprietario_');
 
         return $dados;
     }
