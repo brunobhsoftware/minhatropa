@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\Profissional;
 use App\Models\Usuario;
 use App\Support\Auditoria;
 use App\Support\HarasAtual;
@@ -10,10 +11,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
-/**
- * Login (/entrar). A pessoa escolhe o ambiente: o painel do Haras / Fazenda ou o ambiente do profissional.
- * A conta é a mesma; muda só para onde ela vai depois de entrar. 5 senhas erradas bloqueiam por 15 minutos.
- */
 class EntrarController extends Controller
 {
     public function create()
@@ -23,18 +20,22 @@ class EntrarController extends Controller
 
     public function store(Request $request)
     {
-        $dados = $request->validate(['email' => ['required', 'email:filter'], 'senha' => ['required', 'string'], 'ambiente' => ['nullable', 'in:haras,profissional']]);
-        $voltar = ['email', 'ambiente'];
-        $usuario = Usuario::where('email', mb_strtolower(trim($dados['email'])))->first();
-        $erro = ['email' => 'E-mail ou senha incorretos.'];
+        $dados = $request->validate([
+            'login' => ['required', 'string', 'max:200'],
+            'senha' => ['required', 'string'],
+        ]);
+
+        $login = trim($dados['login']);
+        $usuario = $this->encontrarUsuario($login);
+        $erro = ['login' => 'CPF/e-mail ou senha incorretos.'];
 
         if (! $usuario || ! $usuario->ativo || ! $usuario->senha_hash) {
-            return back()->withInput($request->only($voltar))->withErrors($erro);
+            return back()->withInput($request->only('login'))->withErrors($erro);
         }
         if ($usuario->bloqueado_ate && $usuario->bloqueado_ate->isFuture()) {
             $min = (int) ceil(now()->diffInSeconds($usuario->bloqueado_ate) / 60);
 
-            return back()->withInput($request->only($voltar))->withErrors(['email' => "Acesso bloqueado por excesso de tentativas. Tente de novo em {$min} min."]);
+            return back()->withInput($request->only('login'))->withErrors(['login' => "Acesso bloqueado por excesso de tentativas. Tente de novo em {$min} min."]);
         }
         if (! Hash::check($dados['senha'], $usuario->senha_hash)) {
             $usuario->tentativas_login++;
@@ -44,27 +45,15 @@ class EntrarController extends Controller
             }
             $usuario->save();
 
-            return back()->withInput($request->only($voltar))->withErrors($erro);
+            return back()->withInput($request->only('login'))->withErrors($erro);
         }
 
         $usuario->forceFill(['tentativas_login' => 0, 'bloqueado_ate' => null, 'ultimo_login_em' => now()])->save();
         Auth::login($usuario);
         $request->session()->regenerate();
-        Auditoria::registrar('usuario.entrar', $usuario, null, ['email' => $usuario->email]);
+        Auditoria::registrar('usuario.entrar', $usuario, null, ['login' => $login]);
 
-        if (($dados['ambiente'] ?? 'haras') === 'profissional') {
-            return redirect()->route('profissional.inicio');
-        }
-        $temHaras = HarasAtual::disponiveis($usuario)->isNotEmpty();
-        if ($usuario->admin_plataforma && ! $temHaras) {
-            return redirect()->route('admin.inicio');
-        }
-        // Sem nenhuma propriedade para abrir, o lugar da pessoa é o ambiente do profissional.
-        if (! $temHaras) {
-            return redirect()->route('profissional.inicio');
-        }
-
-        return redirect()->intended(route('painel'));
+        return $this->redirecionar($usuario);
     }
 
     public function destroy(Request $request)
@@ -74,5 +63,37 @@ class EntrarController extends Controller
         $request->session()->regenerateToken();
 
         return redirect()->route('entrar')->with('ok', 'Você saiu da sua conta.');
+    }
+
+    private function encontrarUsuario(string $login): ?Usuario
+    {
+        $soDigitos = preg_replace('/\D/', '', $login);
+
+        // CPF: 11 dígitos numéricos (com ou sem máscara)
+        if (strlen($soDigitos) === 11) {
+            $profissional = Profissional::where('cpf', $soDigitos)->first();
+            if ($profissional && $profissional->usuario_id) {
+                return Usuario::find($profissional->usuario_id);
+            }
+
+            return null;
+        }
+
+        // E-mail
+        return Usuario::where('email', mb_strtolower($login))->first();
+    }
+
+    private function redirecionar(Usuario $usuario)
+    {
+        $temHaras = HarasAtual::disponiveis($usuario)->isNotEmpty();
+
+        if ($temHaras) {
+            return redirect()->intended(route('painel'));
+        }
+        if ($usuario->admin_plataforma) {
+            return redirect()->route('admin.inicio');
+        }
+
+        return redirect()->route('profissional.inicio');
     }
 }

@@ -159,7 +159,7 @@ const mascara = (d) => d.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
   await linha.locator('button:has-text("Dar acesso")').click(); await c.waitForLoadState();
   conf((await c.content()).includes('agora entra com o e-mail pedro@exemplo.com.br como Tratador'), 'acesso externo concedido');
   await c.screenshot({ path: '/tmp/mt-equipe.png', fullPage: true });
-  const t = await pagina(b); await t.goto(B + '/entrar'); await t.fill('[name=email]', 'pedro@exemplo.com.br'); await t.fill('[name=senha]', 'provisoria1'); await t.click('button:has-text("Entrar")'); await t.waitForLoadState();
+  const t = await pagina(b); await t.goto(B + '/entrar'); await t.fill('[name=login]', 'pedro@exemplo.com.br'); await t.fill('[name=senha]', 'provisoria1'); await t.click('button:has-text("Entrar")'); await t.waitForLoadState();
   conf(t.url() === B + '/painel', 'profissional entra com login próprio');
   h = await t.content();
   conf(h.includes('Fazenda Boa Esperança') && !h.includes('Plano e módulos') && !h.includes('animais ativos</b>'), 'tratador não vê plano/assinatura');
