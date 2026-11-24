@@ -144,7 +144,7 @@
                         @endforeach
                     </select>
                 </label>
-                <label class="campo"><span>ID do animal na associação</span><input name="id_associacao" value="{{ $v('id_associacao') }}" maxlength="30" placeholder="Ex.: 1083311"></label>
+                <input type="hidden" name="id_associacao" id="campoIdAssociacao" value="{{ $v('id_associacao') }}">
                 <label class="campo"><span>Microchip</span><input name="microchip" value="{{ $v('microchip') }}" maxlength="40"></label>
                 <label class="campo"><span>Peso (kg)</span><input type="number" step="0.1" name="peso_kg" value="{{ $v('peso_kg') }}" min="0" max="9999"></label>
                 <label class="campo"><span>Altura na cernelha (cm)</span><input type="number" step="0.1" name="altura_cm" value="{{ $v('altura_cm') }}" min="0" max="999"></label>

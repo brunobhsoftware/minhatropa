@@ -147,6 +147,7 @@ class AnimaisController extends Controller
         }
         $refs = Genealogia::processarReferencias($request->all(), $empresa->id, $request->user()->id);
         $animal = Animal::create($dados + $refs + ['empresa_id' => $empresa->id, 'criado_por' => $request->user()->id]);
+        $animal->promoverSeAdulto();
         $vinculados = Genealogia::vincularSeExistir($animal);
         Sociedade::salvar($animal, $socios, $request->user()->id);
         Auditoria::registrar('animal.criar', $animal, null, array_filter([
@@ -201,6 +202,7 @@ class AnimaisController extends Controller
         }
         $refs = Genealogia::processarReferencias($request->all(), $request->attributes->get('haras')->id, $request->user()->id);
         $animal->update($dados + $refs);
+        $animal->promoverSeAdulto();
         $vinculados = Genealogia::vincularSeExistir($animal);
         if (Sociedade::disponivel() && $request->has('sociedade')) {
             Sociedade::salvar($animal, $socios, $request->user()->id);
