@@ -34,6 +34,10 @@ class SufixosController extends Controller
         }
 
         $conteudo = file_get_contents($arquivo->getRealPath());
+        if (! mb_check_encoding($conteudo, 'UTF-8')) {
+            $conteudo = mb_convert_encoding($conteudo, 'UTF-8', 'Windows-1252');
+        }
+        $conteudo = preg_replace('/^\xEF\xBB\xBF/', '', $conteudo);
         $linhasTexto = array_filter(array_map('trim', explode("\n", str_replace("\r", '', $conteudo))));
 
         $cabecalho = null;
