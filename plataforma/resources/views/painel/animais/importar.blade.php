@@ -85,7 +85,8 @@
         <li><b>Não mexa na coluna "Código".</b> É ela que liga a linha ao animal: linha com código atualiza o animal; linha <b>sem código</b> (as que você acrescentar) cadastra um animal novo.</li>
         <li>Só o <b>Nome</b> é obrigatório. Os outros campos podem ficar em branco — e o sistema preenche sozinho o que der.</li>
         <li><b>Preenchimento automático quando a célula fica em branco:</b> Nome de registro recebe o próprio nome; Apelido recebe o primeiro nome; Espécie vira Equino; Situação vira Ativo.</li>
-        <li><b>Sexo:</b> aceita Macho/Fêmea ou só <b>M</b> / <b>F</b>.</li>
+        <li><b>Sexo:</b> aceita Macho/Fêmea ou só <b>M</b> / <b>F</b>. <b>Espécie:</b> aceita o nome ou a inicial <b>E</b> (equino), <b>A</b> (asinino), <b>M</b> (muar).</li>
+        <li><b>Nomes em MAIÚSCULAS:</b> Nome, Nome de registro e Apelido entram sempre em letra maiúscula — padrão único do sistema, não importa como você digitar.</li>
         <li><b>Raça:</b> aceita o nome por extenso ou a sigla — ex.: <b>MM</b> = Mangalarga Marchador, QM = Quarto de Milha, PSI = Puro Sangue Inglês. O que não for sigla conhecida entra como foi digitado.</li>
         <li>Nas demais colunas de lista (Categoria, Pelagem, Forma de aquisição, Associação), escreva o nome como aparece no sistema — maiúsculas e acentos não importam. O que não for reconhecido fica em branco e entra como aviso, sem perder a linha.</li>
         <li><b>Datas</b> no formato dia/mês/ano (ex.: 15/03/2021). <b>Sim/Não</b> nas colunas Castrado, DNA coletado e Registro definitivo. Valores em R$ com vírgula (ex.: 12.000,00).</li>
@@ -106,13 +107,13 @@
                             @case('data') Data (dia/mês/ano). @break
                             @case('bool') Sim ou Não. @break
                             @case('decimal') Número (ex.: 1.200,50). @break
-                            @case('especie') {{ implode(', ', \App\Models\Animal::ESPECIES) }} (em branco: Equino). @break
+                            @case('especie') {{ implode(', ', \App\Models\Animal::ESPECIES) }} — ou a inicial E / A / M (em branco: Equino). @break
                             @case('sexo') Macho ou Fêmea (também M ou F). @break
                             @case('raca') Nome da raça ou sigla (MM = Mangalarga Marchador). @break
                             @case('categoria') Garanhão, Matriz (Égua), Potro, Cavalo… @break
                             @case('pelagem') Nome da pelagem (fora da lista vira "Outra"). @break
                             @case('associacao') Sigla da associação (ABCCMM, ABQM, ABCCC…). @break
-                            @case('situacao') {{ implode(', ', \App\Models\Animal::SITUACOES) }} (em branco: Ativo). @break
+                            @case('situacao') {{ implode(', ', \App\Models\Animal::SITUACOES) }} ("Vivo" = Ativo; em branco: Ativo). @break
                             @case('forma') {{ implode(', ', \App\Models\Animal::FORMAS_AQUISICAO) }}. @break
                             @default Texto livre.
                         @endswitch

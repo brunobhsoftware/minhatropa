@@ -10,6 +10,7 @@ use App\Support\FotosAnimal;
 use App\Support\ImportacaoTropa;
 use App\Support\Licenca;
 use App\Support\Sociedade;
+use App\Support\Texto;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -135,7 +136,7 @@ class AnimaisController extends Controller
     public function store(Request $request)
     {
         $empresa = $request->attributes->get('haras');
-        $dados = $this->validar($request);
+        $dados = $this->padronizarNomes($this->validar($request));
         $request->validate(FotosAnimal::regras(), FotosAnimal::mensagens());
         $socios = Sociedade::validar($request, $empresa);
         // Só animal que entra no plantel ativo conta para a faixa (vendido, transferido e morto ficam de fora).
@@ -183,7 +184,7 @@ class AnimaisController extends Controller
     {
         $this->doHaras($request, $animal);
         $antes = $animal->getAttributes();
-        $dados = $this->validar($request);
+        $dados = $this->padronizarNomes($this->validar($request));
         $request->validate(FotosAnimal::regras(), FotosAnimal::mensagens());
         $socios = Sociedade::validar($request, $request->attributes->get('haras'));
         // Voltar um animal ao plantel ativo também respeita o limite da faixa.
@@ -311,6 +312,18 @@ class AnimaisController extends Controller
     private function doHaras(Request $request, Animal $animal): void
     {
         abort_unless($animal->empresa_id === $request->attributes->get('haras')->id && ! $animal->excluido_em, 404);
+    }
+
+    /** Nomes em MAIÚSCULAS (igual à importação): padrão único no sistema, sem cadastro sem padronização. */
+    private function padronizarNomes(array $dados): array
+    {
+        foreach (['nome', 'nome_registro', 'apelido'] as $campo) {
+            if (! empty($dados[$campo])) {
+                $dados[$campo] = Texto::maiusculas($dados[$campo]);
+            }
+        }
+
+        return $dados;
     }
 
     private function validar(Request $request): array
