@@ -59,9 +59,9 @@
                     {{-- Sufixo: verificação por confronto de dados --}}
                     <div id="blocoSufixo">
                         <h2 class="form-titulo" style="margin-top:1.5rem">Sufixo do Haras <small class="suave">(opcional)</small></h2>
-                        <p class="suave-form">O sufixo é o nome registrado na associação (ex.: DA AGROTEXAS). Para vincular, precisamos confirmar alguns dados.</p>
+                        <p class="suave-form">O sufixo é o nome registrado na associação (ex.: MINHA TROPA). Para vincular, precisamos confirmar alguns dados.</p>
                         <div class="campo-acao">
-                            <label class="campo" style="flex:1"><span>Informe o sufixo do Haras</span><input id="sufixoBusca" value="{{ old('sufixo') }}" maxlength="120" placeholder="Ex.: DA AGROTEXAS" autocomplete="off"></label>
+                            <label class="campo" style="flex:1"><span>Informe o sufixo do Haras</span><input id="sufixoBusca" value="{{ old('sufixo') }}" maxlength="120" placeholder="Ex.: MINHA TROPA" autocomplete="off"></label>
                             <button type="button" class="botao botao--contorno-escuro" id="btnVerificarSufixo">Verificar sufixo</button>
                         </div>
                         <div id="sufixoResultado" role="status" aria-live="polite" hidden></div>

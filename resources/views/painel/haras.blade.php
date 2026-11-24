@@ -31,7 +31,7 @@
                 <label class="campo"><span>Nome da fazenda *</span><input name="nome" value="{{ $v('nome') }}" required maxlength="150"></label>
                 <div class="campo"><span>Nome do Haras (sufixo)</span>
                     <div class="campo-com-botao">
-                        <input name="sufixo" id="campoSufixoNome" value="{{ $v('sufixo') }}" maxlength="120" placeholder="Ex.: DA AGROTEXAS" autocomplete="off">
+                        <input name="sufixo" id="campoSufixoNome" value="{{ $v('sufixo') }}" maxlength="120" placeholder="Ex.: MINHA TROPA" autocomplete="off">
                         <button type="button" class="botao botao--contorno botao--pequeno" id="btnVerificarSufixo">Verificar sufixo</button>
                     </div>
                     <small>O "sobrenome" dos animais na associação.</small>

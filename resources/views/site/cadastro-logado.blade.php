@@ -47,7 +47,7 @@
                     <label class="campo"><span>Razão social *</span><input name="razao_social" value="{{ old('razao_social') }}" maxlength="190"></label>
                 </div>
                 <label class="campo"><span>Nome da propriedade *</span><input name="haras" value="{{ old('haras') }}" required maxlength="150" placeholder="Ex.: Fazenda Boa Vista"></label>
-                <label class="campo"><span>Sufixo / nome do criatório <small class="suave">(opcional)</small></span><input name="sufixo" value="{{ old('sufixo') }}" maxlength="120" placeholder="Ex.: DA AGROTEXAS"><small>O "sobrenome" dos animais na associação. Pode informar depois.</small></label>
+                <label class="campo"><span>Sufixo / nome do criatório <small class="suave">(opcional)</small></span><input name="sufixo" value="{{ old('sufixo') }}" maxlength="120" placeholder="Ex.: MINHA TROPA"><small>O "sobrenome" dos animais na associação. Pode informar depois.</small></label>
                 <div class="campos-2"><x-uf-municipio obrigatorio /></div>
                 <label class="campo"><span>Quantidade de animais *</span><select name="quantidade_animais" required><option value="">Selecione</option>@foreach (\App\Models\Empresa::QUANTIDADES as $q)<option @selected(old('quantidade_animais') === $q)>{{ $q }}</option>@endforeach</select></label>
                 <label class="aceite"><input type="checkbox" name="aceite" value="1" @checked(old('aceite'))> Entendo que o plano gratuito inclui a configuração da propriedade e o cadastro de {{ $limiteGratis ? 'até '.$limiteGratis.' animais ativos' : 'animais dentro do limite gratuito' }}, e que para um plantel maior preciso mudar de faixa.</label>
