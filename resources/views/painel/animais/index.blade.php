@@ -32,27 +32,73 @@
         <select name="categoria" style="width:auto"><option value="">Todas as categorias</option>@foreach (\App\Models\Animal::CATEGORIAS as $k => $t)<option value="{{ $k }}" @selected(request('categoria') === $k)>{{ $t }}</option>@endforeach</select>
         <button class="botao botao--primario botao--pequeno">Filtrar</button>
     </form>
-    <div class="tabela-rolagem"><table class="tabela">
-        <thead><tr><th>Nome</th>@if($v5)<th>Espécie</th>@endif<th>Categoria</th><th>Raça</th><th>Pelagem</th><th>Idade</th>@if($v5)<th>Situação</th>@endif</tr></thead>
-        <tbody>
-        @forelse ($animais as $a)
-            <tr>
-                <td><span class="animal-nome">@php $ft = $fotos->get($a->id); @endphp
-                    @if ($ft)<img class="animal-mini" src="{{ route('painel.animais.foto', [$a, $ft->posicao]) }}?v={{ $ft->id }}-{{ $ft->bytes }}" alt="" width="36" height="48" loading="lazy" data-mini>@elseif (\App\Support\FotosAnimal::disponivel())<span class="animal-mini animal-mini--vazia" aria-hidden="true"></span>@endif
-                    @if($v5)<a href="{{ route('painel.animais.show', $a) }}"><b>{{ $a->nome }}</b></a>@else <b>{{ $a->nome }}</b>@endif</span></td>
-                @if($v5)<td>{{ $a->especieTexto() }}</td>@endif
-                <td>{{ $a->categoriaTexto() }}</td>
-                <td>{{ $a->raca ?: '—' }}</td>
-                <td>@if($v5){{ $a->pelagemTexto() }}@else{{ $a->pelagem ?: '—' }}@endif</td>
-                <td>{{ $a->data_nascimento ? \Carbon\Carbon::parse($a->data_nascimento)->age . ' anos' : '—' }}</td>
-                @if($v5)<td><span class="selo selo--{{ $a->situacao }}">{{ $a->situacaoTexto() }}</span></td>@endif
-            </tr>
-        @empty
-            <tr><td colspan="{{ $v5 ? 7 : 5 }}"><div class="vazio"><p>Nenhum animal cadastrado.</p>@if ($podeCadastrar && \App\Support\Permissao::pode($papel, 'animais', true))<a href="{{ route('painel.animais.novo') }}" class="botao botao--primario botao--pequeno">Cadastrar o primeiro</a>@endif</div></td></tr>
-        @endforelse
-        </tbody>
-    </table></div>
+    @php
+        $podeEditar = \App\Support\Permissao::pode($papel, 'animais', true);
+        $colspan = ($v5 ? 7 : 5) + ($podeEditar ? 1 : 0);
+    @endphp
+    <form method="post" action="{{ route('painel.animais.excluir-varios') }}" data-tropa onsubmit="return confirmarExclusaoTropa(this);">
+        @csrf
+        @if ($podeEditar)
+        <div class="barra-selecao" data-barra hidden>
+            <span><b data-contagem>0</b> selecionado(s)</span>
+            <button type="submit" class="botao botao--escuro botao--pequeno"><x-icone nome="lixeira" :tamanho="16" /> Excluir selecionados</button>
+            <button type="button" class="botao botao--contorno botao--pequeno" data-limpar>Limpar</button>
+        </div>
+        @endif
+        <div class="tabela-rolagem"><table class="tabela">
+            <thead><tr>@if ($podeEditar)<th style="width:34px"><input type="checkbox" data-marcar-todos aria-label="Selecionar todos"></th>@endif<th>Nome</th>@if($v5)<th>Espécie</th>@endif<th>Categoria</th><th>Raça</th><th>Pelagem</th><th>Idade</th>@if($v5)<th>Situação</th>@endif</tr></thead>
+            <tbody>
+            @forelse ($animais as $a)
+                <tr>
+                    @if ($podeEditar)<td><input type="checkbox" name="uuids[]" value="{{ $a->uuid }}" data-item aria-label="Selecionar {{ $a->nome }}"></td>@endif
+                    <td><span class="animal-nome">@php $ft = $fotos->get($a->id); @endphp
+                        @if ($ft)<img class="animal-mini" src="{{ route('painel.animais.foto', [$a, $ft->posicao]) }}?v={{ $ft->id }}-{{ $ft->bytes }}" alt="" width="36" height="48" loading="lazy" data-mini>@elseif (\App\Support\FotosAnimal::disponivel())<span class="animal-mini animal-mini--vazia" aria-hidden="true"></span>@endif
+                        @if($v5)<a href="{{ route('painel.animais.show', $a) }}"><b>{{ $a->nome }}</b></a>@else <b>{{ $a->nome }}</b>@endif</span></td>
+                    @if($v5)<td>{{ $a->especieTexto() }}</td>@endif
+                    <td>{{ $a->categoriaTexto() }}</td>
+                    <td>{{ $a->raca ?: '—' }}</td>
+                    <td>@if($v5){{ $a->pelagemTexto() }}@else{{ $a->pelagem ?: '—' }}@endif</td>
+                    <td>{{ $a->data_nascimento ? \Carbon\Carbon::parse($a->data_nascimento)->age . ' anos' : '—' }}</td>
+                    @if($v5)<td><span class="selo selo--{{ $a->situacao }}">{{ $a->situacaoTexto() }}</span></td>@endif
+                </tr>
+            @empty
+                <tr><td colspan="{{ $colspan }}"><div class="vazio"><p>Nenhum animal cadastrado.</p>@if ($podeCadastrar && $podeEditar)<a href="{{ route('painel.animais.novo') }}" class="botao botao--primario botao--pequeno">Cadastrar o primeiro</a>@endif</div></td></tr>
+            @endforelse
+            </tbody>
+        </table></div>
+    </form>
 </section>
+@if ($podeEditar)
+<style>
+    .barra-selecao { display:flex; align-items:center; gap:.75rem; flex-wrap:wrap; margin-bottom:.75rem; padding:.5rem .75rem; background:var(--cinza-claro,#f3f4f6); border-radius:8px; }
+    .tabela td input[type=checkbox], .tabela th input[type=checkbox] { width:18px; height:18px; }
+</style>
+<script>
+function confirmarExclusaoTropa(form){
+    var n = form.querySelectorAll('[data-item]:checked').length;
+    if(!n){ alert('Selecione ao menos um animal para excluir.'); return false; }
+    return confirm('Excluir ' + n + (n>1 ? ' animais' : ' animal') + ' do plantel? Eles saem da lista (permanecem no histórico).');
+}
+(function(){
+    var form = document.querySelector('[data-tropa]');
+    if(!form) return;
+    var todos = form.querySelector('[data-marcar-todos]');
+    var itens = Array.prototype.slice.call(form.querySelectorAll('[data-item]'));
+    var barra = form.querySelector('[data-barra]');
+    var contagem = form.querySelector('[data-contagem]');
+    function atualiza(){
+        var n = itens.filter(function(c){ return c.checked; }).length;
+        if(contagem) contagem.textContent = n;
+        if(barra) barra.hidden = (n === 0);
+        if(todos) todos.checked = (n > 0 && n === itens.length);
+    }
+    if(todos) todos.addEventListener('change', function(){ itens.forEach(function(c){ c.checked = todos.checked; }); atualiza(); });
+    itens.forEach(function(c){ c.addEventListener('change', atualiza); });
+    var limpar = form.querySelector('[data-limpar]');
+    if(limpar) limpar.addEventListener('click', function(){ itens.forEach(function(c){ c.checked = false; }); if(todos) todos.checked = false; atualiza(); });
+})();
+</script>
+@endif
 @if ($sociedades->isNotEmpty())
 <section class="cartao" style="margin-top:1.5rem" data-sociedades>
     <h2>Animais em sociedade em outras propriedades</h2>

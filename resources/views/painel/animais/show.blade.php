@@ -18,6 +18,12 @@
         @endif
         <a href="{{ route('painel.consulta.show', $animal) }}" class="botao botao--contorno">Ocorrências</a>
         <a href="{{ route('painel.animais.editar', $animal) }}" class="botao botao--primario"><x-icone nome="editar" :tamanho="16" /> Editar</a>
+        @if (\App\Support\Permissao::pode($papel, 'animais', true))
+        <form method="post" action="{{ route('painel.animais.excluir', $animal) }}" onsubmit="return confirm('Excluir este animal do plantel? Ele sai da lista (permanece no histórico).');">
+            @csrf @method('delete')
+            <button type="submit" class="botao botao--escuro"><x-icone nome="lixeira" :tamanho="16" /> Excluir</button>
+        </form>
+        @endif
     </div>
 </div>
 

@@ -83,6 +83,9 @@ Route::middleware(['auth', 'haras'])->prefix('painel')->group(function () {
             Route::get('/animais/{animal}/foto/{posicao}', [$p.'\AnimaisController', 'foto'])->name('animais.foto')->whereIn('posicao', ['1', '2', '3']);
             Route::put('/animais/{animal}', [$p.'\AnimaisController', 'update'])->name('animais.salvar');
             Route::put('/animais/{animal}/morte', [$p.'\AnimaisController', 'morte'])->name('animais.morte');
+            // Exclusão (lógica) de animal: uma ficha, ou vários de uma vez (ex.: importação no Haras errado)
+            Route::delete('/animais/{animal}', [$p.'\AnimaisController', 'destroy'])->name('animais.excluir');
+            Route::post('/animais-excluir', [$p.'\AnimaisController', 'excluirVarios'])->name('animais.excluir-varios');
             Route::get('/animais-buscar-genitor', [$p.'\AnimaisController', 'buscarGenitor'])->name('animais.buscar-genitor');
             Route::get('/animais-buscar-socio', [$p.'\AnimaisController', 'buscarSocio'])->name('animais.buscar-socio');
             Route::get('/animais-proximo-numero', [$p.'\AnimaisController', 'proximoNumero'])->name('animais.proximo-numero');

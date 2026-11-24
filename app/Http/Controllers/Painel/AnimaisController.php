@@ -260,6 +260,44 @@ class AnimaisController extends Controller
         return redirect()->route('painel.animais.show', $animal)->with('ok', "Óbito de {$animal->nome} registrado.");
     }
 
+    /** Exclusão lógica de um animal (cadastro errado). Fica fora da lista e não conta na faixa; permanece no histórico. */
+    public function destroy(Request $request, Animal $animal)
+    {
+        $this->doHaras($request, $animal);
+        $antes = $animal->getAttributes();
+        $animal->excluido_em = now('UTC');
+        $animal->save();
+        Auditoria::registrar('animal.excluir', $animal, $antes);
+        Licenca::esquecerFaixas();
+
+        return redirect()->route('painel.animais')->with('ok', "{$animal->nome} excluído(a) do plantel.");
+    }
+
+    /** Exclusão em massa pela lista (ex.: tropa importada no Haras errado). Só animais desta propriedade. */
+    public function excluirVarios(Request $request)
+    {
+        $empresa = $request->attributes->get('haras');
+        $request->validate(
+            ['uuids' => ['required', 'array', 'min:1'], 'uuids.*' => ['string']],
+            ['uuids.required' => 'Selecione ao menos um animal para excluir.']
+        );
+        $animais = Animal::where('empresa_id', $empresa->id)->whereNull('excluido_em')
+            ->whereIn('uuid', $request->input('uuids'))->get();
+        $n = 0;
+        foreach ($animais as $animal) {
+            $antes = $animal->getAttributes();
+            $animal->excluido_em = now('UTC');
+            $animal->save();
+            Auditoria::registrar('animal.excluir', $animal, $antes);
+            $n++;
+        }
+        Licenca::esquecerFaixas();
+
+        $msg = $n === 0 ? 'Nenhum animal foi excluído.' : ($n === 1 ? '1 animal excluído do plantel.' : "{$n} animais excluídos do plantel.");
+
+        return redirect()->route('painel.animais')->with($n > 0 ? 'ok' : 'aviso', $msg);
+    }
+
     public function buscarGenitor(Request $request)
     {
         $q = $request->input('q', '');
