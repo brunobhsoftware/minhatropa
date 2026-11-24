@@ -215,6 +215,7 @@ input[type=checkbox],input[type=radio]{width:auto}
 .btn-cadastro-rapido{display:inline-flex;align-items:center;gap:6px;background:#fffbe6;border:1px solid #ffd60a;color:#92400e;padding:7px 16px;border-radius:8px;font-size:.85rem;font-weight:600;cursor:pointer;transition:background .15s}
 .btn-cadastro-rapido:hover{background:#fef3c7}
 .cadastro-rapido-painel{background:#fffbe6;border:1px solid #ffd60a;border-radius:10px;padding:16px;margin-bottom:1.2rem}
+.menu-animal{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 
 /* Grade de opções (checkboxes de raças, marchas, finalidades) */
 .grade-opcoes{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px 16px}

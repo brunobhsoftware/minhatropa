@@ -390,7 +390,7 @@ class AnimaisController extends Controller
     private function validar(Request $request): array
     {
         if (! Esquema::temV005()) {
-            return $request->validate([
+            return $this->limparRegistro($request->validate([
                 'nome' => ['required', 'string', 'max:120'],
                 'sexo' => ['nullable', Rule::in(['macho', 'femea'])],
                 'categoria' => ['nullable', Rule::in(array_keys(Animal::CATEGORIAS))],
@@ -402,10 +402,10 @@ class AnimaisController extends Controller
                 'pai' => ['nullable', 'string', 'max:120'],
                 'mae' => ['nullable', 'string', 'max:120'],
                 'observacoes' => ['nullable', 'string', 'max:5000'],
-            ]);
+            ]));
         }
 
-        return $request->validate([
+        return $this->limparRegistro($request->validate([
             'nome' => ['required', 'string', 'max:120'],
             'nome_registro' => ['nullable', 'string', 'max:150'],
             'apelido' => ['nullable', 'string', 'max:80'],
@@ -449,6 +449,16 @@ class AnimaisController extends Controller
             'situacao_data' => ['nullable', 'date'],
             'situacao_motivo' => ['nullable', 'string', 'max:255'],
             'observacoes' => ['nullable', 'string', 'max:5000'],
-        ]);
+        ]));
+    }
+
+    private function limparRegistro(array $dados): array
+    {
+        if (! empty($dados['registro'])) {
+            $r = preg_replace('/\D/', '', $dados['registro']);
+            $dados['registro'] = $r !== '' ? ltrim($r, '0') ?: '0' : '';
+        }
+
+        return $dados;
     }
 }
