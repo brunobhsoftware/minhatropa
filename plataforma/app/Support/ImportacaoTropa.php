@@ -348,16 +348,9 @@ class ImportacaoTropa
                     break;
 
                 case 'sexo':
-                    // Acha "macho"/"fêmea" em qualquer parte do texto (ex.: "PROVISÓRIO FÊMEA", "DEFINITIVO MACHO");
-                    // também aceita só M/F.
-                    $n = self::normalizar($valor);
-                    $cod = match (true) {
-                        str_contains($n, 'femea') => 'femea',
-                        str_contains($n, 'macho') => 'macho',
-                        $n === 'f' => 'femea',
-                        $n === 'm' => 'macho',
-                        default => null,
-                    };
+                    // Acha "macho"/"fêmea" em qualquer parte do texto (ex.: "PROVISÓRIO FÊMEA"); também aceita M/F.
+                    // A string combinada da associação pode ter sido colada no campo Raça: se o Sexo não resolver, procura lá.
+                    $cod = self::sexoDeTexto($valor) ?? self::sexoDeTexto($bruto['raca'] ?? '');
                     if ($valor !== '' && $cod === null) {
                         $avisos[] = "Linha {$numeroLinha}: sexo \"{$valor}\" não reconhecido — deixado em branco.";
                     }
@@ -365,7 +358,10 @@ class ImportacaoTropa
                     break;
 
                 case 'raca':
-                    $dados['raca'] = self::raca($valor);
+                    // Raça reconhecida no campo Raça; se não, tenta a sigla no início do campo Sexo (string combinada lá).
+                    // Nada reconhecido: fica o texto digitado no campo Raça.
+                    $rec = self::racaReconhecida($valor) ?? self::racaReconhecida($bruto['sexo'] ?? '');
+                    $dados['raca'] = $rec ?? (trim($valor) !== '' ? mb_substr(trim($valor), 0, 80) : null);
                     break;
 
                 case 'categoria':
@@ -470,11 +466,25 @@ class ImportacaoTropa
         return [$dados, $avisos];
     }
 
+    /** Sexo a partir de um texto qualquer: acha "macho"/"fêmea" em qualquer parte, ou M/F. Nulo se não achar. */
+    private static function sexoDeTexto(string $valor): ?string
+    {
+        $n = self::normalizar($valor);
+
+        return match (true) {
+            str_contains($n, 'femea') => 'femea',
+            str_contains($n, 'macho') => 'macho',
+            $n === 'f' => 'femea',
+            $n === 'm' => 'macho',
+            default => null,
+        };
+    }
+
     /**
-     * Raça: nome da lista, sigla exata, ou sigla no início do texto (ex.: "MM1 - PROVISÓRIO FÊMEA" → Mangalarga
-     * Marchador). O que não casar entra como foi digitado.
+     * Raça RECONHECIDA a partir de um texto: nome da lista, sigla exata, ou sigla no início
+     * (ex.: "MM1 - PROVISÓRIO FÊMEA" → Mangalarga Marchador). Nulo quando não reconhece (não devolve texto livre).
      */
-    private static function raca(string $valor): ?string
+    private static function racaReconhecida(string $valor): ?string
     {
         $valor = trim($valor);
         if ($valor === '') {
@@ -507,7 +517,7 @@ class ImportacaoTropa
             }
         }
 
-        return mb_substr($valor, 0, 80);
+        return null;
     }
 
     /** Associação padrão pela raça (MM → ABCCMM etc.), usada quando a coluna Associação vem em branco. */
