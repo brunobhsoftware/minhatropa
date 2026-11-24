@@ -28,7 +28,6 @@
      * 'ver' = false esconde o que o papel da pessoa não alcança (RBAC).
      */
     $menu = [
-        ['texto' => 'Início', 'icone' => 'painel', 'url' => route('painel'), 'ativo' => $rota('painel')],
         ['texto' => 'Meu Plantel', 'icone' => 'cavalo', 'ver' => $pode('animais'), 'itens' => [
             ['texto' => 'Animais do plantel', 'url' => route('painel.animais'), 'ativo' => $rota('painel.animais*') && ! $rota('painel.animais.novo')],
             ['texto' => 'Cadastrar animal', 'url' => route('painel.animais.novo'), 'ativo' => $rota('painel.animais.novo'), 'ver' => $pode('animais', true)],
@@ -84,7 +83,13 @@
 <div class="app">
     <aside class="menu-lateral" id="menu-lateral" aria-label="Menu {{ $haras->doRotulo() }}">
         <a href="{{ route('painel') }}" class="menu-lateral__marca"><img src="{{ asset('img/logo-minhatropa-branca.png') }}" alt="MinhaTropa" width="190" height="42"></a>
-        <div class="menu-lateral__haras"><small>{{ $haras->rotulo() }}</small><b>{{ $haras->nome }}</b>@if ($outros)<a href="{{ route('painel.escolher') }}">Trocar</a>@endif</div>
+        <div class="menu-lateral__haras">
+            <small>{{ $haras->rotulo() }}</small>
+            <a href="{{ route('painel') }}" style="color:inherit;text-decoration:none"><b>{{ $haras->nome }}</b></a>
+            <span class="menu-lateral__haras-acoes">
+                <a href="{{ route('painel.haras') }}" title="Editar cadastro">Editar</a>@if ($outros)<a href="{{ route('painel.escolher') }}">Trocar</a>@endif
+            </span>
+        </div>
         @include('painel.partes.menu', ['itensMenu' => $menu])
         <div class="menu-lateral__grupo">Configuração</div>
         @include('painel.partes.menu', ['itensMenu' => $configuracao])
