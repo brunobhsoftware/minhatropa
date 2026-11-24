@@ -72,11 +72,11 @@ class Sufixo
                     'sufixo' => $sufixo,
                     'proprietario_nome' => Texto::maiusculas(trim($l['proprietario_nome'] ?? '')),
                     'proprietario_documento' => Documento::digitos($l['proprietario_documento'] ?? ''),
-                    'proprietario_celular' => trim($l['proprietario_celular'] ?? ''),
-                    'proprietario_telefone' => trim($l['proprietario_telefone'] ?? ''),
-                    'uf' => strtoupper(trim($l['uf'] ?? '')),
-                    'cidade' => trim($l['cidade'] ?? ''),
-                    'cep' => Documento::digitos($l['cep'] ?? ''),
+                    'proprietario_celular' => self::limparCodigo($l['proprietario_celular'] ?? ''),
+                    'proprietario_telefone' => self::limparCodigo($l['proprietario_telefone'] ?? ''),
+                    'uf' => mb_strtoupper(trim($l['uf'] ?? '')),
+                    'cidade' => Texto::maiusculas(trim($l['cidade'] ?? '')),
+                    'cep' => self::limparCodigo($l['cep'] ?? ''),
                     'importado_em' => now('UTC'),
                 ]
             );
