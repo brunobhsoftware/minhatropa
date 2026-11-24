@@ -138,6 +138,9 @@ class PainelController extends Controller
                 $dados['razao_social'] = $titular->nome;
             }
         }
+        if (! empty($dados['sufixo_codigo'])) {
+            $dados['sufixo_codigo'] = \App\Support\Sufixo::limparCodigo($dados['sufixo_codigo']);
+        }
         $dados = PaginaPropriedade::colunas($request, $dados, $empresa);
         $antes = $empresa->getAttributes();
         $empresa->update(Geografia::colunas(Geografia::colunas($dados), 'corresp_'));
