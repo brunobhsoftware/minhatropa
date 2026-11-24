@@ -10,6 +10,7 @@ Route::post('/contato', [SiteController::class, 'contato'])->name('contato')->mi
 Route::get('/cadastro', [\App\Http\Controllers\Site\CadastroController::class, 'create'])->name('cadastro');
 Route::post('/cadastro', [\App\Http\Controllers\Site\CadastroController::class, 'store'])->name('cadastro.enviar')->middleware('throttle:10,10,cadastro');
 Route::post('/cadastro/consultar-cpf', [\App\Http\Controllers\Site\CadastroController::class, 'consultarCpf'])->name('cadastro.consultar-cpf')->middleware('throttle:12,1,cadastro-cpf');
+Route::post('/cadastro/verificar-sufixo', [\App\Http\Controllers\Site\CadastroController::class, 'verificarSufixo'])->name('cadastro.verificar-sufixo')->middleware('throttle:12,1,cadastro-sufixo');
 Route::get('/cadastro/profissional', [\App\Http\Controllers\Site\CadastroController::class, 'profissional'])->name('cadastro.profissional');
 Route::post('/cadastro/profissional', [\App\Http\Controllers\Site\CadastroController::class, 'salvarProfissional'])->name('cadastro.profissional.enviar')->middleware('throttle:5,10,cadastro-profissional');
 // Municípios de uma UF (IBGE) para o seletor em cascata UF → Município

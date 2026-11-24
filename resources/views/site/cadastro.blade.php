@@ -56,7 +56,31 @@
                         <label class="campo"><span>Razão social *</span><input name="razao_social" value="{{ old('razao_social') }}" maxlength="190"></label>
                     </div>
                     <label class="campo"><span>Nome da propriedade *</span><input name="haras" value="{{ old('haras') }}" required maxlength="150" placeholder="Ex.: Fazenda Boa Vista"><small data-so="cnpj" @if ($tit !== 'cnpj') hidden @endif>Nome fantasia: é como a propriedade aparece no sistema.</small></label>
-                    <label class="campo"><span>Sufixo / nome do criatório <small class="suave">(opcional)</small></span><input name="sufixo" value="{{ old('sufixo') }}" maxlength="120" placeholder="Ex.: DA AGROTEXAS"><small>O "sobrenome" dos animais na associação. Pode informar depois.</small></label>
+                    {{-- Sufixo: verificação por confronto de dados --}}
+                    <div id="blocoSufixo">
+                        <h2 class="form-titulo" style="margin-top:1.5rem">Sufixo do Haras <small class="suave">(opcional)</small></h2>
+                        <p class="suave-form">O sufixo é o nome registrado na associação (ex.: DA AGROTEXAS). Para vincular, precisamos confirmar alguns dados.</p>
+                        <div class="campo-acao">
+                            <label class="campo" style="flex:1"><span>Informe o sufixo do Haras</span><input id="sufixoBusca" value="{{ old('sufixo') }}" maxlength="120" placeholder="Ex.: DA AGROTEXAS" autocomplete="off"></label>
+                            <button type="button" class="botao botao--contorno-escuro" id="btnVerificarSufixo">Verificar sufixo</button>
+                        </div>
+                        <div id="sufixoResultado" role="status" aria-live="polite" hidden></div>
+                        {{-- Campos de confronto (aparecem quando o sufixo é encontrado na base) --}}
+                        <div id="sufixoConfronto" hidden style="margin-top:1rem">
+                            <p class="suave-form">Para confirmar que o sufixo é seu, informe os dados do proprietário registrado na associação:</p>
+                            <div class="campos-2">
+                                <label class="campo"><span>Celular do proprietário *</span><input id="sufixoCelular" type="tel" maxlength="30" placeholder="(00) 00000-0000" autocomplete="off"></label>
+                                <label class="campo"><span>Nome completo do proprietário *</span><input id="sufixoNome" maxlength="200" placeholder="Conforme registrado na associação" autocomplete="off"></label>
+                            </div>
+                            <button type="button" class="botao botao--contorno-escuro" id="btnConfirmarSufixo">Confirmar dados</button>
+                            <div id="sufixoConfirmacao" role="status" aria-live="polite" hidden style="margin-top:.5rem"></div>
+                        </div>
+                        {{-- Campos hidden que vão no POST --}}
+                        <input type="hidden" name="sufixo" id="campoSufixo" value="{{ old('sufixo') }}">
+                        <input type="hidden" name="sufixo_codigo" id="campoSufixoCodigo" value="">
+                        <input type="hidden" name="sufixo_associacao_id" id="campoSufixoAssocId" value="">
+                    </div>
+
                     <div class="campos-2">
                         <x-uf-municipio obrigatorio />
                     </div>
@@ -161,6 +185,74 @@ document.addEventListener('DOMContentLoaded', function () {
   botao.addEventListener('click', function () { consultado = ''; consultar(); });
   ajustar();
 });
+
+// Verificação do sufixo por confronto de dados
+(function () {
+  var busca = document.getElementById('sufixoBusca'), btn = document.getElementById('btnVerificarSufixo');
+  var resultado = document.getElementById('sufixoResultado'), confronto = document.getElementById('sufixoConfronto');
+  var celular = document.getElementById('sufixoCelular'), nome = document.getElementById('sufixoNome');
+  var btnConfirmar = document.getElementById('btnConfirmarSufixo'), confirmacao = document.getElementById('sufixoConfirmacao');
+  var campoSufixo = document.getElementById('campoSufixo'), campoCodigo = document.getElementById('campoSufixoCodigo'), campoAssocId = document.getElementById('campoSufixoAssocId');
+  if (!busca || !btn) return;
+  var token = function () { var t = document.querySelector('[name=_token]'); return t ? t.value : ''; };
+  var txt = function (t) { var d = document.createElement('div'); d.textContent = t == null ? '' : t; return d.innerHTML; };
+  var enviar = function (dados) {
+    return fetch('{{ route("cadastro.verificar-sufixo") }}', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': token() },
+      body: JSON.stringify(dados)
+    }).then(function (r) { if (r.status === 429) throw new Error('muitas'); return r.json(); });
+  };
+  var limpar = function () {
+    campoSufixo.value = ''; campoCodigo.value = ''; campoAssocId.value = '';
+    confronto.hidden = true; confirmacao.hidden = true; celular.value = ''; nome.value = '';
+  };
+
+  btn.addEventListener('click', function () {
+    var q = busca.value.trim();
+    if (q.length < 2) { resultado.innerHTML = '<p class="suave">Informe o sufixo do Haras.</p>'; resultado.hidden = false; return; }
+    limpar();
+    resultado.innerHTML = '<p class="suave">Verificando…</p>'; resultado.hidden = false;
+    enviar({ sufixo: q })
+      .then(function (d) {
+        if (d.situacao === 'encontrado') {
+          resultado.innerHTML = '<p class="consulta-cpf consulta-cpf--ok"><b>✓ Sufixo encontrado na base da associação.</b><br>' + txt(d.mensagem) + '</p>';
+          resultado.hidden = false;
+          confronto.hidden = false;
+        } else if (d.situacao === 'nao_encontrado') {
+          resultado.innerHTML = '<p class="consulta-cpf consulta-cpf--espera">' + txt(d.mensagem) + ' Você pode informar o sufixo mesmo assim — quando a base for atualizada ele será vinculado.</p>';
+          resultado.hidden = false;
+          campoSufixo.value = q.toUpperCase();
+        } else if (d.situacao === 'em_uso') {
+          resultado.innerHTML = '<p class="consulta-cpf consulta-cpf--erro"><b>' + txt(d.mensagem) + '</b></p>';
+          resultado.hidden = false;
+        } else {
+          resultado.innerHTML = '<p class="suave">' + txt(d.mensagem) + '</p>'; resultado.hidden = false;
+        }
+      })
+      .catch(function (e) { resultado.innerHTML = '<p class="consulta-cpf consulta-cpf--erro">' + (e.message === 'muitas' ? 'Muitas tentativas. Aguarde um minuto.' : 'Não foi possível verificar agora.') + '</p>'; resultado.hidden = false; });
+  });
+
+  btnConfirmar.addEventListener('click', function () {
+    var q = busca.value.trim(), c = celular.value.trim(), n = nome.value.trim();
+    if (!c || !n) { confirmacao.innerHTML = '<p class="consulta-cpf consulta-cpf--erro">Preencha o celular e o nome do proprietário.</p>'; confirmacao.hidden = false; return; }
+    confirmacao.innerHTML = '<p class="suave">Conferindo…</p>'; confirmacao.hidden = false;
+    enviar({ sufixo: q, celular: c, nome: n })
+      .then(function (d) {
+        if (d.situacao === 'confirmado') {
+          campoSufixo.value = d.sufixo; campoCodigo.value = d.codigo; campoAssocId.value = d.id;
+          busca.value = d.sufixo;
+          confronto.hidden = true;
+          resultado.innerHTML = '<p class="consulta-cpf consulta-cpf--ok"><b>✓ ' + txt(d.sufixo) + '</b> (código ' + txt(d.codigo) + ') — dados conferem! Sufixo vinculado.</p>';
+          confirmacao.hidden = true;
+        } else {
+          confirmacao.innerHTML = '<p class="consulta-cpf consulta-cpf--erro">' + txt(d.mensagem) + '</p>'; confirmacao.hidden = false;
+        }
+      })
+      .catch(function () { confirmacao.innerHTML = '<p class="consulta-cpf consulta-cpf--erro">Não foi possível verificar agora.</p>'; confirmacao.hidden = false; });
+  });
+
+  busca.addEventListener('input', function () { limpar(); resultado.hidden = true; });
+})();
 </script>
 @endif
 @endsection
