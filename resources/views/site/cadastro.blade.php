@@ -1,5 +1,5 @@
 @extends('layouts.site')
-@section('titulo', 'Cadastre seu Haras / Fazenda — MinhaTropa')
+@section('titulo', 'Cadastre sua propriedade — MinhaTropa')
 @section('conteudo')
 @php
     $limiteGratis = $gratis?->limite_max;
@@ -10,10 +10,10 @@
     <div class="cadastro__interno">
         <div class="cadastro__texto">
             <span class="sobretitulo">Comece grátis</span>
-            <h1>Cadastre seu Haras / Fazenda no MinhaTropa</h1>
+            <h1>Cadastre sua propriedade no MinhaTropa</h1>
             <p>Crie sua conta em poucos minutos, configure a propriedade e comece a cadastrar o seu plantel sem custo.</p>
             <ul class="lista-check">
-                <li>Configuração do Haras / Fazenda grátis</li>
+                <li>Configuração da propriedade grátis</li>
                 @if ($limiteGratis)<li>Até {{ $limiteGratis }} animais grátis, sem cartão de crédito</li>
                 <li>Plantel maior? Mude de faixa quando precisar</li>@endif
                 <li>Módulos adicionais para contratar quando quiser</li>
@@ -33,11 +33,7 @@
                 <div class="oculto" aria-hidden="true"><label>Site <input name="site" tabindex="-1" autocomplete="off"></label></div>
 
                 <h2 class="form-titulo">1. Sua propriedade</h2>
-                <fieldset class="escolha"><legend>Tipo de propriedade *</legend>
-                    @foreach (\App\Models\Empresa::TIPOS_CADASTRO as $valor => $texto)
-                    <label class="escolha__opcao"><input type="radio" name="tipo_propriedade" value="{{ $valor }}" @checked($tipo === $valor)> <span>{{ $texto }}</span></label>
-                    @endforeach
-                </fieldset>
+                <input type="hidden" name="tipo_propriedade" value="fazenda">
 
                 <h2 class="form-titulo">2. Titularidade</h2>
                 <fieldset class="escolha"><legend>A propriedade está em nome de *</legend>
@@ -59,7 +55,8 @@
                     <div data-so="cnpj" @if ($tit !== 'cnpj') hidden @endif>
                         <label class="campo"><span>Razão social *</span><input name="razao_social" value="{{ old('razao_social') }}" maxlength="190"></label>
                     </div>
-                    <label class="campo"><span id="rotuloNome">Nome {{ $tipo === 'fazenda' ? 'da Fazenda' : 'do Haras' }} *</span><input name="haras" value="{{ old('haras') }}" required maxlength="150" placeholder="Ex.: Haras Vista Alegre"><small data-so="cnpj" @if ($tit !== 'cnpj') hidden @endif>Nome fantasia: é como a propriedade aparece no sistema.</small></label>
+                    <label class="campo"><span>Nome da propriedade *</span><input name="haras" value="{{ old('haras') }}" required maxlength="150" placeholder="Ex.: Fazenda Boa Vista"><small data-so="cnpj" @if ($tit !== 'cnpj') hidden @endif>Nome fantasia: é como a propriedade aparece no sistema.</small></label>
+                    <label class="campo"><span>Sufixo / nome do criatório <small class="suave">(opcional)</small></span><input name="sufixo" value="{{ old('sufixo') }}" maxlength="120" placeholder="Ex.: DA AGROTEXAS"><small>O "sobrenome" dos animais na associação. Pode informar depois.</small></label>
                     <div class="campos-2">
                         <x-uf-municipio obrigatorio />
                     </div>
@@ -159,10 +156,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   f.querySelectorAll('[name=titularidade]').forEach(function (r) { r.addEventListener('change', function () { doc.value = ''; ajustar(); doc.focus(); }); });
-  f.querySelectorAll('[name=tipo_propriedade]').forEach(function (r) { r.addEventListener('change', function () {
-    document.getElementById('rotuloNome').textContent = 'Nome ' + (r.value === 'fazenda' ? 'da Fazenda' : 'do Haras') + ' *';
-    f.querySelector('[name=haras]').placeholder = r.value === 'fazenda' ? 'Ex.: Fazenda Boa Vista' : 'Ex.: Haras Vista Alegre';
-  }); });
+  // Tipo de propriedade fixo como fazenda — sem troca dinâmica
   doc.addEventListener('input', function () { mascarar(); if (titular() === 'cpf') { if (digitos(doc.value) !== consultado) { caixa.hidden = true; liberar(false); consultado = ''; } if (digitos(doc.value).length === 11) consultar(); } });
   botao.addEventListener('click', function () { consultado = ''; consultar(); });
   ajustar();

@@ -1,7 +1,7 @@
 @extends('layouts.painel')
 @section('titulo', $animal->exists ? $animal->nome : 'Novo animal')
 @section('conteudo')
-<div class="cabecalho"><div><p class="migalha"><a href="{{ route('painel.animais') }}">Meu Plantel</a> ›</p><h1>{{ $animal->exists ? $animal->nome : 'Novo animal' }}</h1></div></div>
+<div class="cabecalho"><div><p class="migalha"><a href="{{ route('painel.animais') }}">Meu Plantel</a> ›</p><h1>{{ $animal->exists ? $animal->nome : 'Novo animal' }}</h1>@if ($animal->exists && $animal->data_nascimento)<p class="suave">Idade: <b>{{ $animal->idade() }}</b></p>@endif</div></div>
 @php
     $v = fn ($c) => old($c, $animal->{$c});
     // Raça: lista pronta. As raças criadas pela propriedade (cadastro do Haras / Fazenda) vêm primeiro; "Outra" libera a digitação.
@@ -38,9 +38,22 @@
     <div class="acoes-form"><a href="{{ route('painel.animais') }}" class="botao botao--contorno">Cancelar</a><button class="botao botao--primario">{{ $animal->exists ? 'Salvar' : 'Cadastrar animal' }}</button></div>
 </form>
 @else
+    @if (! $animal->exists)
+    <section class="cartao" style="margin-bottom:1.5rem">
+        <h2>Cadastro rápido</h2>
+        <p class="suave" style="margin-bottom:.5rem">Cole os dados do animal (da ficha da associação) no campo abaixo. O sistema lê e preenche os campos automaticamente.</p>
+        <div style="display:flex;gap:8px;align-items:flex-start">
+            <textarea id="txtCadastroRapido" rows="4" style="flex:1;font-size:13px" placeholder="Cole aqui a string completa dos dados do animal (formato ABCCMM ou similar)…"></textarea>
+            <button type="button" class="botao botao--primario" id="btnCadastroRapido">Ler e preencher</button>
+        </div>
+        <small id="avisoCadastroRapido" class="suave" aria-live="polite"></small>
+    </section>
+    @endif
+
     <div class="abas-cadastro">
         <button type="button" class="aba-cadastro aba-cadastro--ativa" data-aba="identificacao">Identificação</button>
         <button type="button" class="aba-cadastro" data-aba="registro">Registro</button>
+        <button type="button" class="aba-cadastro" data-aba="trilha">Trilha da vida</button>
         <button type="button" class="aba-cadastro" data-aba="aquisicao">Aquisição</button>
         <button type="button" class="aba-cadastro" data-aba="genealogia">Genealogia</button>
         @if (\App\Support\Sociedade::disponivel())<button type="button" class="aba-cadastro" data-aba="sociedade" id="botaoSociedade" @if (old('sociedade', $socios->isNotEmpty() ? 'socios' : 'propria') !== 'socios') hidden @endif>Sociedade</button>@endif
@@ -96,7 +109,10 @@
                     </select>
                 </label>
                 <label class="campo"><span id="rotuloPelagemComp">Complemento da pelagem</span><input name="pelagem_complemento" id="campoPelagemComp" value="{{ $v('pelagem_complemento') }}" maxlength="80" placeholder="Variação ou detalhe"></label>
-                <label class="campo"><span>Data de nascimento</span><input type="date" name="data_nascimento" value="{{ old('data_nascimento', $animal->data_nascimento?->format('Y-m-d')) }}"></label>
+                <div class="campo"><span>Data de nascimento</span>
+                    <input type="date" name="data_nascimento" id="campoNascimento" value="{{ old('data_nascimento', $animal->data_nascimento?->format('Y-m-d')) }}">
+                    <small class="suave" id="idadeCalculada">@if ($animal->data_nascimento) Idade: {{ $animal->idade() }} @endif</small>
+                </div>
                 <div class="campo"><span>Nº plantel</span>
                     <div class="campo-com-botao">
                         <input name="numero_plantel" id="campoNumeroPlantel" value="{{ $v('numero_plantel') }}" maxlength="30" placeholder="Digite ou busque o próximo" aria-label="Nº plantel">
@@ -121,6 +137,7 @@
                         @endforeach
                     </select>
                 </label>
+                <label class="campo"><span>ID do animal na associação</span><input name="id_associacao" value="{{ $v('id_associacao') }}" maxlength="30" placeholder="Ex.: 1083311"></label>
                 <label class="campo"><span>Microchip</span><input name="microchip" value="{{ $v('microchip') }}" maxlength="40"></label>
                 <label class="campo"><span>Peso (kg)</span><input type="number" step="0.1" name="peso_kg" value="{{ $v('peso_kg') }}" min="0" max="9999"></label>
                 <label class="campo"><span>Altura na cernelha (cm)</span><input type="number" step="0.1" name="altura_cm" value="{{ $v('altura_cm') }}" min="0" max="999"></label>
@@ -129,6 +146,29 @@
                 <label class="opcao-check"><input type="hidden" name="registro_definitivo" value="0"><input type="checkbox" name="registro_definitivo" value="1" @checked(old('registro_definitivo', $animal->registro_definitivo))> Registro definitivo</label>
                 <label class="opcao-check"><input type="hidden" name="dna_coletado" value="0"><input type="checkbox" name="dna_coletado" value="1" @checked(old('dna_coletado', $animal->dna_coletado))> DNA coletado</label>
                 <label class="opcao-check"><input type="hidden" name="castrado" value="0"><input type="checkbox" name="castrado" value="1" @checked(old('castrado', $animal->castrado))> Castrado</label>
+            </div>
+        </section>
+    </div>
+
+    {{-- Trilha da vida: onde nasceu, quem criou, quem é dono --}}
+    <div class="painel-aba painel-aba--oculto" id="aba-trilha">
+        <section class="cartao"><h2>Trilha da vida</h2>
+            <p class="suave" style="margin-bottom:1rem">Histórico de onde o animal nasceu, quem criou e quem é o proprietário atual. Esses dados vêm automaticamente no cadastro rápido.</p>
+            <h3>Local de nascimento</h3>
+            <div class="grade-3">
+                <label class="campo campo--duplo"><span>Local / propriedade de nascimento</span><input name="local_nascimento" value="{{ $v('local_nascimento') }}" maxlength="200" placeholder="Ex.: Fazenda Santa Lúcia"></label>
+            </div>
+            <h3 style="margin-top:1.5rem">Criador</h3>
+            <div class="grade-3">
+                <label class="campo"><span>Nome do criador</span><input name="criador_nome" value="{{ $v('criador_nome') }}" maxlength="150"></label>
+                <label class="campo"><span>Cidade</span><input name="criador_cidade" value="{{ $v('criador_cidade') }}" maxlength="100"></label>
+                <label class="campo"><span>UF</span><input name="criador_uf" value="{{ $v('criador_uf') }}" maxlength="2" style="max-width:80px"></label>
+            </div>
+            <h3 style="margin-top:1.5rem">Proprietário atual</h3>
+            <div class="grade-3">
+                <label class="campo"><span>Nome do proprietário</span><input name="proprietario_nome" value="{{ $v('proprietario_nome') }}" maxlength="150"></label>
+                <label class="campo"><span>Cidade</span><input name="proprietario_cidade" value="{{ $v('proprietario_cidade') }}" maxlength="100"></label>
+                <label class="campo"><span>UF</span><input name="proprietario_uf" value="{{ $v('proprietario_uf') }}" maxlength="2" style="max-width:80px"></label>
             </div>
         </section>
     </div>
@@ -183,7 +223,8 @@
                     <div id="resultadoPai" style="margin-bottom:.5rem"></div>
                     <input type="hidden" name="pai_id" id="paiId" value="{{ $v('pai_id') }}">
                     <p id="paiSelecionado" class="suave" style="margin-bottom:.5rem">@if ($animal->pai_id && $animal->paiAnimal) Selecionado: <b>{{ $animal->paiAnimal->nome }}</b> <button type="button" onclick="document.getElementById('paiId').value='';this.parentNode.innerHTML=''" class="botao botao--contorno botao--pequeno">Limpar</button> @endif</p>
-                    <label class="campo"><span>Nome do pai (se não cadastrado)</span><input name="pai" value="{{ $v('pai') }}" maxlength="120"></label>
+                    <label class="campo"><span>Nome do pai (se não cadastrado)</span><input name="pai" id="campoPaiNome" value="{{ $v('pai') }}" maxlength="120"></label>
+                    <label class="campo" style="margin-top:.5rem"><span>Registro do pai</span><input name="pai_registro" value="{{ $v('pai_registro') }}" maxlength="60"></label>
                 </div>
                 <div>
                     <h3>Mãe (égua)</h3>
@@ -194,7 +235,8 @@
                     <div id="resultadoMae" style="margin-bottom:.5rem"></div>
                     <input type="hidden" name="mae_id" id="maeId" value="{{ $v('mae_id') }}">
                     <p id="maeSelecionada" class="suave" style="margin-bottom:.5rem">@if ($animal->mae_id && $animal->maeAnimal) Selecionada: <b>{{ $animal->maeAnimal->nome }}</b> <button type="button" onclick="document.getElementById('maeId').value='';this.parentNode.innerHTML=''" class="botao botao--contorno botao--pequeno">Limpar</button> @endif</p>
-                    <label class="campo"><span>Nome da mãe (se não cadastrada)</span><input name="mae" value="{{ $v('mae') }}" maxlength="120"></label>
+                    <label class="campo"><span>Nome da mãe (se não cadastrada)</span><input name="mae" id="campoPaiMae" value="{{ $v('mae') }}" maxlength="120"></label>
+                    <label class="campo" style="margin-top:.5rem"><span>Registro da mãe</span><input name="mae_registro" value="{{ $v('mae_registro') }}" maxlength="60"></label>
                 </div>
             </div>
         </section>
@@ -457,6 +499,73 @@ document.getElementById('btnBuscarPai').addEventListener('click', function() { b
 document.getElementById('btnBuscarMae').addEventListener('click', function() { buscarGenitor('femea', 'buscaMae', 'resultadoMae', 'maeId', 'maeSelecionada'); });
 document.getElementById('buscaPai').addEventListener('keydown', function(e) { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('btnBuscarPai').click(); } });
 document.getElementById('buscaMae').addEventListener('keydown', function(e) { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('btnBuscarMae').click(); } });
+
+// Cálculo de idade em tempo real
+(function () {
+    var campo = document.getElementById('campoNascimento'), label = document.getElementById('idadeCalculada');
+    if (!campo || !label) return;
+    function calcular() {
+        if (!campo.value) { label.textContent = ''; return; }
+        var d = new Date(campo.value + 'T00:00:00'), hoje = new Date(), diff = hoje - d;
+        if (isNaN(d.getTime()) || diff < 0) { label.textContent = ''; return; }
+        var anos = hoje.getFullYear() - d.getFullYear(), meses = hoje.getMonth() - d.getMonth(), dias = hoje.getDate() - d.getDate();
+        if (dias < 0) { meses--; }
+        if (meses < 0) { anos--; meses += 12; }
+        var partes = [];
+        if (anos > 0) partes.push(anos + ' ano' + (anos > 1 ? 's' : ''));
+        if (meses > 0) partes.push(meses + (meses === 1 ? ' mês' : ' meses'));
+        if (anos === 0 && dias > 0) partes.push(dias + ' dia' + (dias > 1 ? 's' : ''));
+        label.textContent = partes.length ? 'Idade: ' + partes.join(' e ') : 'Recém-nascido';
+    }
+    campo.addEventListener('change', calcular);
+    campo.addEventListener('input', calcular);
+})();
+
+// Cadastro rápido: cola a string e preenche os campos
+(function () {
+    var btn = document.getElementById('btnCadastroRapido'), txt = document.getElementById('txtCadastroRapido'), aviso = document.getElementById('avisoCadastroRapido');
+    if (!btn || !txt) return;
+    btn.addEventListener('click', function () {
+        var texto = txt.value.trim();
+        if (!texto) { aviso.textContent = 'Cole os dados do animal no campo.'; return; }
+        aviso.textContent = 'Lendo dados…'; btn.disabled = true;
+        fetch('{{ route("painel.animais.cadastro-rapido") }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': document.querySelector('[name=_token]').value },
+            body: JSON.stringify({ texto: texto })
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+            var a = d.animal || {}, pai = d.pai || {}, mae = d.mae || {}, cr = d.criador || {}, pr = d.proprietario || {};
+            var set = function (name, val) { if (!val) return; var el = document.querySelector('[name="' + name + '"]'); if (el && !el.value) el.value = val; };
+            // Animal
+            if (a.sexo) { var sel = document.querySelector('[name=sexo]'); if (sel) sel.value = a.sexo; }
+            if (a.data_nascimento) { var dc = document.getElementById('campoNascimento'); if (dc) { dc.value = a.data_nascimento; dc.dispatchEvent(new Event('change')); } }
+            set('id_associacao', a.id_associacao);
+            if (a.pelagem) { var sp = document.getElementById('selPelagem'); if (sp) { sp.value = a.pelagem; sp.dispatchEvent(new Event('change')); } }
+            // Pai
+            set('pai', pai.nome);
+            set('pai_registro', pai.registro);
+            // Mãe
+            set('mae', mae.nome);
+            set('mae_registro', mae.registro);
+            // Trilha da vida (criador e proprietário)
+            set('criador_nome', cr.nome);
+            set('criador_cidade', cr.cidade);
+            set('criador_uf', cr.uf);
+            if (cr.propriedade) set('local_nascimento', cr.propriedade);
+            set('proprietario_nome', pr.nome);
+            set('proprietario_cidade', pr.cidade);
+            set('proprietario_uf', pr.uf);
+            // Idade
+            var idadeTexto = a.idade_texto || '';
+            aviso.textContent = 'Dados preenchidos!' + (idadeTexto ? ' Idade informada: ' + idadeTexto : '') + ' Confira e ajuste o que precisar.';
+            aviso.style.color = '#067647';
+        })
+        .catch(function () { aviso.textContent = 'Não foi possível interpretar os dados. Confira o formato.'; aviso.style.color = '#b42318'; })
+        .finally(function () { btn.disabled = false; });
+    });
+})();
 </script>
 @endif
 @endsection
