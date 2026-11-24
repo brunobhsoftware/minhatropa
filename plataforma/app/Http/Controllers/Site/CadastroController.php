@@ -89,6 +89,70 @@ class CadastroController extends Controller
         ]);
     }
 
+    public function verificarSufixo(Request $request)
+    {
+        $sufixo = mb_strtoupper(trim($request->input('sufixo', '')));
+        if (mb_strlen($sufixo) < 2) {
+            return response()->json(['situacao' => 'invalido', 'mensagem' => 'Informe o sufixo do Haras.']);
+        }
+
+        if (! Esquema::temV018()) {
+            return response()->json(['situacao' => 'indisponivel', 'mensagem' => 'A base de sufixos ainda não está disponível.']);
+        }
+
+        $registro = DB::table('sufixo_associacao')
+            ->whereRaw('UPPER(sufixo) = ?', [$sufixo])
+            ->first();
+
+        if (! $registro) {
+            return response()->json(['situacao' => 'nao_encontrado', 'mensagem' => 'Sufixo não encontrado na base da associação.']);
+        }
+
+        if (Empresa::where('sufixo', $sufixo)->exists()) {
+            return response()->json(['situacao' => 'em_uso', 'mensagem' => 'Esse sufixo já está vinculado a outra propriedade no MinhaTropa.']);
+        }
+
+        $celular = preg_replace('/\D/', '', $request->input('celular', ''));
+        $nome = mb_strtoupper(trim($request->input('nome', '')));
+
+        if (! $celular && ! $nome) {
+            return response()->json([
+                'situacao' => 'encontrado',
+                'mensagem' => 'Sufixo encontrado. Confirme os dados do proprietário para vincular.',
+            ]);
+        }
+
+        $celularBase = preg_replace('/\D/', '', $registro->proprietario_celular ?? '');
+        $nomeBase = mb_strtoupper(trim($registro->proprietario_nome ?? ''));
+
+        $celularOk = $celularBase && $celular && str_ends_with($celularBase, substr($celular, -8));
+        $nomeOk = $nomeBase && $nome && (
+            $nomeBase === $nome
+            || str_contains($nomeBase, $nome)
+            || str_contains($nome, $nomeBase)
+            || similar_text($nomeBase, $nome) / max(mb_strlen($nomeBase), mb_strlen($nome), 1) > 0.75
+        );
+
+        if ($celularOk && $nomeOk) {
+            return response()->json([
+                'situacao' => 'confirmado',
+                'id' => $registro->id,
+                'sufixo' => $registro->sufixo,
+                'codigo' => $registro->codigo,
+                'mensagem' => 'Dados conferem. Sufixo liberado!',
+            ]);
+        }
+
+        $erros = [];
+        if ($celular && ! $celularOk) $erros[] = 'O celular não confere com o registrado na associação.';
+        if ($nome && ! $nomeOk) $erros[] = 'O nome não confere com o registrado na associação.';
+
+        return response()->json([
+            'situacao' => 'divergente',
+            'mensagem' => implode(' ', $erros) ?: 'Os dados informados não conferem com o registro da associação.',
+        ]);
+    }
+
     public function store(Request $request)
     {
         abort_unless(Esquema::atual(), 503);
