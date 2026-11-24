@@ -5,3 +5,4 @@ Thumbs.db
 !.env.example
 /plataforma/vendor
 /plataforma/node_modules
+plataforma/test-results/
