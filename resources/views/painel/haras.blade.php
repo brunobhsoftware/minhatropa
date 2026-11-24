@@ -188,17 +188,6 @@ document.addEventListener('DOMContentLoaded', function () {
         statusBloco.style.display = '';
     };
 
-    var mostrarResultados = function (resultados) {
-        if (!resultados || !resultados.length) return;
-        var html = '<p class="suave" style="margin-top:.5rem">Registros encontrados na base da associação:</p>';
-        html += '<div class="tabela-rolagem" style="margin-top:.3rem"><table class="tabela tabela--compacta"><thead><tr><th>Sufixo</th><th>Código</th><th>Proprietário</th><th>Cidade/UF</th></tr></thead><tbody>';
-        resultados.forEach(function (s) {
-            html += '<tr><td><b>' + s.sufixo + '</b></td><td>' + s.codigo + '</td><td>' + (s.proprietario_nome || '—') + '</td><td>' + (s.cidade || '') + (s.uf ? '/' + s.uf : '') + '</td></tr>';
-        });
-        html += '</tbody></table></div>';
-        resultado.innerHTML = html;
-    };
-
     var verificar = function () {
         var q = campo.value.trim();
         if (q.length < 2) { resultado.innerHTML = '<p class="suave">Digite o nome do Haras para verificar.</p>'; return; }
@@ -218,11 +207,9 @@ document.addEventListener('DOMContentLoaded', function () {
             } else if (d.status === 'PENDENTE' || d.status === 'CONFLITO') {
                 atualizarStatus('PENDENTE', d.codigo);
                 resultado.innerHTML = '<div class="aviso" style="margin-top:.5rem;background:#fffbeb;border:1px solid #fcd34d;color:#92400e;padding:.5rem .8rem;border-radius:6px">' + d.mensagem + '</div>';
-                if (d.resultados) mostrarResultados(d.resultados);
             } else if (d.status === 'NAO_CONFIRMADO') {
                 atualizarStatus('NAO_CONFIRMADO', null);
                 resultado.innerHTML = '<div class="aviso" style="margin-top:.5rem;background:#fef2f2;border:1px solid #fca5a5;color:#991b1b;padding:.5rem .8rem;border-radius:6px">' + d.mensagem + '</div>';
-                if (d.resultados && d.resultados.length) mostrarResultados(d.resultados);
             } else if (d.status === 'LIMPO') {
                 atualizarStatus('LIMPO', null);
                 resultado.innerHTML = '';
