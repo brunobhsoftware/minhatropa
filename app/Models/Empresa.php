@@ -100,7 +100,7 @@ class Empresa extends Model
 
     public const QUANTIDADES = ['Até 20', '21 a 50', '51 a 150', '151 a 500', 'Mais de 500'];
 
-    protected $fillable = [...self::CAMPOS, 'situacao', 'situacao_motivo', 'criado_por', 'quantidade_animais_estimada', 'origem', 'licenca_ativa', 'licenca_liberada_em', 'licenca_liberada_por'];
+    protected $fillable = [...self::CAMPOS, 'sufixo_confirmado', 'situacao', 'situacao_motivo', 'criado_por', 'quantidade_animais_estimada', 'origem', 'licenca_ativa', 'licenca_liberada_em', 'licenca_liberada_por'];
 
     protected function casts(): array
     {
