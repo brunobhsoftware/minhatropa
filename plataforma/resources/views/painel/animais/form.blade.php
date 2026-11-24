@@ -226,7 +226,22 @@
                     <input type="hidden" name="pai_id" id="paiId" value="{{ $v('pai_id') }}">
                     <p id="paiSelecionado" class="suave" style="margin-bottom:.5rem">@if ($animal->pai_id && $animal->paiAnimal) Selecionado: <b>{{ $animal->paiAnimal->nome }}</b> <button type="button" onclick="document.getElementById('paiId').value='';this.parentNode.innerHTML=''" class="botao botao--contorno botao--pequeno">Limpar</button> @endif</p>
                     <label class="campo"><span>Nome do pai (se não cadastrado)</span><input name="pai" id="campoPaiNome" value="{{ $v('pai') }}" maxlength="120"></label>
+                    @if (\App\Support\Genealogia::disponivel())
+                    <div class="grade-2" style="margin-top:.25rem">
+                        <label class="campo"><span>Registro do pai na associação</span><input name="pai_registro" value="{{ old('pai_registro', $animal->paiReferencia?->registro ?? $v('pai_registro')) }}" maxlength="60" placeholder="Ex: 123456"></label>
+                        <label class="campo"><span>Associação</span>
+                            <select name="pai_registro_associacao">
+                                <option value="">—</option>
+                                @foreach (\App\Models\Animal::ASSOCIACOES as $k => $vv)
+                                    <option value="{{ $k }}" @selected(old('pai_registro_associacao', $animal->paiReferencia?->registro_associacao ?? '') === $k)>{{ $vv }}</option>
+                                @endforeach
+                            </select>
+                        </label>
+                    </div>
+                    <p class="suave"><small>Informe o registro para vinculação automática: quando o animal for cadastrado na plataforma, a genealogia será completada.</small></p>
+                    @else
                     <label class="campo" style="margin-top:.5rem"><span>Registro do pai</span><input name="pai_registro" value="{{ $v('pai_registro') }}" maxlength="60"></label>
+                    @endif
                 </div>
                 <div>
                     <h3>Mãe (égua)</h3>
@@ -238,7 +253,22 @@
                     <input type="hidden" name="mae_id" id="maeId" value="{{ $v('mae_id') }}">
                     <p id="maeSelecionada" class="suave" style="margin-bottom:.5rem">@if ($animal->mae_id && $animal->maeAnimal) Selecionada: <b>{{ $animal->maeAnimal->nome }}</b> <button type="button" onclick="document.getElementById('maeId').value='';this.parentNode.innerHTML=''" class="botao botao--contorno botao--pequeno">Limpar</button> @endif</p>
                     <label class="campo"><span>Nome da mãe (se não cadastrada)</span><input name="mae" id="campoPaiMae" value="{{ $v('mae') }}" maxlength="120"></label>
+                    @if (\App\Support\Genealogia::disponivel())
+                    <div class="grade-2" style="margin-top:.25rem">
+                        <label class="campo"><span>Registro da mãe na associação</span><input name="mae_registro" value="{{ old('mae_registro', $animal->maeReferencia?->registro ?? $v('mae_registro')) }}" maxlength="60" placeholder="Ex: 123456"></label>
+                        <label class="campo"><span>Associação</span>
+                            <select name="mae_registro_associacao">
+                                <option value="">—</option>
+                                @foreach (\App\Models\Animal::ASSOCIACOES as $k => $vv)
+                                    <option value="{{ $k }}" @selected(old('mae_registro_associacao', $animal->maeReferencia?->registro_associacao ?? '') === $k)>{{ $vv }}</option>
+                                @endforeach
+                            </select>
+                        </label>
+                    </div>
+                    <p class="suave"><small>Informe o registro para vinculação automática: quando o animal for cadastrado na plataforma, a genealogia será completada.</small></p>
+                    @else
                     <label class="campo" style="margin-top:.5rem"><span>Registro da mãe</span><input name="mae_registro" value="{{ $v('mae_registro') }}" maxlength="60"></label>
+                    @endif
                 </div>
             </div>
         </section>

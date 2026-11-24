@@ -126,8 +126,8 @@ class Animal extends Model
         'proprietario_nome', 'proprietario_cidade', 'proprietario_uf',
         'registro', 'registro_associacao', 'id_associacao', 'registro_definitivo', 'microchip', 'dna_coletado',
         'numero_plantel', 'local_baia', 'peso_kg', 'altura_cm', 'castrado',
-        'pai', 'pai_id', 'pai_registro',
-        'mae', 'mae_id', 'mae_registro',
+        'pai', 'pai_id', 'pai_referencia_id', 'pai_registro',
+        'mae', 'mae_id', 'mae_referencia_id', 'mae_registro',
         'data_aquisicao', 'forma_aquisicao', 'valor_aquisicao',
         'situacao', 'vivo', 'bloqueado', 'situacao_data', 'situacao_motivo',
         'morte_data', 'morte_causa', 'morte_laudo',
@@ -191,6 +191,16 @@ class Animal extends Model
     public function maeAnimal(): BelongsTo
     {
         return $this->belongsTo(self::class, 'mae_id');
+    }
+
+    public function paiReferencia(): BelongsTo
+    {
+        return $this->belongsTo(AnimalReferencia::class, 'pai_referencia_id');
+    }
+
+    public function maeReferencia(): BelongsTo
+    {
+        return $this->belongsTo(AnimalReferencia::class, 'mae_referencia_id');
     }
 
     public function filhos(): HasMany

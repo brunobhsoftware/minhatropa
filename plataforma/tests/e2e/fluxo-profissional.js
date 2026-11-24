@@ -159,7 +159,7 @@ fs.writeFileSync(PNG, Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kA
   await p.goto(B + '/painel/animais?busca=Imperador'); await p.click('text=Imperador'); await p.waitForLoadState();
   conf(await p.locator('#sociedade .convite').count() === 0 && (await p.textContent('#sociedade')).split('Cadastrado').length - 1 >= 3, 'depois do cadastro o convite some da ficha');
   // quem já tinha cadastro vê sem fazer nada
-  const an = await pagina(b); await an.goto(B + '/entrar?ambiente=profissional'); await an.fill('[name=email]', 'ana@fazendaboa.com.br'); await an.fill('[name=senha]', 'senha1234'); await an.click('button:has-text("Entrar")'); await an.waitForLoadState();
+  const an = await pagina(b); await an.goto(B + '/entrar'); await an.fill('[name=login]', 'ana@fazendaboa.com.br'); await an.fill('[name=senha]', 'senha1234'); await an.click('button:has-text("Entrar")'); await an.waitForLoadState();
   h = await an.content(); conf(await an.locator('[data-sociedades]').count() === 1 && h.includes('Imperador') && h.includes('20%'), 'sócia que já tinha cadastro vê o animal no painel profissional');
   // voltar a 100% da propriedade
   await p.click('#sociedade >> text=Alterar'); await p.waitForLoadState(); await p.click('[data-aba=aquisicao]'); await p.selectOption('#selSociedade', 'propria'); await p.click('button:has-text("Salvar")'); await p.waitForLoadState();
@@ -240,7 +240,7 @@ fs.writeFileSync(PNG, Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kA
   await k.goto(B + '/cadastro/profissional'); conf(k.url().endsWith('/profissional'), 'logado não refaz o cadastro de profissional');
 
   // ---------- Dono em CNPJ (sem cadastro de profissional) no ambiente do profissional ----------
-  const z = await pagina(b); await z.goto(B + '/entrar?ambiente=profissional'); await z.fill('[name=email]', 'ze@serraazul.com.br'); await z.fill('[name=senha]', 'senha1234'); await z.click('button:has-text("Entrar")'); await z.waitForLoadState();
+  const z = await pagina(b); await z.goto(B + '/entrar'); await z.fill('[name=login]', 'ze@serraazul.com.br'); await z.fill('[name=senha]', 'senha1234'); await z.click('button:has-text("Entrar")'); await z.waitForLoadState();
   h = await z.content(); conf(z.url().endsWith('/profissional') && await z.locator('[data-sem-profissional]').count() === 1 && h.includes('Haras Serra Azul'), 'conta sem cadastro de profissional é convidada a completar e vê as propriedades');
 
   // ---------- Cortesia: a Administração libera tudo gratuitamente para quem está testando ----------

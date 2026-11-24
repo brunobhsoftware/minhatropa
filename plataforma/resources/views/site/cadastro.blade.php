@@ -33,7 +33,10 @@
                 <div class="oculto" aria-hidden="true"><label>Site <input name="site" tabindex="-1" autocomplete="off"></label></div>
 
                 <h2 class="form-titulo">1. Sua propriedade</h2>
-                <input type="hidden" name="tipo_propriedade" value="fazenda">
+                <fieldset class="escolha"><legend>Tipo de propriedade *</legend>
+                    <label class="escolha__opcao"><input type="radio" name="tipo_propriedade" value="haras" @checked($tipo === 'haras')> <span>Haras</span></label>
+                    <label class="escolha__opcao"><input type="radio" name="tipo_propriedade" value="fazenda" @checked($tipo === 'fazenda')> <span>Fazenda</span></label>
+                </fieldset>
 
                 <h2 class="form-titulo">2. Titularidade</h2>
                 <fieldset class="escolha"><legend>A propriedade está em nome de *</legend>
@@ -55,7 +58,7 @@
                     <div data-so="cnpj" @if ($tit !== 'cnpj') hidden @endif>
                         <label class="campo"><span>Razão social *</span><input name="razao_social" value="{{ old('razao_social') }}" maxlength="190"></label>
                     </div>
-                    <label class="campo"><span>Nome da propriedade *</span><input name="haras" value="{{ old('haras') }}" required maxlength="150" placeholder="Ex.: Fazenda Boa Vista"><small data-so="cnpj" @if ($tit !== 'cnpj') hidden @endif>Nome fantasia: é como a propriedade aparece no sistema.</small></label>
+                    <label class="campo"><span id="rotuloNome">Nome {{ $tipo === 'fazenda' ? 'da Fazenda' : 'do Haras' }} *</span><input name="haras" value="{{ old('haras') }}" required maxlength="150" placeholder="Ex.: Fazenda Boa Vista"><small data-so="cnpj" @if ($tit !== 'cnpj') hidden @endif>Nome fantasia: é como a propriedade aparece no sistema.</small></label>
                     {{-- Sufixo: verificação por confronto de dados --}}
                     <div id="blocoSufixo">
                         <h2 class="form-titulo" style="margin-top:1.5rem">Sufixo do Haras <small class="suave">(opcional)</small></h2>
@@ -180,7 +183,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   f.querySelectorAll('[name=titularidade]').forEach(function (r) { r.addEventListener('change', function () { doc.value = ''; ajustar(); doc.focus(); }); });
-  // Tipo de propriedade fixo como fazenda — sem troca dinâmica
+  f.querySelectorAll('[name=tipo_propriedade]').forEach(function (r) { r.addEventListener('change', function () { var n = document.getElementById('rotuloNome'); if (n) n.textContent = 'Nome ' + (r.value === 'fazenda' ? 'da Fazenda' : 'do Haras') + ' *'; }); });
   doc.addEventListener('input', function () { mascarar(); if (titular() === 'cpf') { if (digitos(doc.value) !== consultado) { caixa.hidden = true; liberar(false); consultado = ''; } if (digitos(doc.value).length === 11) consultar(); } });
   botao.addEventListener('click', function () { consultado = ''; consultar(); });
   ajustar();
