@@ -127,11 +127,11 @@
         </section>
     </div>
 
-    {{-- Registro e saúde --}}
+    {{-- Registro --}}
     <div class="painel-aba painel-aba--oculto" id="aba-registro">
-        <section class="cartao"><h2>Registro e saúde</h2>
+        <section class="cartao"><h2>Registro</h2>
             <div class="grade-3">
-                <label class="campo"><span>Registro na associação</span><input name="registro" value="{{ $v('registro') }}" maxlength="60"></label>
+                <label class="campo"><span>Registro na associação</span><input name="registro" value="{{ $v('registro') }}" maxlength="60" inputmode="numeric" placeholder="Apenas números"></label>
                 <label class="campo"><span>Associação</span>
                     <select name="registro_associacao"><option value=""></option>
                         @foreach (\App\Models\Animal::ASSOCIACOES as $k => $t)

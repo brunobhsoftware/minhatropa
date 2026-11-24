@@ -7,24 +7,7 @@
         <h1>{{ $animal->nome }} <span class="selo selo--{{ $animal->situacao }}">{{ $animal->situacaoTexto() }}</span></h1>
         <p>{{ $animal->especieTexto() }} · {{ $animal->categoriaTexto() }} · {{ $animal->raca ?: 'Sem raça' }} · {{ $animal->pelagemTexto() }} · {{ $animal->idade() }}</p>
     </div>
-    <div style="display:flex;gap:8px">
-        @if (\App\Support\Esquema::temV017() && \App\Support\Permissao::pode($papel, 'transferencias', true) && $animal->situacao === 'ativo')
-            @php $anuncioAberto = \App\Models\Classificado::abertos()->where('animal_id', $animal->id)->first(); @endphp
-            @if ($anuncioAberto)
-                <a href="{{ route('painel.classificados.editar', $anuncioAberto) }}" class="botao botao--contorno" data-a-venda>À venda · {{ moeda($anuncioAberto->preco) }}</a>
-            @else
-                <a href="{{ route('painel.classificados.novo', ['animal' => $animal->uuid]) }}" class="botao botao--contorno" data-anunciar>Colocar à venda</a>
-            @endif
-        @endif
-        <a href="{{ route('painel.consulta.show', $animal) }}" class="botao botao--contorno">Ocorrências</a>
-        <a href="{{ route('painel.animais.editar', $animal) }}" class="botao botao--primario"><x-icone nome="editar" :tamanho="16" /> Editar</a>
-        @if (\App\Support\Permissao::pode($papel, 'animais', true))
-        <form method="post" action="{{ route('painel.animais.excluir', $animal) }}" onsubmit="return confirm('Excluir este animal do plantel? Ele sai da lista (permanece no histórico).');">
-            @csrf @method('delete')
-            <button type="submit" class="botao botao--escuro"><x-icone nome="lixeira" :tamanho="16" /> Excluir</button>
-        </form>
-        @endif
-    </div>
+    @include('painel.partes.menu-animal', ['animal' => $animal, 'papel' => $papel, 'modo' => 'ficha'])
 </div>
 
 <div class="abas-cadastro">
@@ -62,7 +45,7 @@
 {{-- Registro --}}
 <div class="painel-aba painel-aba--oculto" id="aba-registro">
     <section class="cartao">
-        <h2>Registro e saúde</h2>
+        <h2>Registro</h2>
         <dl class="dados">
             <div><dt>Registro</dt><dd>{{ $animal->registro ?: '—' }}</dd></div>
             @if ($animal->registro_associacao)<div><dt>Associação</dt><dd>{{ \App\Models\Animal::ASSOCIACOES[$animal->registro_associacao] ?? $animal->registro_associacao }}</dd></div>@endif

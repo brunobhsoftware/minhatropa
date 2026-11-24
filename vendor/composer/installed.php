@@ -3,7 +3,7 @@
         'name' => 'bhsoftware/minhatropa',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '39be7660a1f3a2967b51f333cb9703b667d22446',
+        'reference' => '393079b57f0eb3ebb0285d9c52886bd4ccb5b0eb',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         'bhsoftware/minhatropa' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '39be7660a1f3a2967b51f333cb9703b667d22446',
+            'reference' => '393079b57f0eb3ebb0285d9c52886bd4ccb5b0eb',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
