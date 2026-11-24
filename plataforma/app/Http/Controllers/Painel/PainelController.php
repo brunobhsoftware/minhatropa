@@ -148,6 +148,18 @@ class PainelController extends Controller
         PaginaPropriedade::salvarImagens($request, $empresa);
         Auditoria::registrar('haras.configurar', $empresa, $antes);
 
+        // Sufixo: checagem automática por pontuação (se tem sufixo e ainda não foi confirmado)
+        $msgSufixo = '';
+        if ($empresa->sufixo && ! $empresa->sufixo_confirmado && Sufixo::disponivel()) {
+            $check = Sufixo::conferir($empresa);
+            if ($check['status'] === 'CONFIRMADO') {
+                $empresa->refresh();
+                $msgSufixo = ' ' . $check['mensagem'];
+            } elseif ($check['status'] === 'PENDENTE' || $check['status'] === 'CONFLITO') {
+                $msgSufixo = ' Sufixo: ' . $check['mensagem'];
+            }
+        }
+
         // Sufixo: se foi vinculado, gera o slug da página a partir dele
         if ($empresa->sufixo && ! $empresa->subsite_slug) {
             $slug = Str::slug($empresa->sufixo);
@@ -156,7 +168,7 @@ class PainelController extends Controller
             }
         }
 
-        return redirect()->route('painel.haras')->with('ok', "Dados {$empresa->doRotulo()} salvos.".($empresa->paginaUrl() ? ' Página no ar: '.$empresa->paginaUrl() : ''));
+        return redirect()->route('painel.haras')->with('ok', "Dados {$empresa->doRotulo()} salvos.".($empresa->paginaUrl() ? ' Página no ar: '.$empresa->paginaUrl() : '').$msgSufixo);
     }
 
     public function buscarSufixo(Request $request)
