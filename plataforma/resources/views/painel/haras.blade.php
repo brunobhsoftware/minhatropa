@@ -35,6 +35,19 @@
                         <button type="button" class="botao botao--contorno botao--pequeno" id="btnVerificarSufixo">Verificar sufixo</button>
                     </div>
                     <small>O "sobrenome" dos animais na associação.</small>
+                    @if ($haras->sufixo)
+                    <div style="margin-top:.5rem;padding:.6rem .8rem;border-radius:8px;font-size:.88rem;@if ($haras->sufixo_confirmado) background:#ecfdf5;border:1px solid #6ee7b7 @elseif ($haras->sufixo_codigo) background:#fffbeb;border:1px solid #fcd34d @else background:#f3f4f6;border:1px solid #d1d5db @endif">
+                        @if ($haras->sufixo_confirmado)
+                            <b style="color:#047857">✓ Sufixo confirmado</b><br>
+                            <span>Código na associação: <b>{{ $haras->sufixo_codigo }}</b></span>
+                        @elseif ($haras->sufixo_codigo)
+                            <b style="color:#b45309">⏳ Pendente de confirmação</b><br>
+                            <span>Código encontrado: <b>{{ $haras->sufixo_codigo }}</b> — os dados do proprietário não bateram completamente. Confira o nome, cidade e UF.</span>
+                        @else
+                            <span style="color:#6b7280">Sufixo informado, mas ainda não verificado na base da associação. Clique em "Verificar sufixo".</span>
+                        @endif
+                    </div>
+                    @endif
                     <div id="resultadoSufixo" style="margin-top:.5rem"></div>
                     <input type="hidden" name="sufixo_codigo" id="campoSufixoCodigo" value="{{ $v('sufixo_codigo') }}">
                     <input type="hidden" name="sufixo_associacao_id" id="campoSufixoAssocId" value="{{ $v('sufixo_associacao_id') }}">

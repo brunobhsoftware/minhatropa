@@ -10,12 +10,43 @@ use Illuminate\Support\Facades\DB;
 
 class SufixosController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $total = DB::table('sufixo_associacao')->count();
-        $ultimos = DB::table('sufixo_associacao')->orderByDesc('id')->limit(20)->get();
 
-        return view('admin.sufixos', ['total' => $total, 'ultimos' => $ultimos]);
+        $busca = trim($request->input('busca', ''));
+        $query = DB::table('sufixo_associacao')
+            ->leftJoin('empresa', function ($j) {
+                $j->on('empresa.sufixo_codigo', '=', 'sufixo_associacao.codigo')
+                  ->whereNull('empresa.excluido_em');
+            })
+            ->select(
+                'sufixo_associacao.*',
+                'empresa.nome as empresa_nome',
+                'empresa.uuid as empresa_uuid',
+                'empresa.sufixo_confirmado as empresa_confirmado'
+            );
+
+        if ($busca !== '') {
+            $query->where(function ($q) use ($busca) {
+                $q->where('sufixo_associacao.sufixo', 'like', "%{$busca}%")
+                  ->orWhere('sufixo_associacao.codigo', 'like', "%{$busca}%")
+                  ->orWhere('sufixo_associacao.proprietario_nome', 'like', "%{$busca}%");
+            });
+        }
+
+        $registros = $query->orderBy('sufixo_associacao.sufixo')->paginate(30);
+
+        // Propriedades que têm sufixo informado
+        $vinculacoes = DB::table('empresa')
+            ->whereNotNull('sufixo')
+            ->where('sufixo', '!=', '')
+            ->whereNull('excluido_em')
+            ->select('uuid', 'nome', 'sufixo', 'sufixo_codigo', 'sufixo_confirmado')
+            ->orderBy('nome')
+            ->get();
+
+        return view('admin.sufixos', compact('total', 'registros', 'vinculacoes'));
     }
 
     public function importar(Request $request)

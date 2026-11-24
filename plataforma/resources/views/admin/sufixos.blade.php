@@ -16,15 +16,48 @@
     </form>
 </section>
 
+{{-- Vinculações: propriedades com sufixo --}}
+@if ($vinculacoes->isNotEmpty())
 <section class="cartao" style="margin-top:1.5rem">
-    <h2>Base de sufixos <small class="suave">({{ number_format($total, 0, ',', '.') }} registros)</small></h2>
-    @if ($ultimos->isEmpty())
-        <p class="suave">Nenhum sufixo importado ainda.</p>
+    <h2>Vinculações <small class="suave">({{ $vinculacoes->count() }} propriedade(s) com sufixo)</small></h2>
+    <div class="tabela-rolagem"><table class="tabela">
+        <thead><tr><th>Propriedade</th><th>Sufixo</th><th>Código</th><th>Status</th></tr></thead>
+        <tbody>
+            @foreach ($vinculacoes as $v)
+            <tr>
+                <td><a href="{{ route('admin.haras.editar', $v->uuid) }}"><b>{{ $v->nome }}</b></a></td>
+                <td>{{ $v->sufixo }}</td>
+                <td>{{ $v->sufixo_codigo ?: '—' }}</td>
+                <td>
+                    @if ($v->sufixo_confirmado)
+                        <span class="selo selo--ativo">Confirmado</span>
+                    @elseif ($v->sufixo_codigo)
+                        <span class="selo selo--solicitado">Pendente</span>
+                    @else
+                        <span class="selo">Não verificado</span>
+                    @endif
+                </td>
+            </tr>
+            @endforeach
+        </tbody>
+    </table></div>
+</section>
+@endif
+
+<section class="cartao" style="margin-top:1.5rem">
+    <h2>Consultar base <small class="suave">({{ number_format($total, 0, ',', '.') }} registros)</small></h2>
+    <form method="get" action="{{ route('admin.sufixos') }}" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1rem">
+        <input name="busca" value="{{ request('busca') }}" placeholder="Pesquisar por código, sufixo, proprietário…" style="flex:1;min-width:200px">
+        <button class="botao botao--primario botao--pequeno">Pesquisar</button>
+        @if (request('busca'))<a href="{{ route('admin.sufixos') }}" class="botao botao--contorno botao--pequeno">Limpar</a>@endif
+    </form>
+    @if ($registros->isEmpty())
+        <p class="suave">{{ request('busca') ? 'Nenhum sufixo encontrado para "'.request('busca').'".' : 'Nenhum sufixo importado ainda.' }}</p>
     @else
     <div class="tabela-rolagem"><table class="tabela">
-        <thead><tr><th>Código</th><th>Sufixo</th><th>Proprietário</th><th>Cidade/UF</th><th>CEP</th><th>Celular</th></tr></thead>
+        <thead><tr><th>Código</th><th>Sufixo</th><th>Proprietário</th><th>Cidade/UF</th><th>CEP</th><th>Celular</th><th>Vinculado a</th></tr></thead>
         <tbody>
-            @foreach ($ultimos as $s)
+            @foreach ($registros as $s)
             <tr>
                 <td>{{ $s->codigo }}</td>
                 <td><b>{{ $s->sufixo }}</b></td>
@@ -32,11 +65,19 @@
                 <td>{{ $s->cidade ?: '' }}{{ $s->uf ? '/'.$s->uf : '' }}</td>
                 <td>{{ $s->cep ?: '—' }}</td>
                 <td>{{ $s->proprietario_celular ?: '—' }}</td>
+                <td>
+                    @if ($s->empresa_nome)
+                        <a href="{{ route('admin.haras.editar', $s->empresa_uuid) }}">{{ $s->empresa_nome }}</a>
+                        @if ($s->empresa_confirmado) <span class="selo selo--ativo" style="margin-left:4px">✓</span> @endif
+                    @else
+                        <span class="suave">—</span>
+                    @endif
+                </td>
             </tr>
             @endforeach
         </tbody>
     </table></div>
-    @if ($total > 20)<p class="suave" style="margin-top:.5rem">Mostrando os 20 últimos de {{ number_format($total, 0, ',', '.') }} registros.</p>@endif
+    <div style="margin-top:.75rem">{{ $registros->withQueryString()->links() }}</div>
     @endif
 </section>
 @endsection
