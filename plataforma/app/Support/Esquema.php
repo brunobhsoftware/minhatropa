@@ -178,6 +178,16 @@ class Esquema
         }
     }
 
+    /** V019: pré-cadastro genealógico (animal_referencia). */
+    public static function temV019(): bool
+    {
+        try {
+            return self::$cache['v019'] ??= Schema::hasTable('animal_referencia');
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
     public static function temTabela(string $tabela): bool
     {
         try {

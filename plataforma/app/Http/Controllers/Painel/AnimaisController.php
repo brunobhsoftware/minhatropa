@@ -8,6 +8,7 @@ use App\Support\Auditoria;
 use App\Support\CadastroRapido;
 use App\Support\Esquema;
 use App\Support\FotosAnimal;
+use App\Support\Genealogia;
 use App\Support\ImportacaoTropa;
 use App\Support\Licenca;
 use App\Support\Sociedade;
@@ -144,9 +145,14 @@ class AnimaisController extends Controller
         if ($contaNoPlantel && ! Licenca::podeCadastrarAnimal($empresa)) {
             return redirect()->route('painel.animais')->with('limite_plantel', true);
         }
-        $animal = Animal::create($dados + ['empresa_id' => $empresa->id, 'criado_por' => $request->user()->id]);
+        $refs = Genealogia::processarReferencias($request->all(), $empresa->id, $request->user()->id);
+        $animal = Animal::create($dados + $refs + ['empresa_id' => $empresa->id, 'criado_por' => $request->user()->id]);
+        $vinculados = Genealogia::vincularSeExistir($animal);
         Sociedade::salvar($animal, $socios, $request->user()->id);
-        Auditoria::registrar('animal.criar', $animal, null, $socios ? ['socios' => $socios] : null);
+        Auditoria::registrar('animal.criar', $animal, null, array_filter([
+            'socios' => $socios ?: null,
+            'genealogia_vinculados' => $vinculados ?: null,
+        ]));
         try {
             $this->salvarFotos($request, $animal);
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -193,11 +199,16 @@ class AnimaisController extends Controller
         if ($estavaFora && $ficaDentro && ! Licenca::podeCadastrarAnimal($request->attributes->get('haras'))) {
             return redirect()->route('painel.animais')->with('limite_plantel', true);
         }
-        $animal->update($dados);
+        $refs = Genealogia::processarReferencias($request->all(), $request->attributes->get('haras')->id, $request->user()->id);
+        $animal->update($dados + $refs);
+        $vinculados = Genealogia::vincularSeExistir($animal);
         if (Sociedade::disponivel() && $request->has('sociedade')) {
             Sociedade::salvar($animal, $socios, $request->user()->id);
         }
-        Auditoria::registrar('animal.editar', $animal, $antes, $socios ? ['socios' => $socios] : null);
+        Auditoria::registrar('animal.editar', $animal, $antes, array_filter([
+            'socios' => $socios ?: null,
+            'genealogia_vinculados' => $vinculados ?: null,
+        ]));
         $this->salvarFotos($request, $animal);
 
         return redirect()->route('painel.animais.show', $animal)->with('ok', "Dados de {$animal->nome} salvos.");
@@ -325,15 +336,31 @@ class AnimaisController extends Controller
             $query->where('sexo', $sexo);
         }
 
-        $animais = $query->with('empresa:id,nome')->limit(20)->get(['id', 'nome', 'raca', 'registro', 'empresa_id']);
+        $animais = $query->with('empresa:id,nome')->limit(15)->get(['id', 'nome', 'raca', 'registro', 'empresa_id']);
 
-        return response()->json($animais->map(fn ($a) => [
+        $resultado = $animais->map(fn ($a) => [
             'id' => $a->id,
             'nome' => $a->nome,
             'raca' => $a->raca ?? '',
             'registro' => $a->registro ?? '',
             'haras' => $a->empresa?->nome ?? '',
-        ]));
+            'tipo' => 'animal',
+        ]);
+
+        $refs = Genealogia::buscar($q, $sexo, 5);
+        foreach ($refs as $r) {
+            $resultado->push([
+                'id' => 0,
+                'nome' => $r->nome,
+                'raca' => '',
+                'registro' => $r->registro ?? '',
+                'haras' => $r->empresa_nome ? $r->empresa_nome.' (pré-cadastro)' : 'Pré-cadastro',
+                'tipo' => 'referencia',
+                'referencia_id' => $r->id,
+            ]);
+        }
+
+        return response()->json($resultado->values());
     }
 
     /** Foto do animal (posição 1 a 3), só para quem acessa a propriedade. O arquivo fica fora do public_html. */
@@ -413,6 +440,8 @@ class AnimaisController extends Controller
             'mae' => ['nullable', 'string', 'max:120'],
             'mae_id' => ['nullable', 'integer', 'exists:animal,id'],
             'mae_registro' => ['nullable', 'string', 'max:60'],
+            'pai_registro_associacao' => ['nullable', Rule::in(array_keys(Animal::ASSOCIACOES))],
+            'mae_registro_associacao' => ['nullable', Rule::in(array_keys(Animal::ASSOCIACOES))],
             'data_aquisicao' => ['nullable', 'date', 'before_or_equal:today'],
             'forma_aquisicao' => ['nullable', Rule::in(array_keys(Animal::FORMAS_AQUISICAO))],
             'valor_aquisicao' => ['nullable', 'numeric', 'min:0'],

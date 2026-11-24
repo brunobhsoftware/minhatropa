@@ -130,6 +130,11 @@
                 @if ($animal->pai_id && $animal->paiAnimal)
                     <a href="{{ route('painel.animais.show', $animal->paiAnimal) }}"><b>{{ $animal->paiAnimal->nome }}</b></a>
                     @if ($animal->paiAnimal->raca) · {{ $animal->paiAnimal->raca }}@endif
+                @elseif ($animal->pai_referencia_id && $animal->paiReferencia)
+                    <b>{{ $animal->paiReferencia->nome }}</b>
+                    @if ($animal->paiReferencia->registro) · Reg. {{ $animal->paiReferencia->registro }}@endif
+                    @if ($animal->paiReferencia->registro_associacao) ({{ $animal->paiReferencia->registro_associacao }})@endif
+                    <span class="selo selo--amarelo" style="margin-left:4px">Pré-cadastro</span>
                 @else
                     {{ $animal->pai ?: '—' }}
                     @if ($animal->pai_registro) <small class="suave">Reg.: {{ $animal->pai_registro }}</small>@endif
@@ -139,6 +144,11 @@
                 @if ($animal->mae_id && $animal->maeAnimal)
                     <a href="{{ route('painel.animais.show', $animal->maeAnimal) }}"><b>{{ $animal->maeAnimal->nome }}</b></a>
                     @if ($animal->maeAnimal->raca) · {{ $animal->maeAnimal->raca }}@endif
+                @elseif ($animal->mae_referencia_id && $animal->maeReferencia)
+                    <b>{{ $animal->maeReferencia->nome }}</b>
+                    @if ($animal->maeReferencia->registro) · Reg. {{ $animal->maeReferencia->registro }}@endif
+                    @if ($animal->maeReferencia->registro_associacao) ({{ $animal->maeReferencia->registro_associacao }})@endif
+                    <span class="selo selo--amarelo" style="margin-left:4px">Pré-cadastro</span>
                 @else
                     {{ $animal->mae ?: '—' }}
                     @if ($animal->mae_registro) <small class="suave">Reg.: {{ $animal->mae_registro }}</small>@endif
@@ -267,6 +277,31 @@
         @endif
     </section>
 </div>
+@endif
+
+@if (\App\Support\Genealogia::disponivel())
+@php $refsDoAnimal = \App\Support\Genealogia::referenciasDoAnimal($animal); @endphp
+@if ($refsDoAnimal->isNotEmpty())
+<div class="painel-aba painel-aba--oculto" id="aba-pre-cadastros">
+<section class="cartao">
+    <h2>Pré-cadastros vinculados a este animal</h2>
+    <p class="suave" style="margin-bottom:.5rem">Outros Haras informaram este animal como genitor antes de ele ser cadastrado. A genealogia foi vinculada automaticamente.</p>
+    <div class="tabela-rolagem"><table class="tabela">
+        <thead><tr><th>Referenciado como</th><th>Registro informado</th><th>Informado por</th><th>Vinculado em</th></tr></thead>
+        <tbody>
+        @foreach ($refsDoAnimal as $ref)
+            <tr>
+                <td>{{ $ref->nome }} <small class="suave">({{ $ref->sexo === 'macho' ? 'pai' : 'mãe' }})</small></td>
+                <td>{{ $ref->registro ?? '—' }}@if ($ref->registro_associacao) <small>({{ $ref->registro_associacao }})</small>@endif</td>
+                <td>{{ $ref->empresa_nome ?? '—' }}</td>
+                <td>{{ $ref->vinculado_em ? data_local($ref->vinculado_em) : '—' }}</td>
+            </tr>
+        @endforeach
+        </tbody>
+    </table></div>
+</section>
+</div>
+@endif
 @endif
 
 {{-- Observações --}}
