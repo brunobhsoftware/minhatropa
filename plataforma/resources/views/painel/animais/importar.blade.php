@@ -87,7 +87,9 @@
         <li><b>Preenchimento automático quando a célula fica em branco:</b> Nome de registro recebe o próprio nome; Apelido recebe o primeiro nome; Espécie vira Equino; Situação vira Ativo.</li>
         <li><b>Sexo:</b> aceita Macho/Fêmea ou só <b>M</b> / <b>F</b>. <b>Espécie:</b> aceita o nome ou a inicial <b>E</b> (equino), <b>A</b> (asinino), <b>M</b> (muar).</li>
         <li><b>Nomes em MAIÚSCULAS:</b> Nome, Nome de registro e Apelido entram sempre em letra maiúscula — padrão único do sistema, não importa como você digitar.</li>
-        <li><b>Raça:</b> aceita o nome por extenso ou a sigla — ex.: <b>MM</b> = Mangalarga Marchador, QM = Quarto de Milha, PSI = Puro Sangue Inglês. O que não for sigla conhecida entra como foi digitado.</li>
+        <li><b>Raça:</b> aceita o nome por extenso ou a sigla, inclusive no <b>início</b> do texto — ex.: <b>MM</b> ou <b>MM1 - ...</b> = Mangalarga Marchador; QM = Quarto de Milha; PSI = Puro Sangue Inglês. O que não for sigla conhecida entra como foi digitado.</li>
+        <li><b>Sexo:</b> reconhece "macho" ou "fêmea" em qualquer parte do texto — ex.: "PROVISÓRIO FÊMEA" é fêmea; "DEFINITIVO MACHO" é macho (além de M / F).</li>
+        <li><b>Deduções automáticas:</b> raça de cavalo (MM…) define a Espécie como Equino e a Associação pela raça (MM → ABCCMM, QM → ABQM…) quando ela vier em branco; num equino sem Categoria, fêmea vira <b>Égua</b> e macho vira <b>Garanhão</b> (padrão, dá para trocar depois).</li>
         <li>Nas demais colunas de lista (Categoria, Pelagem, Forma de aquisição, Associação), escreva o nome como aparece no sistema — maiúsculas e acentos não importam. O que não for reconhecido fica em branco e entra como aviso, sem perder a linha.</li>
         <li><b>Datas</b> no formato dia/mês/ano (ex.: 15/03/2021). <b>Sim/Não</b> nas colunas Castrado, DNA coletado e Registro definitivo. Valores em R$ com vírgula (ex.: 12.000,00).</li>
         <li>A planilha é o retrato do plantel: numa linha já existente, uma célula apagada <b>limpa</b> aquele campo do animal (menos os de preenchimento automático acima).</li>
