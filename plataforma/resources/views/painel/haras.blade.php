@@ -35,22 +35,18 @@
                         <button type="button" class="botao botao--contorno botao--pequeno" id="btnVerificarSufixo">Verificar sufixo</button>
                     </div>
                     <small>O "sobrenome" dos animais na associação.</small>
-                    @if ($haras->sufixo)
-                    <div style="margin-top:.5rem;padding:.6rem .8rem;border-radius:8px;font-size:.88rem;@if ($haras->sufixo_confirmado) background:#ecfdf5;border:1px solid #6ee7b7 @elseif ($haras->sufixo_codigo) background:#fffbeb;border:1px solid #fcd34d @else background:#f3f4f6;border:1px solid #d1d5db @endif">
+                    <div id="statusSufixo" style="margin-top:.5rem;padding:.6rem .8rem;border-radius:8px;font-size:.88rem;@if ($haras->sufixo && $haras->sufixo_confirmado) background:#ecfdf5;border:1px solid #6ee7b7 @elseif ($haras->sufixo && $haras->sufixo_codigo) background:#fffbeb;border:1px solid #fcd34d @elseif ($haras->sufixo) background:#f3f4f6;border:1px solid #d1d5db @else display:none @endif">
                         @if ($haras->sufixo_confirmado)
                             <b style="color:#047857">✓ Sufixo confirmado</b><br>
                             <span>Código na associação: <b>{{ $haras->sufixo_codigo }}</b></span>
-                        @elseif ($haras->sufixo_codigo)
+                        @elseif ($haras->sufixo && $haras->sufixo_codigo)
                             <b style="color:#b45309">⏳ Pendente de confirmação</b><br>
                             <span>Código encontrado: <b>{{ $haras->sufixo_codigo }}</b> — os dados do proprietário não bateram completamente. Confira o nome, cidade e UF.</span>
-                        @else
+                        @elseif ($haras->sufixo)
                             <span style="color:#6b7280">Sufixo informado, mas ainda não verificado na base da associação. Clique em "Verificar sufixo".</span>
                         @endif
                     </div>
-                    @endif
                     <div id="resultadoSufixo" style="margin-top:.5rem"></div>
-                    <input type="hidden" name="sufixo_codigo" id="campoSufixoCodigo" value="{{ $v('sufixo_codigo') }}">
-                    <input type="hidden" name="sufixo_associacao_id" id="campoSufixoAssocId" value="{{ $v('sufixo_associacao_id') }}">
                 </div>
                 <label class="campo"><span>Titularidade</span><input value="{{ \App\Models\Empresa::TITULARIDADES[$haras->tipo_documento] ?? 'Não informada' }}" disabled></label>
                 <label class="campo"><span>{{ $pf ? 'CPF do proprietário' : 'CNPJ' }}</span><input value="{{ $haras->documentoFormatado() }}" disabled><small>É a identificação única da propriedade. Para alterar, fale com o atendimento.</small></label>
@@ -170,38 +166,72 @@ document.addEventListener('DOMContentLoaded', function () {
 // Verificar sufixo na base da associação
 (function () {
     var campo = document.getElementById('campoSufixoNome'), botao = document.getElementById('btnVerificarSufixo'), resultado = document.getElementById('resultadoSufixo');
+    var statusBloco = document.getElementById('statusSufixo');
     if (!campo || !botao) return;
-    var selecionar = function (id, sufixo, codigo) {
-        campo.value = sufixo;
-        document.getElementById('campoSufixoCodigo').value = codigo;
-        document.getElementById('campoSufixoAssocId').value = id;
-        resultado.innerHTML = '<div class="aviso aviso--ok" style="margin-top:.5rem"><b>✓ ' + sufixo + '</b> (código ' + codigo + '). Salve para confirmar.</div>';
+    var token = document.querySelector('meta[name="csrf-token"]')?.content || document.querySelector('input[name=_token]')?.value || '';
+
+    var atualizarStatus = function (status, codigo) {
+        if (!statusBloco) return;
+        if (status === 'CONFIRMADO') {
+            statusBloco.style.cssText = 'margin-top:.5rem;padding:.6rem .8rem;border-radius:8px;font-size:.88rem;background:#ecfdf5;border:1px solid #6ee7b7';
+            statusBloco.innerHTML = '<b style="color:#047857">✓ Sufixo confirmado</b><br><span>Código na associação: <b>' + codigo + '</b></span>';
+        } else if (status === 'PENDENTE' || status === 'CONFLITO') {
+            statusBloco.style.cssText = 'margin-top:.5rem;padding:.6rem .8rem;border-radius:8px;font-size:.88rem;background:#fffbeb;border:1px solid #fcd34d';
+            statusBloco.innerHTML = '<b style="color:#b45309">⏳ Pendente de confirmação</b><br><span>Código encontrado: <b>' + codigo + '</b> — os dados do proprietário não bateram completamente. Confira o nome, cidade e UF.</span>';
+        } else if (status === 'NAO_CONFIRMADO') {
+            statusBloco.style.cssText = 'margin-top:.5rem;padding:.6rem .8rem;border-radius:8px;font-size:.88rem;background:#f3f4f6;border:1px solid #d1d5db';
+            statusBloco.innerHTML = '<span style="color:#6b7280">Sufixo não localizado na base da associação.</span>';
+        } else {
+            statusBloco.style.cssText = 'display:none';
+            statusBloco.innerHTML = '';
+        }
+        statusBloco.style.display = '';
     };
+
+    var mostrarResultados = function (resultados) {
+        if (!resultados || !resultados.length) return;
+        var html = '<p class="suave" style="margin-top:.5rem">Registros encontrados na base da associação:</p>';
+        html += '<div class="tabela-rolagem" style="margin-top:.3rem"><table class="tabela tabela--compacta"><thead><tr><th>Sufixo</th><th>Código</th><th>Proprietário</th><th>Cidade/UF</th></tr></thead><tbody>';
+        resultados.forEach(function (s) {
+            html += '<tr><td><b>' + s.sufixo + '</b></td><td>' + s.codigo + '</td><td>' + (s.proprietario_nome || '—') + '</td><td>' + (s.cidade || '') + (s.uf ? '/' + s.uf : '') + '</td></tr>';
+        });
+        html += '</tbody></table></div>';
+        resultado.innerHTML = html;
+    };
+
     var verificar = function () {
         var q = campo.value.trim();
         if (q.length < 2) { resultado.innerHTML = '<p class="suave">Digite o nome do Haras para verificar.</p>'; return; }
         resultado.innerHTML = '<p class="suave">Verificando…</p>';
-        document.getElementById('campoSufixoCodigo').value = '';
-        document.getElementById('campoSufixoAssocId').value = '';
-        fetch('{{ route("painel.haras.buscar-sufixo") }}?q=' + encodeURIComponent(q), { headers: { Accept: 'application/json' } })
-            .then(function (r) { return r.json(); })
-            .then(function (dados) {
-                if (!dados.length) { resultado.innerHTML = '<p class="suave" style="color:#b45309">Sufixo não encontrado na base da associação. Você pode salvar mesmo assim — quando a base for atualizada ele será vinculado.</p>'; return; }
-                if (dados.length === 1 && dados[0].sufixo.toUpperCase() === q.toUpperCase()) {
-                    selecionar(dados[0].id, dados[0].sufixo, dados[0].codigo);
-                    return;
-                }
-                var html = '<div class="tabela-rolagem" style="margin-top:.5rem"><table class="tabela tabela--compacta"><thead><tr><th>Sufixo</th><th>Código</th><th>Proprietário</th><th>Cidade/UF</th><th></th></tr></thead><tbody>';
-                dados.forEach(function (s) {
-                    html += '<tr><td><b>' + s.sufixo + '</b></td><td>' + s.codigo + '</td><td>' + (s.proprietario_nome || '—') + '</td><td>' + (s.cidade || '') + (s.uf ? '/' + s.uf : '') + '</td>';
-                    html += '<td><button type="button" class="botao botao--primario botao--pequeno" onclick="window._selecionarSufixo(' + s.id + ',\'' + s.sufixo.replace(/'/g, "\\'") + '\',\'' + s.codigo.replace(/'/g, "\\'") + '\')">Usar este</button></td></tr>';
-                });
-                html += '</tbody></table></div>';
-                resultado.innerHTML = html;
-            })
-            .catch(function () { resultado.innerHTML = '<p class="suave" style="color:#b42318">Não foi possível verificar agora.</p>'; });
+        botao.disabled = true;
+        fetch('{{ route("painel.haras.conferir-sufixo") }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': token },
+            body: JSON.stringify({ sufixo: q })
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+            botao.disabled = false;
+            if (d.status === 'CONFIRMADO') {
+                atualizarStatus('CONFIRMADO', d.codigo);
+                resultado.innerHTML = '<div class="aviso aviso--ok" style="margin-top:.5rem">' + d.mensagem + '</div>';
+            } else if (d.status === 'PENDENTE' || d.status === 'CONFLITO') {
+                atualizarStatus('PENDENTE', d.codigo);
+                resultado.innerHTML = '<div class="aviso" style="margin-top:.5rem;background:#fffbeb;border:1px solid #fcd34d;color:#92400e;padding:.5rem .8rem;border-radius:6px">' + d.mensagem + '</div>';
+                if (d.resultados) mostrarResultados(d.resultados);
+            } else if (d.status === 'NAO_CONFIRMADO') {
+                atualizarStatus('NAO_CONFIRMADO', null);
+                resultado.innerHTML = '<div class="aviso" style="margin-top:.5rem;background:#fef2f2;border:1px solid #fca5a5;color:#991b1b;padding:.5rem .8rem;border-radius:6px">' + d.mensagem + '</div>';
+                if (d.resultados && d.resultados.length) mostrarResultados(d.resultados);
+            } else if (d.status === 'LIMPO') {
+                atualizarStatus('LIMPO', null);
+                resultado.innerHTML = '';
+            } else {
+                resultado.innerHTML = '<p class="suave">' + (d.mensagem || 'Erro ao verificar.') + '</p>';
+            }
+        })
+        .catch(function () { botao.disabled = false; resultado.innerHTML = '<p class="suave" style="color:#b42318">Não foi possível verificar agora.</p>'; });
     };
-    window._selecionarSufixo = selecionar;
     botao.addEventListener('click', verificar);
     campo.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); verificar(); } });
 })();

@@ -181,6 +181,36 @@ class PainelController extends Controller
         return response()->json(Sufixo::buscar($q));
     }
 
+    /**
+     * Conferir sufixo: grava o nome do sufixo na propriedade e roda a checagem automática.
+     * Chamado via AJAX pelo botão "Verificar sufixo" — faz tudo de uma vez.
+     */
+    public function conferirSufixo(Request $request)
+    {
+        $empresa = $request->attributes->get('haras');
+        $sufixo = trim($request->input('sufixo', ''));
+
+        if ($sufixo === '') {
+            $empresa->update(['sufixo' => null, 'sufixo_codigo' => null, 'sufixo_associacao_id' => null, 'sufixo_confirmado' => 0]);
+
+            return response()->json(['status' => 'LIMPO', 'mensagem' => 'Sufixo removido.']);
+        }
+
+        $empresa->update(['sufixo' => $sufixo, 'sufixo_confirmado' => 0, 'sufixo_codigo' => null, 'sufixo_associacao_id' => null]);
+        $empresa->refresh();
+
+        if (! Sufixo::disponivel()) {
+            return response()->json(['status' => 'NAO_CONFIRMADO', 'mensagem' => 'Base de sufixos ainda não importada.']);
+        }
+
+        $check = Sufixo::conferir($empresa);
+        $empresa->refresh();
+
+        $resultados = Sufixo::buscar($sufixo);
+
+        return response()->json($check + ['resultados' => $resultados]);
+    }
+
     /** Plano: faixa de plantel em vigor, as demais faixas e os módulos adicionais. Só o proprietário vê. */
     public function plano(Request $request)
     {

@@ -55,6 +55,7 @@ Route::middleware(['auth', 'haras'])->prefix('painel')->group(function () {
             Route::get('/haras', [$p.'\PainelController', 'haras'])->name('haras');
             Route::put('/haras', [$p.'\PainelController', 'salvarHaras'])->name('haras.salvar');
             Route::get('/haras-buscar-sufixo', [$p.'\PainelController', 'buscarSufixo'])->name('haras.buscar-sufixo');
+            Route::post('/haras-conferir-sufixo', [$p.'\PainelController', 'conferirSufixo'])->name('haras.conferir-sufixo');
         });
 
         // Assinatura: faixa de plantel e módulos (só o proprietário)
