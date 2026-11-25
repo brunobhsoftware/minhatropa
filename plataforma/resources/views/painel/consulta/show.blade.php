@@ -23,25 +23,24 @@
 @php
     $abas = [
         'dados' => 'Dados',
+        'saude' => 'Saúde',
         'cobricoes' => 'Cobrições',
         'nascimentos' => 'Nascimentos',
         'transferencias' => 'Transferências',
         'baixas' => 'Baixas',
-        'filhos' => 'Filhos',
         'genealogia' => 'Genealogia',
-        'exames' => 'Exames',
-        'resenhas' => 'Resenhas',
         'premiacoes' => 'Premiações',
         'alertas' => 'Alertas',
         'semen' => 'Sêmen congelados',
         'situacao' => 'Situação',
     ];
-    $emBreve = ['exames', 'resenhas', 'premiacoes', 'alertas', 'semen'];
+    $emBreve = ['alertas', 'semen'];
     $contadores = [
+        'saude' => $eventosSaude->count(),
         'cobricoes' => $cobricoes->count(),
         'nascimentos' => $nascimentos->count(),
         'transferencias' => $transferencias->count(),
-        'filhos' => $filhos->count(),
+        'premiacoes' => $premiacoes->count(),
     ];
 @endphp
 
@@ -272,35 +271,7 @@
         <div class="vazio"><p>{{ $animal->nome }} não tem registro de baixa (óbito).</p></div>
     @endif
 
-{{-- ==================== FILHOS ==================== --}}
-@elseif ($aba === 'filhos')
-    @if ($filhos->isEmpty())
-        <div class="vazio"><p>Nenhum filho registrado de {{ $animal->nome }}.</p></div>
-    @else
-        <div class="tabela-rolagem"><table class="tabela">
-            <thead><tr><th>Nome</th><th>Sexo</th><th>Raça</th><th>Nascimento</th><th>Parentesco</th><th>Situação</th><th></th></tr></thead>
-            <tbody>
-            @foreach ($filhos as $f)
-                @php
-                    $parentesco = [];
-                    if ($f->pai_id === $animal->id) $parentesco[] = 'Pai';
-                    if ($f->mae_id === $animal->id) $parentesco[] = 'Mãe';
-                @endphp
-                <tr>
-                    <td><a href="{{ route('painel.consulta.show', $f) }}"><b>{{ $f->nome }}</b></a></td>
-                    <td>{{ $f->sexo === 'macho' ? 'M' : ($f->sexo === 'femea' ? 'F' : '—') }}</td>
-                    <td>{{ $f->raca ?: '—' }}</td>
-                    <td>{{ $f->data_nascimento ? $f->data_nascimento->format('d/m/Y') : '—' }}</td>
-                    <td>{{ implode(' / ', $parentesco) }}</td>
-                    <td><span class="selo selo--{{ $f->situacao }}">{{ $f->situacaoTexto() }}</span></td>
-                    <td><a href="{{ route('painel.consulta.show', $f) }}" class="botao botao--contorno botao--pequeno">Ver ficha</a></td>
-                </tr>
-            @endforeach
-            </tbody>
-        </table></div>
-    @endif
-
-{{-- ==================== GENEALOGIA ==================== --}}
+{{-- ==================== GENEALOGIA (ascendência + filhos) ==================== --}}
 @elseif ($aba === 'genealogia')
     @if (($arvore['pai']['animal'] ?? null) || ($arvore['mae']['animal'] ?? null) || ($arvore['pai']['nome'] ?? null) || ($arvore['mae']['nome'] ?? null))
     <section class="cartao">
@@ -365,6 +336,95 @@
         <div class="vazio"><p>Sem dados de genealogia para {{ $animal->nome }}.</p></div>
     @endif
 
+    <section class="cartao">
+        <h2>Filhos (produtos)</h2>
+        @if ($filhos->isEmpty())
+            <p class="suave">Nenhum filho registrado de {{ $animal->nome }}.</p>
+        @else
+            <div class="tabela-rolagem"><table class="tabela">
+                <thead><tr><th>Nome</th><th>Sexo</th><th>Raça</th><th>Nascimento</th><th>Parentesco</th><th>Situação</th><th></th></tr></thead>
+                <tbody>
+                @foreach ($filhos as $f)
+                    @php
+                        $parentesco = [];
+                        if ($f->pai_id === $animal->id) $parentesco[] = 'Pai';
+                        if ($f->mae_id === $animal->id) $parentesco[] = 'Mãe';
+                    @endphp
+                    <tr>
+                        <td><a href="{{ route('painel.consulta.show', $f) }}"><b>{{ $f->nome }}</b></a></td>
+                        <td>{{ $f->sexo === 'macho' ? 'M' : ($f->sexo === 'femea' ? 'F' : '—') }}</td>
+                        <td>{{ $f->raca ?: '—' }}</td>
+                        <td>{{ $f->data_nascimento ? $f->data_nascimento->format('d/m/Y') : '—' }}</td>
+                        <td>{{ implode(' / ', $parentesco) }}</td>
+                        <td><span class="selo selo--{{ $f->situacao }}">{{ $f->situacaoTexto() }}</span></td>
+                        <td><a href="{{ route('painel.consulta.show', $f) }}" class="botao botao--contorno botao--pequeno">Ver ficha</a></td>
+                    </tr>
+                @endforeach
+                </tbody>
+            </table></div>
+        @endif
+    </section>
+
+{{-- ==================== SAÚDE ==================== --}}
+@elseif ($aba === 'saude')
+    @if ($eventosSaude->isEmpty())
+        <div class="vazio"><p>Nenhum evento de saúde registrado para {{ $animal->nome }}.</p>
+        @if ($proprio)<p class="suave" style="margin-top:8px">Vacinas, vermifugações, exames e tratamentos são lançados no módulo <b>Saúde animal</b>.</p>@endif
+        </div>
+    @else
+        <div class="tabela-rolagem"><table class="tabela">
+            <thead><tr><th>Data</th><th>Tipo</th><th>Evento</th><th>Próxima</th></tr></thead>
+            <tbody>
+            @foreach ($eventosSaude as $e)
+                <tr>
+                    <td>{{ \Illuminate\Support\Carbon::parse($e->data_evento)->format('d/m/Y') }}</td>
+                    <td>{{ \App\Models\EventoSaude::TIPOS[$e->tipo] ?? $e->tipo }}</td>
+                    <td>{{ $e->titulo }}</td>
+                    <td>{{ $e->data_proxima ? \Illuminate\Support\Carbon::parse($e->data_proxima)->format('d/m/Y') : '—' }}</td>
+                </tr>
+            @endforeach
+            </tbody>
+        </table></div>
+    @endif
+
+{{-- ==================== PREMIAÇÕES ==================== --}}
+@elseif ($aba === 'premiacoes')
+    @if ($proprio)
+    <section class="cartao">
+        <h2>Adicionar premiação</h2>
+        <form method="post" action="{{ route('painel.animais.premiacoes.criar', $animal) }}" class="formulario">
+            @csrf
+            <div class="grade-3">
+                <label class="campo"><span>Evento *</span><input name="evento" value="{{ old('evento') }}" required maxlength="150" placeholder="Ex.: Exposição Nacional"></label>
+                <label class="campo"><span>Data</span><input type="date" name="data" value="{{ old('data') }}"></label>
+                <label class="campo"><span>Local</span><input name="local" value="{{ old('local') }}" maxlength="150" placeholder="Cidade / UF"></label>
+                <label class="campo"><span>Colocação / prêmio</span><input name="colocacao" value="{{ old('colocacao') }}" maxlength="100" placeholder="Ex.: Campeão, 2º lugar"></label>
+            </div>
+            <div class="acoes-form"><button class="botao botao--primario">Adicionar</button></div>
+        </form>
+    </section>
+    @endif
+    @if ($premiacoes->isEmpty())
+        <div class="vazio"><p>Nenhuma premiação registrada para {{ $animal->nome }}.</p></div>
+    @else
+        <div class="tabela-rolagem"><table class="tabela">
+            <thead><tr><th>Data</th><th>Evento</th><th>Local</th><th>Colocação</th>@if ($proprio)<th></th>@endif</tr></thead>
+            <tbody>
+            @foreach ($premiacoes as $pr)
+                <tr>
+                    <td>{{ $pr->data ? \Illuminate\Support\Carbon::parse($pr->data)->format('d/m/Y') : '—' }}</td>
+                    <td><b>{{ $pr->evento }}</b></td>
+                    <td>{{ $pr->local ?: '—' }}</td>
+                    <td>{{ $pr->colocacao ?: '—' }}</td>
+                    @if ($proprio)
+                    <td><form method="post" action="{{ route('painel.animais.premiacoes.excluir', [$animal, $pr->uuid]) }}" onsubmit="return confirm('Remover esta premiação?');" style="display:inline">@csrf @method('delete')<button class="botao botao--contorno botao--pequeno">Remover</button></form></td>
+                    @endif
+                </tr>
+            @endforeach
+            </tbody>
+        </table></div>
+    @endif
+
 {{-- ==================== SITUAÇÃO ==================== --}}
 @elseif ($aba === 'situacao')
     <section class="cartao">
@@ -384,9 +444,6 @@
 @elseif (in_array($aba, $emBreve))
     @php
         $desc = [
-            'exames' => 'Controle de exames laboratoriais, hemogramas e laudos veterinários.',
-            'resenhas' => 'Resenha descritiva e marcações físicas do animal.',
-            'premiacoes' => 'Premiações, exposições e competições em que o animal participou.',
             'alertas' => 'Alertas e pendências como vacinas, vermifugações e documentos.',
             'semen' => 'Controle de doses de sêmen congelado, partidas e laboratório.',
         ];
