@@ -174,7 +174,7 @@
                 <label class="campo"><span>Nome do criador</span><input name="criador_nome" id="campoCriadorNome" value="{{ $v('criador_nome') ?: ($criadorPadrao ? ($haras->sufixo ?: $haras->nome) : '') }}" maxlength="150"></label>
             </div>
             <div class="grade-3" style="margin-top:.5rem">
-                <x-uf-municipio prefixo="criador_" :uf="old('criador_uf', $animal->criador_uf ?: ($criadorPadrao ? $haras->uf : ''))" :municipio-id="old('criador_municipio_id', $animal->criador_municipio_id ?: ($criadorPadrao ? $haras->municipio_id : null))" :cidade="old('criador_cidade', $animal->criador_cidade ?: ($criadorPadrao ? $haras->cidade : ''))" />
+                <x-uf-municipio prefixo="criador_" :uf="old('criador_uf', $animal->criador_uf ?: ($criadorPadrao ? $haras->uf : ''))" :municipio-id="old('criador_municipio_id', ($animal->criador_municipio_id ?? null) ?: ($criadorPadrao ? $haras->municipio_id : null))" :cidade="old('criador_cidade', $animal->criador_cidade ?: ($criadorPadrao ? $haras->cidade : ''))" />
             </div>
             <div id="buscaHarasCriador" hidden style="margin-top:.5rem;padding:12px;border:1px solid #d0d5dd;border-radius:8px;background:#f9fafb">
                 <div style="display:flex;gap:8px;align-items:center">
@@ -192,7 +192,7 @@
                 <label class="campo"><span>Nome do proprietário</span><input name="proprietario_nome" id="campoProprietarioNome" value="{{ $v('proprietario_nome') ?: ($proprietarioPadrao ? ($haras->sufixo ?: $haras->nome) : '') }}" maxlength="150"></label>
             </div>
             <div class="grade-3" style="margin-top:.5rem">
-                <x-uf-municipio prefixo="proprietario_" :uf="old('proprietario_uf', $animal->proprietario_uf ?: ($proprietarioPadrao ? $haras->uf : ''))" :municipio-id="old('proprietario_municipio_id', $animal->proprietario_municipio_id ?: ($proprietarioPadrao ? $haras->municipio_id : null))" :cidade="old('proprietario_cidade', $animal->proprietario_cidade ?: ($proprietarioPadrao ? $haras->cidade : ''))" />
+                <x-uf-municipio prefixo="proprietario_" :uf="old('proprietario_uf', $animal->proprietario_uf ?: ($proprietarioPadrao ? $haras->uf : ''))" :municipio-id="old('proprietario_municipio_id', ($animal->proprietario_municipio_id ?? null) ?: ($proprietarioPadrao ? $haras->municipio_id : null))" :cidade="old('proprietario_cidade', $animal->proprietario_cidade ?: ($proprietarioPadrao ? $haras->cidade : ''))" />
             </div>
 
             <h3 style="margin-top:1.5rem">Local de nascimento</h3>
