@@ -138,6 +138,10 @@ class PainelController extends Controller
             unset($dados['sufixo'], $dados['sufixo_codigo'], $dados['sufixo_associacao_id']);
         }
 
+        // Titularidade: proprietário / razão social não muda pelo painel (só pela Administração).
+        // Titularidade (PF/PJ) e documento já não são editáveis aqui; mantém o valor atual mesmo em POST forjado.
+        $dados['razao_social'] = $empresa->razao_social;
+
         $titular = $empresa->titular;
         if ($titular) { // nome do responsável (e do proprietário PF) vem sempre do cadastro de Profissional
             $dados['responsavel_nome'] = $titular->nome;
