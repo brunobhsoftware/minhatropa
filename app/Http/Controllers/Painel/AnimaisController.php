@@ -480,8 +480,12 @@ class AnimaisController extends Controller
             $r = preg_replace('/\D/', '', $dados['registro']);
             $dados['registro'] = $r !== '' ? ltrim($r, '0') ?: '0' : '';
         }
-        $dados = Geografia::colunas($dados, 'criador_');
-        $dados = Geografia::colunas($dados, 'proprietario_');
+        if (\Illuminate\Support\Facades\Schema::hasColumn('animal', 'criador_municipio_id')) {
+            $dados = Geografia::colunas($dados, 'criador_');
+            $dados = Geografia::colunas($dados, 'proprietario_');
+        } else {
+            unset($dados['criador_municipio_id'], $dados['proprietario_municipio_id']);
+        }
 
         return $dados;
     }
