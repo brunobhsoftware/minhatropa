@@ -172,6 +172,13 @@ class Animal extends Model
         'outro' => 'Outro',
     ];
 
+    // Status do registro na associação (só armazenamento: a emissão é da associação, não do sistema).
+    public const REGISTRO_STATUS = [
+        'sem_registro' => 'Sem registro',
+        'provisorio' => 'Provisório',
+        'definitivo' => 'Definitivo',
+    ];
+
     public const ASSOCIACOES = [
         'ABCCMM' => 'ABCCMM — Mangalarga Marchador',
         'ABCCMangalarga' => 'ABCCMangalarga — Mangalarga',
@@ -192,7 +199,7 @@ class Animal extends Model
         'pelagem', 'pelagem_complemento', 'data_nascimento',
         'local_nascimento', 'criador_nome', 'criador_cidade', 'criador_uf', 'criador_municipio_id',
         'proprietario_nome', 'proprietario_cidade', 'proprietario_uf', 'proprietario_municipio_id',
-        'registro', 'registro_associacao', 'id_associacao', 'registro_definitivo', 'microchip', 'dna_coletado',
+        'registro', 'registro_associacao', 'id_associacao', 'registro_definitivo', 'registro_status', 'microchip', 'dna_coletado',
         'numero_plantel', 'local_baia', 'peso_kg', 'altura_cm', 'castrado',
         'pai', 'pai_id', 'pai_referencia_id', 'pai_registro',
         'mae', 'mae_id', 'mae_referencia_id', 'mae_registro',
@@ -234,6 +241,14 @@ class Animal extends Model
     public function setApelidoAttribute($valor): void
     {
         $this->attributes['apelido'] = Texto::maiusculas($valor);
+    }
+
+    /** Texto do status do registro; cai para o booleano antigo quando a coluna de status ainda não existe. */
+    public function registroStatusTexto(): string
+    {
+        $status = $this->registro_status ?? ($this->registro_definitivo ? 'definitivo' : ($this->registro ? 'provisorio' : 'sem_registro'));
+
+        return self::REGISTRO_STATUS[$status] ?? 'Sem registro';
     }
 
     public function idade(): string

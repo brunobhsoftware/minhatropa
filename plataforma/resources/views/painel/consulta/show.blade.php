@@ -87,7 +87,7 @@
                 <div><dt>Registro</dt><dd>{{ $animal->registro ?: '—' }}</dd></div>
                 @if ($animal->registro_associacao)<div><dt>Associação</dt><dd>{{ \App\Models\Animal::ASSOCIACOES[$animal->registro_associacao] ?? $animal->registro_associacao }}</dd></div>@endif
                 @if ($animal->id_associacao)<div><dt>ID na associação</dt><dd>{{ $animal->id_associacao }}</dd></div>@endif
-                <div><dt>Registro definitivo</dt><dd>{{ $animal->registro_definitivo ? 'Sim' : 'Não' }}</dd></div>
+                <div><dt>Status do registro</dt><dd>{{ $animal->registroStatusTexto() }}</dd></div>
                 <div><dt>Microchip</dt><dd>{{ $animal->microchip ?: '—' }}</dd></div>
                 <div><dt>DNA coletado</dt><dd>{{ $animal->dna_coletado ? 'Sim' : 'Não' }}</dd></div>
                 @if ($animal->peso_kg)<div><dt>Peso</dt><dd>{{ $animal->peso_kg }} kg</dd></div>@endif

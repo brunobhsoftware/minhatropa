@@ -50,7 +50,7 @@
             <div><dt>Registro</dt><dd>{{ $animal->registro ?: '—' }}</dd></div>
             <div><dt>Associação</dt><dd>{{ isset(\App\Models\Animal::ASSOCIACOES[$animal->registro_associacao]) ? \App\Models\Animal::ASSOCIACOES[$animal->registro_associacao] : '—' }}</dd></div>
             <div><dt>ID na associação</dt><dd>{{ $animal->id_associacao ?: '—' }}</dd></div>
-            <div><dt>Registro definitivo</dt><dd>{{ $animal->registro_definitivo ? 'Sim' : 'Não' }}</dd></div>
+            <div><dt>Status do registro</dt><dd>{{ $animal->registroStatusTexto() }}</dd></div>
             <div><dt>Microchip</dt><dd>{{ $animal->microchip ?: '—' }}</dd></div>
             <div><dt>DNA coletado</dt><dd>{{ $animal->dna_coletado ? 'Sim' : 'Não' }}</dd></div>
             <div><dt>Peso</dt><dd>{{ $animal->peso_kg ? $animal->peso_kg . ' kg' : '—' }}</dd></div>

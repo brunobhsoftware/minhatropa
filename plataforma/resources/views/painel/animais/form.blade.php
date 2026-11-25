@@ -145,12 +145,18 @@
                     </select>
                 </label>
                 <input type="hidden" name="id_associacao" id="campoIdAssociacao" value="{{ $v('id_associacao') }}">
+                <label class="campo"><span>Status do registro</span>
+                    <select name="registro_status">
+                        @foreach (\App\Models\Animal::REGISTRO_STATUS as $k => $t)
+                        <option value="{{ $k }}" @selected(($v('registro_status') ?: 'sem_registro') === $k)>{{ $t }}</option>
+                        @endforeach
+                    </select>
+                </label>
                 <label class="campo"><span>Microchip</span><input name="microchip" value="{{ $v('microchip') }}" maxlength="40"></label>
                 <label class="campo"><span>Peso (kg)</span><input type="number" step="0.1" name="peso_kg" value="{{ $v('peso_kg') }}" min="0" max="9999"></label>
                 <label class="campo"><span>Altura na cernelha (cm)</span><input type="number" step="0.1" name="altura_cm" value="{{ $v('altura_cm') }}" min="0" max="999"></label>
             </div>
             <div style="display:flex;gap:2rem;flex-wrap:wrap;margin-top:1rem">
-                <label class="opcao-check"><input type="hidden" name="registro_definitivo" value="0"><input type="checkbox" name="registro_definitivo" value="1" @checked(old('registro_definitivo', $animal->registro_definitivo))> Registro definitivo</label>
                 <label class="opcao-check"><input type="hidden" name="dna_coletado" value="0"><input type="checkbox" name="dna_coletado" value="1" @checked(old('dna_coletado', $animal->dna_coletado))> DNA coletado</label>
                 <label class="opcao-check"><input type="hidden" name="castrado" value="0"><input type="checkbox" name="castrado" value="1" @checked(old('castrado', $animal->castrado))> Castrado</label>
             </div>

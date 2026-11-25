@@ -473,7 +473,7 @@ class AnimaisController extends Controller
             'registro' => ['nullable', 'string', 'max:60'],
             'registro_associacao' => ['nullable', Rule::in(array_keys(Animal::ASSOCIACOES))],
             'id_associacao' => ['nullable', 'string', 'max:30'],
-            'registro_definitivo' => ['nullable', 'boolean'],
+            'registro_status' => ['nullable', Rule::in(array_keys(Animal::REGISTRO_STATUS))],
             'microchip' => ['nullable', 'string', 'max:40'],
             'dna_coletado' => ['nullable', 'boolean'],
             'numero_plantel' => ['nullable', 'string', 'max:30'],
@@ -510,6 +510,13 @@ class AnimaisController extends Controller
             $dados = Geografia::colunas($dados, 'proprietario_');
         } else {
             unset($dados['criador_municipio_id'], $dados['proprietario_municipio_id']);
+        }
+        // Registro: mantém o booleano antigo em sincronia com o status; remove o status se a coluna ainda não existe.
+        if (array_key_exists('registro_status', $dados)) {
+            $dados['registro_definitivo'] = $dados['registro_status'] === 'definitivo';
+            if (! \Illuminate\Support\Facades\Schema::hasColumn('animal', 'registro_status')) {
+                unset($dados['registro_status']);
+            }
         }
 
         return $dados;
