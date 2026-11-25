@@ -70,13 +70,31 @@ Ou seja, o modelo de inseminação e embriões já está pronto no banco. O trab
   (sem/provisório/definitivo) e deixar claros na ficha. Sem qualquer processo de associação.
 - **Fase 5 — Revisão das abas "em breve"** restantes, conforme a prioridade do Bruno.
 
-## 5. Decisões a confirmar
+## 5. Decisões registradas (Bruno, 24/11/2026)
 
-1. **Registro**: troco o booleano `registro_definitivo` por um status `sem registro / provisório /
-   definitivo` (só exibição), ou mantenho o booleano como está?
-2. **Reprodução**: começo pela **Fase 1 (cobrição completa: monta, IA, embrião)**? É a base do
-   controle que os Haras querem.
-3. **Receptoras**: a receptora de TE é sempre um animal do próprio plantel, ou pode ser externa
-   (cadastrada só pelo nome)?
-4. **Sêmen/embrião em estoque**: o Haras quer controlar **estoque de sêmen e de embriões** (doses,
-   botijão, origem) além da cobrição em si? (Pode ser um passo depois.)
+1. **Registro vira status** `sem registro / provisório / definitivo` (só exibição; substitui o
+   booleano `registro_definitivo`). A fazer no cadastro, ficha e Consulta.
+2. **Receptora de TE pode ser externa** (animal do próprio plantel ou cadastrada só pelo nome).
+3. **Sêmen congelado** fica como item próprio do menu do animal (controle de estoque de doses,
+   origem) — construção posterior.
+
+## 6. Menu por animal (abas da ficha / Consulta)
+
+Espelha o menu da ABCCMM, **sem os itens que são função da associação**. Itens **removidos / não
+implementar**: Livro (de elite), 2ª via, Controle de inscrição, Bloqueio, **Resenhas**, **Exames**.
+
+Menu final: **Dados · Saúde · Cobrições · Nascimentos · Transferências · Baixas · Genealogia
+(com Filhos) · Premiações · Alertas (breve) · Sêmen congelado (breve) · Situação.**
+
+- **Saúde** (novo): lista os eventos de saúde do animal (vacinas, vermifugações, exames, tratamentos).
+- **Genealogia**: passa a mostrar a ascendência (árvore) **e** a seção **Filhos (produtos)** — a
+  aba "Filhos" separada foi incorporada aqui.
+- **Premiações** (novo, feito): cadastro simples — evento, data, local (+ colocação). Gerenciado na
+  ficha/Consulta do dono; tabela `premiacao` (V023).
+
+## 7. Próximos passos
+
+- **Registro → status** (decisão 1): migração + cadastro + exibição.
+- **Fase 1 — Cobrição completa** (monta / IA / embrião, receptora externa, diagnóstico de gestação).
+- **Fase 2 — Nascimento → produto**.
+- **Sêmen congelado** (estoque de doses) e **Alertas**.
