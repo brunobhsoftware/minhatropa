@@ -86,9 +86,7 @@
         <div class="menu-lateral__haras">
             <small>{{ $haras->rotulo() }}</small>
             <a href="{{ route('painel') }}" style="color:inherit;text-decoration:none"><b>{{ $haras->nome }}</b></a>
-            <span class="menu-lateral__haras-acoes">
-                <a href="{{ route('painel.haras') }}" title="Editar cadastro">Editar</a>@if ($outros)<a href="{{ route('painel.escolher') }}">Trocar</a>@endif
-            </span>
+            @if ($outros)<span class="menu-lateral__haras-acoes"><a href="{{ route('painel.escolher') }}">Trocar</a></span>@endif
         </div>
         @include('painel.partes.menu', ['itensMenu' => $menu])
         <div class="menu-lateral__grupo">Configuração</div>
