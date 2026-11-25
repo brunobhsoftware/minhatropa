@@ -124,17 +124,26 @@ class TransferenciasController extends Controller
         }
 
         if ($transferencia->empresa_destino_id) {
+            // Transferência para outra propriedade da plataforma: muda o dono e atualiza o proprietário na trilha.
+            $destino = Empresa::find($transferencia->empresa_destino_id);
             $animal->update([
                 'empresa_id' => $transferencia->empresa_destino_id,
                 'situacao' => 'ativo',
                 'situacao_data' => $transferencia->data_transferencia,
                 'situacao_motivo' => "Transferido de {$transferencia->origem?->nome}",
+                'proprietario_nome' => $destino ? ($destino->sufixo ?: $destino->nome) : $animal->proprietario_nome,
+                'proprietario_cidade' => $destino?->cidade,
+                'proprietario_uf' => $destino?->uf,
             ]);
         } else {
+            // Transferência para fora da plataforma: sai do plantel e o proprietário na trilha passa a ser o destino externo.
             $animal->update([
                 'situacao' => 'transferido',
                 'situacao_data' => $transferencia->data_transferencia,
                 'situacao_motivo' => "Transferido para {$transferencia->destino_externo}",
+                'proprietario_nome' => $transferencia->destino_externo ?: $animal->proprietario_nome,
+                'proprietario_cidade' => null,
+                'proprietario_uf' => null,
             ]);
         }
     }
