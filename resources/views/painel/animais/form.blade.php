@@ -625,7 +625,7 @@ document.getElementById('buscaMae').addEventListener('keydown', function(e) { if
 })();
 // Botões "Esta propriedade" na trilha da vida
 (function () {
-    var dados = @json(['nome' => $haras->sufixo ?: $haras->nome, 'cidade' => $haras->cidade, 'uf' => $haras->uf, 'municipio_id' => $haras->municipio_id]);
+    var dados = @js(['nome' => $haras->sufixo ?: $haras->nome, 'cidade' => $haras->cidade, 'uf' => $haras->uf, 'municipio_id' => $haras->municipio_id]);
 
     function preencherGeo(prefixo, uf, municipioId) {
         var geoEl = document.querySelector('[name="' + prefixo + 'uf"]');

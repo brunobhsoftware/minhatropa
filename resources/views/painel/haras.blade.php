@@ -29,14 +29,10 @@
             <input type="hidden" name="tipo_propriedade" value="{{ $haras->tipo_propriedade ?: 'fazenda' }}">
             <div class="grade-2">
                 <label class="campo"><span>Nome da fazenda *</span><input name="nome" value="{{ $v('nome') }}" required maxlength="150"></label>
-                <div class="campo"><span>Nome do Haras (sufixo)</span>
-                    @if ($haras->sufixo_confirmado)
-                        <small style="color:#047857;font-weight:600">✓ Sufixo confirmado</small>
-                    @endif
+                <div class="campo"><span>Nome do Haras (sufixo)<span id="seloSufixo" style="color:#047857;font-weight:600;margin-left:.4rem;white-space:nowrap" @if (! $haras->sufixo_confirmado) hidden @endif>✓ Confirmado<span id="codigoAssocInline">{{ $haras->sufixo_confirmado && $haras->sufixo_codigo ? ' · '.$haras->sufixo_codigo : '' }}</span></span></span>
                     <div class="campo-com-botao">
                         <input name="sufixo" id="campoSufixoNome" value="{{ $v('sufixo') }}" maxlength="120" placeholder="Ex.: MINHA TROPA" autocomplete="off">
                         <button type="button" class="botao botao--contorno botao--pequeno" id="btnVerificarSufixo" @if ($haras->sufixo_confirmado) hidden @endif>Verificar sufixo</button>
-                        <span id="codigoAssocInline" style="font-size:.82rem;white-space:nowrap;color:#047857;font-weight:600" @if (! $haras->sufixo_confirmado) hidden @endif>{{ $haras->sufixo_codigo }}</span>
                     </div>
                     <small>O "sobrenome" dos animais na associação.</small>
                     <div id="statusSufixo" style="margin-top:.5rem;font-size:.82rem;@if ($haras->sufixo && ! $haras->sufixo_confirmado && $haras->sufixo_codigo) color:#b45309 @elseif ($haras->sufixo && ! $haras->sufixo_confirmado) color:#6b7280 @else display:none @endif">
@@ -171,26 +167,28 @@ document.addEventListener('DOMContentLoaded', function () {
     var token = document.querySelector('meta[name="csrf-token"]')?.content || document.querySelector('input[name=_token]')?.value || '';
 
     var codigoInline = document.getElementById('codigoAssocInline');
+    var selo = document.getElementById('seloSufixo');
     var atualizarStatus = function (status, codigo) {
         if (!statusBloco) return;
         if (status === 'CONFIRMADO') {
             botao.hidden = true;
-            if (codigoInline) { codigoInline.textContent = codigo; codigoInline.hidden = false; }
+            if (codigoInline) codigoInline.textContent = codigo ? ' · ' + codigo : '';
+            if (selo) selo.hidden = false;
             statusBloco.style.cssText = 'display:none';
             statusBloco.innerHTML = '';
         } else if (status === 'PENDENTE' || status === 'CONFLITO') {
             botao.hidden = false;
-            if (codigoInline) codigoInline.hidden = true;
+            if (selo) selo.hidden = true;
             statusBloco.style.cssText = 'margin-top:.5rem;font-size:.82rem;color:#b45309';
             statusBloco.innerHTML = '⏳ Pendente — código ' + codigo + '. Confira nome, cidade e UF.';
         } else if (status === 'NAO_CONFIRMADO') {
             botao.hidden = false;
-            if (codigoInline) codigoInline.hidden = true;
+            if (selo) selo.hidden = true;
             statusBloco.style.cssText = 'margin-top:.5rem;font-size:.82rem;color:#6b7280';
             statusBloco.innerHTML = 'Sufixo não localizado na base da associação.';
         } else {
             botao.hidden = false;
-            if (codigoInline) codigoInline.hidden = true;
+            if (selo) selo.hidden = true;
             statusBloco.style.cssText = 'display:none';
             statusBloco.innerHTML = '';
         }
