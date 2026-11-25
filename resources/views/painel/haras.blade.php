@@ -30,20 +30,20 @@
             <div class="grade-2">
                 <label class="campo"><span>Nome da fazenda *</span><input name="nome" value="{{ $v('nome') }}" required maxlength="150"></label>
                 <div class="campo"><span>Nome do Haras (sufixo)</span>
+                    @if ($haras->sufixo_confirmado)
+                        <small style="color:#047857;font-weight:600">✓ Sufixo confirmado</small>
+                    @endif
                     <div class="campo-com-botao">
                         <input name="sufixo" id="campoSufixoNome" value="{{ $v('sufixo') }}" maxlength="120" placeholder="Ex.: MINHA TROPA" autocomplete="off">
-                        <button type="button" class="botao botao--contorno botao--pequeno" id="btnVerificarSufixo">Verificar sufixo</button>
+                        <button type="button" class="botao botao--contorno botao--pequeno" id="btnVerificarSufixo" @if ($haras->sufixo_confirmado) hidden @endif>Verificar sufixo</button>
+                        <span id="codigoAssocInline" style="font-size:.82rem;white-space:nowrap;color:#047857;font-weight:600" @if (! $haras->sufixo_confirmado) hidden @endif>{{ $haras->sufixo_codigo }}</span>
                     </div>
                     <small>O "sobrenome" dos animais na associação.</small>
-                    <div id="statusSufixo" style="margin-top:.5rem;padding:.6rem .8rem;border-radius:8px;font-size:.88rem;@if ($haras->sufixo && $haras->sufixo_confirmado) background:#ecfdf5;border:1px solid #6ee7b7 @elseif ($haras->sufixo && $haras->sufixo_codigo) background:#fffbeb;border:1px solid #fcd34d @elseif ($haras->sufixo) background:#f3f4f6;border:1px solid #d1d5db @else display:none @endif">
-                        @if ($haras->sufixo_confirmado)
-                            <b style="color:#047857">✓ Sufixo confirmado</b><br>
-                            <span>Código na associação: <b>{{ $haras->sufixo_codigo }}</b></span>
-                        @elseif ($haras->sufixo && $haras->sufixo_codigo)
-                            <b style="color:#b45309">⏳ Pendente de confirmação</b><br>
-                            <span>Código encontrado: <b>{{ $haras->sufixo_codigo }}</b> — os dados do proprietário não bateram completamente. Confira o nome, cidade e UF.</span>
-                        @elseif ($haras->sufixo)
-                            <span style="color:#6b7280">Sufixo informado, mas ainda não verificado na base da associação. Clique em "Verificar sufixo".</span>
+                    <div id="statusSufixo" style="margin-top:.5rem;font-size:.82rem;@if ($haras->sufixo && ! $haras->sufixo_confirmado && $haras->sufixo_codigo) color:#b45309 @elseif ($haras->sufixo && ! $haras->sufixo_confirmado) color:#6b7280 @else display:none @endif">
+                        @if ($haras->sufixo && ! $haras->sufixo_confirmado && $haras->sufixo_codigo)
+                            ⏳ Pendente — código {{ $haras->sufixo_codigo }}. Confira nome, cidade e UF.
+                        @elseif ($haras->sufixo && ! $haras->sufixo_confirmado)
+                            Sufixo informado, não verificado. Clique em "Verificar sufixo".
                         @endif
                     </div>
                     <div id="resultadoSufixo" style="margin-top:.5rem"></div>
@@ -170,22 +170,31 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!campo || !botao) return;
     var token = document.querySelector('meta[name="csrf-token"]')?.content || document.querySelector('input[name=_token]')?.value || '';
 
+    var codigoInline = document.getElementById('codigoAssocInline');
     var atualizarStatus = function (status, codigo) {
         if (!statusBloco) return;
         if (status === 'CONFIRMADO') {
-            statusBloco.style.cssText = 'margin-top:.5rem;padding:.6rem .8rem;border-radius:8px;font-size:.88rem;background:#ecfdf5;border:1px solid #6ee7b7';
-            statusBloco.innerHTML = '<b style="color:#047857">✓ Sufixo confirmado</b><br><span>Código na associação: <b>' + codigo + '</b></span>';
+            botao.hidden = true;
+            if (codigoInline) { codigoInline.textContent = codigo; codigoInline.hidden = false; }
+            statusBloco.style.cssText = 'display:none';
+            statusBloco.innerHTML = '';
         } else if (status === 'PENDENTE' || status === 'CONFLITO') {
-            statusBloco.style.cssText = 'margin-top:.5rem;padding:.6rem .8rem;border-radius:8px;font-size:.88rem;background:#fffbeb;border:1px solid #fcd34d';
-            statusBloco.innerHTML = '<b style="color:#b45309">⏳ Pendente de confirmação</b><br><span>Código encontrado: <b>' + codigo + '</b> — os dados do proprietário não bateram completamente. Confira o nome, cidade e UF.</span>';
+            botao.hidden = false;
+            if (codigoInline) codigoInline.hidden = true;
+            statusBloco.style.cssText = 'margin-top:.5rem;font-size:.82rem;color:#b45309';
+            statusBloco.innerHTML = '⏳ Pendente — código ' + codigo + '. Confira nome, cidade e UF.';
         } else if (status === 'NAO_CONFIRMADO') {
-            statusBloco.style.cssText = 'margin-top:.5rem;padding:.6rem .8rem;border-radius:8px;font-size:.88rem;background:#f3f4f6;border:1px solid #d1d5db';
-            statusBloco.innerHTML = '<span style="color:#6b7280">Sufixo não localizado na base da associação.</span>';
+            botao.hidden = false;
+            if (codigoInline) codigoInline.hidden = true;
+            statusBloco.style.cssText = 'margin-top:.5rem;font-size:.82rem;color:#6b7280';
+            statusBloco.innerHTML = 'Sufixo não localizado na base da associação.';
         } else {
+            botao.hidden = false;
+            if (codigoInline) codigoInline.hidden = true;
             statusBloco.style.cssText = 'display:none';
             statusBloco.innerHTML = '';
         }
-        statusBloco.style.display = '';
+        if (statusBloco.innerHTML) statusBloco.style.display = '';
     };
 
     var verificar = function () {
@@ -203,13 +212,13 @@ document.addEventListener('DOMContentLoaded', function () {
             botao.disabled = false;
             if (d.status === 'CONFIRMADO') {
                 atualizarStatus('CONFIRMADO', d.codigo);
-                resultado.innerHTML = '<div class="aviso aviso--ok" style="margin-top:.5rem">' + d.mensagem + '</div>';
+                resultado.innerHTML = '<small style="color:#047857;font-weight:600">✓ ' + d.mensagem + '</small>';
             } else if (d.status === 'PENDENTE' || d.status === 'CONFLITO') {
                 atualizarStatus('PENDENTE', d.codigo);
-                resultado.innerHTML = '<div class="aviso" style="margin-top:.5rem;background:#fffbeb;border:1px solid #fcd34d;color:#92400e;padding:.5rem .8rem;border-radius:6px">' + d.mensagem + '</div>';
+                resultado.innerHTML = '';
             } else if (d.status === 'NAO_CONFIRMADO') {
                 atualizarStatus('NAO_CONFIRMADO', null);
-                resultado.innerHTML = '<div class="aviso" style="margin-top:.5rem;background:#fef2f2;border:1px solid #fca5a5;color:#991b1b;padding:.5rem .8rem;border-radius:6px">' + d.mensagem + '</div>';
+                resultado.innerHTML = '';
             } else if (d.status === 'LIMPO') {
                 atualizarStatus('LIMPO', null);
                 resultado.innerHTML = '';
