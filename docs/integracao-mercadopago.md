@@ -20,17 +20,22 @@ pelo Mercado Pago**.
 
 ## 2. O que falta (o pedido do Bruno)
 
-### 2.1 Conexão por propriedade (a base)
-Tela no painel da propriedade (**Financeiro → Mercado Pago da empresa**), espelhando o Fora da Fila:
-- Cadastrar a **aplicação própria** do haras/fazenda (Client ID/Secret; Access Token, Public Key e webhook secret
-  de teste e de produção), gravando em `conta_pagamento` (modo `propria`, segredos criptografados).
-- **Verificar de quem é o token** (`/users/me`): token de produção válido → ativa a conta (`status = ativa`).
-- **Endereço do webhook por conta** (`/webhooks/mercadopago/{uuid da conta}`), conferido pela assinatura dela.
-- **Pagamento de teste** da conta (homologação) com o token de teste.
-- Alternativa **plataforma** (vendas na conta da BH com repasse) para quem não tem conta MP — decisão do Bruno.
+### 2.1 Conexão por propriedade — **só OAuth de um clique** (decisão do Bruno, 25/11/2026)
+Diferente do Fora da Fila (que passou pela fase manual de Client ID/Secret), no Minha Tropa a propriedade **não
+digita nada técnico**. A integração com a conta bancária do haras é por **um clique**:
+- Tela no painel (**Financeiro → Mercado Pago**) com o botão **"Conectar Mercado Pago"**.
+- OAuth: redireciona para o Mercado Pago, o dono do haras autoriza, o MP volta com o `code`, a plataforma troca
+  pelos tokens (`MercadoPago::trocarCodigo`) e grava em `conta_pagamento` **modo `direta`** (tokens criptografados,
+  `conta_externa_id` = user_id, `email_conta`/apelido via `/users/me`). O dinheiro cai **direto na conta do haras**.
+- "Conta conectada: <e-mail>" + **Desconectar**. Renovação do token pelo agendador (`renovarToken`).
+- **Sem** cadastro de aplicação própria por haras, **sem** Client ID/Secret na tela, **sem** blocos de teste/produção.
+  A aplicação é única (a da BH, já configurada em Administração → Mercado Pago).
+- Pré-requisitos: a aplicação da BH precisa estar **aprovada no MP para OAuth de marketplace** (no Fora da Fila já
+  está e é assim que funciona hoje) e `MP_CLIENT_ID`/`MP_CLIENT_SECRET` definidos. Falta só acrescentar `direta` ao
+  enum `conta_pagamento.modo` (hoje `plataforma`/`propria`) — migração pequena.
 
 ### 2.2 Fluxos de cobrança (em cima da conexão)
-Gerar cobrança (Checkout/Pix/cartão) na conta da propriedade para:
+Gerar cobrança (Checkout/Pix/cartão) na conta conectada da propriedade para:
 - **Venda de animal** (Classificados → "comprar" com pagamento).
 - **Embrião / congelamento de sêmen / cobrição** (serviços de reprodução cobrados).
 Cada cobrança vira um registro de pagamento vinculado ao recurso (animal, cobrição…), confirmado por **webhook**
@@ -38,18 +43,18 @@ Cada cobrança vira um registro de pagamento vinculado ao recurso (animal, cobri
 
 ## 3. Decisões a confirmar (antes dos fluxos que mexem com dinheiro)
 
-1. **Quem recebe**: só **aplicação própria** da propriedade (cada haras com sua conta MP) ou também o modo
-   **plataforma** (BH recebe e repassa), como no Fora da Fila? Sugiro os dois, começando pela própria.
-2. **Comissão da plataforma**: cobra comissão do Minha Tropa sobre as vendas (split `application_fee`, como no
-   Fora da Fila) ou sem comissão nesta fase?
-3. **O que é cobrado primeiro**: começar pela **venda de animal** (Classificados) e depois os serviços de
+A conexão (2.1) já está definida (OAuth de um clique) e pode ser construída sem depender destas respostas.
+
+1. **Comissão da plataforma**: o Minha Tropa retém comissão nas vendas (split `application_fee` na conta conectada,
+   como no Fora da Fila) ou sem comissão nesta fase?
+2. **O que é cobrado primeiro**: começar pela **venda de animal** (Classificados) e depois os serviços de
    reprodução (embrião, congelamento, cobrição)?
-4. **Checkout**: Checkout Pro (redireciona ao MP) para homologar rápido, depois Pix/cartão transparente na própria
+3. **Checkout**: Checkout Pro (redireciona ao MP) para homologar rápido, depois Pix/cartão transparente na própria
    página (como evoluiu o Fora da Fila)?
 
 ## 4. Ordem sugerida
 
-1. **Conexão por propriedade** (Financeiro → Mercado Pago da empresa) + verificar token + webhook por conta. ← base
+1. **Conexão por propriedade** — Financeiro → "Conectar Mercado Pago" (OAuth de um clique), modo `direta`. ← base
 2. **Cobrança de venda de animal** (Classificados) com confirmação por webhook.
 3. **Cobrança dos serviços de reprodução** (embrião, congelamento, cobrição).
 4. Comissão/split, repasses e extrato, conforme a decisão 2.
