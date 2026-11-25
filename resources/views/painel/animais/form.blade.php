@@ -58,7 +58,7 @@
         <button type="button" class="aba-cadastro" data-aba="trilha">Trilha da vida</button>
         <button type="button" class="aba-cadastro" data-aba="aquisicao">Aquisição</button>
         <button type="button" class="aba-cadastro" data-aba="genealogia">Genealogia</button>
-        @if (\App\Support\Sociedade::disponivel())<button type="button" class="aba-cadastro" data-aba="sociedade" id="botaoSociedade" @if (old('sociedade', $socios->isNotEmpty() ? 'socios' : 'propria') !== 'socios') hidden @endif>Sociedade</button>@endif
+        @if (\App\Support\Sociedade::disponivel())<button type="button" class="aba-cadastro" data-aba="sociedade" id="botaoSociedade" @if (old('sociedade', $socios->isNotEmpty() ? 'socios' : 'propria') !== 'socios') hidden @endif>Consórcio</button>@endif
         @if (\App\Support\FotosAnimal::disponivel())<button type="button" class="aba-cadastro" data-aba="fotos">Fotos</button>@endif
         <button type="button" class="aba-cadastro" data-aba="observacoes">Observações</button>
     </div>
@@ -205,6 +205,13 @@
     <div class="painel-aba painel-aba--oculto" id="aba-aquisicao">
         <section class="cartao"><h2>Aquisição e situação</h2>
             <div class="grade-3">
+                <label class="campo"><span>Forma de aquisição</span>
+                    <select name="forma_aquisicao" id="selFormaAquisicao"><option value=""></option>
+                        @foreach (\App\Models\Animal::FORMAS_AQUISICAO as $k => $t)
+                        <option value="{{ $k }}" @selected($v('forma_aquisicao') === $k)>{{ $t }}</option>
+                        @endforeach
+                    </select>
+                </label>
                 @if (\App\Support\Sociedade::disponivel())
                 @php $comSocios = old('sociedade', $socios->isNotEmpty() ? 'socios' : 'propria') === 'socios'; @endphp
                 <label class="campo"><span>Percentual {{ $haras->doRotulo() }}</span>
@@ -212,17 +219,10 @@
                         <option value="propria" @selected(! $comSocios)>100%</option>
                         <option value="socios" @selected($comSocios)>Personalizado</option>
                     </select>
-                    <small class="suave" id="atalhoSociedade" @if (! $comSocios) hidden @endif>O animal tem sócios. <a href="#sociedade" id="linkSociedade">Detalhar na seção Sociedade</a></small>
+                    <small class="suave" id="atalhoSociedade" @if (! $comSocios) hidden @endif>O animal está em consórcio. <a href="#sociedade" id="linkSociedade">Detalhar na seção Consórcio</a></small>
                 </label>
                 @endif
-                <label class="campo"><span>Data de aquisição</span><input type="date" name="data_aquisicao" value="{{ old('data_aquisicao', $animal->data_aquisicao?->format('Y-m-d')) }}"></label>
-                <label class="campo"><span>Forma de aquisição</span>
-                    <select name="forma_aquisicao"><option value=""></option>
-                        @foreach (\App\Models\Animal::FORMAS_AQUISICAO as $k => $t)
-                        <option value="{{ $k }}" @selected($v('forma_aquisicao') === $k)>{{ $t }}</option>
-                        @endforeach
-                    </select>
-                </label>
+                <label class="campo"><span>Data de aquisição</span><input type="date" name="data_aquisicao" id="campoDataAquisicao" value="{{ old('data_aquisicao', $animal->data_aquisicao?->format('Y-m-d')) }}"></label>
                 <label class="campo"><span>Valor de aquisição (R$)</span><input type="number" step="0.01" name="valor_aquisicao" value="{{ $v('valor_aquisicao') }}" min="0"></label>
                 <label class="campo"><span>Situação atual</span>
                     <select name="situacao">
@@ -231,7 +231,7 @@
                         @endforeach
                     </select>
                 </label>
-                <label class="campo"><span>Data da situação</span><input type="date" name="situacao_data" value="{{ old('situacao_data', $animal->situacao_data?->format('Y-m-d')) }}"></label>
+                <label class="campo"><span>Data da situação</span><input type="date" name="situacao_data" id="campoSituacaoData" value="{{ old('situacao_data', $animal->situacao_data?->format('Y-m-d')) }}"></label>
                 <label class="campo"><span>Motivo / observação</span><input name="situacao_motivo" value="{{ $v('situacao_motivo') }}" maxlength="255"></label>
             </div>
         </section>
@@ -309,7 +309,7 @@
         $comSocios = old('sociedade', $socios->isNotEmpty() ? 'socios' : 'propria') === 'socios';
     @endphp
     <div class="painel-aba painel-aba--oculto" id="aba-sociedade">
-        <section class="cartao"><h2>Sociedade</h2>
+        <section class="cartao"><h2>Consórcio</h2>
             <p class="suave" style="margin-bottom:1rem">Informe os sócios do animal e a parte de cada um. Sócio pessoa entra pelo CPF; sócio Haras / Fazenda, pelo CNPJ. Para voltar a 100% {{ $haras->doRotulo() }}, mude o percentual na seção Aquisição.</p>
             <div id="blocoSocios" data-busca="{{ route('painel.animais.buscar-socio') }}">
                 <div id="listaSocios" class="socios">
@@ -469,6 +469,30 @@
         document.getElementById('linkSociedade').addEventListener('click', function (e) { e.preventDefault(); botao.click(); });
     }
     somar();
+})();
+
+// Nascimento no Haras: data de aquisição = data de nascimento; data da situação = hoje (preenchimento automático)
+(function () {
+    var forma = document.getElementById('selFormaAquisicao');
+    var dataAq = document.getElementById('campoDataAquisicao');
+    var dataSit = document.getElementById('campoSituacaoData');
+    var nasc = document.getElementById('campoNascimento');
+    if (!forma || !dataAq || !dataSit) return;
+    var hoje = function () {
+        var d = new Date();
+        return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    };
+    var aplicar = function (forcar) {
+        var ehNasc = forma.value === 'nascimento';
+        dataAq.readOnly = ehNasc;
+        dataSit.readOnly = ehNasc;
+        if (!ehNasc) return;
+        if (forcar || !dataAq.value) dataAq.value = nasc && nasc.value ? nasc.value : dataAq.value;
+        if (forcar || !dataSit.value) dataSit.value = hoje();
+    };
+    forma.addEventListener('change', function () { aplicar(true); });
+    if (nasc) nasc.addEventListener('change', function () { if (forma.value === 'nascimento') dataAq.value = nasc.value; });
+    aplicar(false);
 })();
 
 // Raça: lista pronta; "Outra (digitar)" mostra o campo de texto. O valor enviado é sempre o do campo "raca".
