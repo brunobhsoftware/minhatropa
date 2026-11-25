@@ -92,9 +92,25 @@ Menu final: **Dados · Saúde · Cobrições · Nascimentos · Transferências �
 - **Premiações** (novo, feito): cadastro simples — evento, data, local (+ colocação). Gerenciado na
   ficha/Consulta do dono; tabela `premiacao` (V023).
 
-## 7. Próximos passos
+## 7. Progresso (24/11/2026)
 
-- **Registro → status** (decisão 1): migração + cadastro + exibição.
-- **Fase 1 — Cobrição completa** (monta / IA / embrião, receptora externa, diagnóstico de gestação).
-- **Fase 2 — Nascimento → produto**.
-- **Sêmen congelado** (estoque de doses) e **Alertas**.
+Concluído:
+- **Consulta exibe todos os dados** (Trilha da vida + ID na associação).
+- **Menu por animal**: removidos Exames/Resenhas; nova aba Saúde; Filhos dentro de Genealogia;
+  **Premiações** (evento/data/local/colocação; tabela `premiacao`, **V023**).
+- **Integridade da árvore**: qualquer interligação (pai/mãe de outro, cobrição, nascimento,
+  transferência) **impede a exclusão** (`App\Support\Vinculos`); morte **só pela baixa** (óbito), o
+  cadastro não mata um animal vivo.
+- **Nascimento → produto**: já gerava o animal com pai/mãe na árvore e fechava a cobrição; agora o
+  produto já vem com a **trilha preenchida** (local/criador/proprietário = a propriedade).
+- **Transferência de propriedade**: já trocava o dono (`empresa_id`) com fluxo solicitar→aceitar→
+  concluir; agora também atualiza o **proprietário na trilha**.
+- **Registro vira status** (sem registro / provisório / definitivo) no cadastro, ficha e Consulta
+  (coluna `registro_status`, **V024**). O booleano antigo fica em sincronia.
+
+Scripts de banco a aplicar em `/admin/banco`: **V023** (premiações) e **V024** (status do registro).
+
+A fazer:
+- **Cobrição**: revisar o formulário para deixar os três tipos (monta / IA / embrião, receptora
+  externa) e o diagnóstico de gestação bem explícitos na tela.
+- **Sêmen congelado** (estoque de doses) e **Alertas** (vacinas, prazos).
