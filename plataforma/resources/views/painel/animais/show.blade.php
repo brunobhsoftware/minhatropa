@@ -27,15 +27,14 @@
     <section class="cartao">
         <h2>Identificação</h2>
         <dl class="dados">
-            <div><dt>Nome</dt><dd>{{ $animal->nome }}</dd></div>
-            <div><dt>Nome de registro</dt><dd>{{ $animal->nome_registro ?: '—' }}</dd></div>
-            <div><dt>Apelido</dt><dd>{{ $animal->apelido ?: '—' }}</dd></div>
+            <div><dt>Nome</dt><dd style="text-transform:uppercase">{{ $animal->nome }}</dd></div>
+            <div><dt>Nome de registro</dt><dd style="text-transform:uppercase">{{ $animal->nome_registro ?: '—' }}</dd></div>
+            <div><dt>Apelido</dt><dd style="text-transform:uppercase">{{ $animal->apelido ?: '—' }}</dd></div>
             <div><dt>Espécie</dt><dd>{{ $animal->especieTexto() }}</dd></div>
             <div><dt>Sexo</dt><dd>{{ $animal->sexo === 'macho' ? 'Macho' : ($animal->sexo === 'femea' ? 'Fêmea' : '—') }}</dd></div>
             <div><dt>Categoria</dt><dd>{{ $animal->categoriaTexto() }}</dd></div>
             <div><dt>Raça</dt><dd>{{ $animal->raca ?: '—' }}</dd></div>
             <div><dt>Pelagem</dt><dd>{{ $animal->pelagemTexto() }}</dd></div>
-            <div><dt>Complemento da pelagem</dt><dd>{{ $animal->pelagem_complemento ?: '—' }}</dd></div>
             <div><dt>Nascimento</dt><dd>{{ $animal->data_nascimento ? $animal->data_nascimento->format('d/m/Y') : '—' }}@if ($animal->data_nascimento) ({{ $animal->idade() }})@endif</dd></div>
             <div><dt>Nº plantel</dt><dd>{{ $animal->numero_plantel ?: '—' }}</dd></div>
             <div><dt>Local / baia</dt><dd>{{ $animal->local_baia ?: '—' }}</dd></div>
@@ -69,21 +68,21 @@
             <div>
                 <h3 style="font-size:.95rem;margin-bottom:.5rem">Local de nascimento</h3>
                 <dl class="dados">
-                    <div><dt>Local / propriedade</dt><dd>{{ $animal->local_nascimento ?: '—' }}</dd></div>
+                    <div><dt>Local / propriedade</dt><dd style="text-transform:uppercase">{{ $animal->local_nascimento ?: '—' }}</dd></div>
                 </dl>
             </div>
             <div>
                 <h3 style="font-size:.95rem;margin-bottom:.5rem">Criador</h3>
                 <dl class="dados">
-                    <div><dt>Nome</dt><dd>{{ $animal->criador_nome ?: '—' }}</dd></div>
-                    <div><dt>Cidade/UF</dt><dd>{{ $animal->criador_cidade ?: '—' }}{{ $animal->criador_uf ? '/'.$animal->criador_uf : '' }}</dd></div>
+                    <div><dt>Nome</dt><dd style="text-transform:uppercase">{{ $animal->criador_nome ?: '—' }}</dd></div>
+                    <div><dt>Cidade/UF</dt><dd style="text-transform:uppercase">{{ $animal->criador_cidade ?: '—' }}{{ $animal->criador_uf ? '/'.$animal->criador_uf : '' }}</dd></div>
                 </dl>
             </div>
             <div>
                 <h3 style="font-size:.95rem;margin-bottom:.5rem">Proprietário atual</h3>
                 <dl class="dados">
-                    <div><dt>Nome</dt><dd>{{ $animal->proprietario_nome ?: '—' }}</dd></div>
-                    <div><dt>Cidade/UF</dt><dd>{{ $animal->proprietario_cidade ?: '—' }}{{ $animal->proprietario_uf ? '/'.$animal->proprietario_uf : '' }}</dd></div>
+                    <div><dt>Nome</dt><dd style="text-transform:uppercase">{{ $animal->proprietario_nome ?: '—' }}</dd></div>
+                    <div><dt>Cidade/UF</dt><dd style="text-transform:uppercase">{{ $animal->proprietario_cidade ?: '—' }}{{ $animal->proprietario_uf ? '/'.$animal->proprietario_uf : '' }}</dd></div>
                 </dl>
             </div>
         </div>

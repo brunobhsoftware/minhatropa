@@ -348,7 +348,7 @@ class Animal extends Model
         }
         $p = self::PELAGENS[$this->pelagem] ?? $this->pelagem ?? '';
         if ($this->pelagem_complemento) {
-            $p .= ' ('.$this->pelagem_complemento.')';
+            $p = $this->pelagem_complemento.' '.$p;
         }
 
         return $p ?: '—';

@@ -8,7 +8,10 @@
 @endphp
 <div class="cabecalho">
     <div><h1>{{ $haras->nome }}</h1><p>Olá, {{ auth()->user()->primeiroNome() }}! Este é o painel {{ $haras->doRotulo() }}.</p></div>
-    @if ($podeAnimais)<a href="{{ route('painel.animais.novo') }}" class="botao botao--primario"><x-icone nome="mais" :tamanho="18" /> Cadastrar animal</a>@endif
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+        @if ($podeAnimais)<a href="{{ route('painel.animais.novo') }}" class="botao botao--primario"><x-icone nome="mais" :tamanho="18" /> Cadastrar animal</a>@endif
+        @if (\App\Support\Permissao::pode($papel, 'propriedade'))<a href="{{ route('painel.haras') }}" class="botao botao--contorno"><x-icone nome="haras" :tamanho="18" /> Editar propriedade</a>@endif
+    </div>
 </div>
 
 @if ($dono && $limite !== null)
