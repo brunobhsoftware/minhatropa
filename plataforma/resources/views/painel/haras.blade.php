@@ -28,13 +28,13 @@
         <section class="cartao"><h2>Identificação</h2>
             <input type="hidden" name="tipo_propriedade" value="{{ $haras->tipo_propriedade ?: 'fazenda' }}">
             <div class="grade-2">
-                <label class="campo"><span>Nome da fazenda *</span><input name="nome" value="{{ $v('nome') }}" required maxlength="150"></label>
+                <label class="campo"><span>Nome da fazenda *</span><input name="nome" value="{{ $v('nome') }}" required maxlength="150" @if ($haras->sufixo_confirmado) readonly @endif>@if ($haras->sufixo_confirmado)<small class="suave">🔒 Travado após a confirmação do sufixo — alteração só pela administração.</small>@endif</label>
                 <div class="campo"><span>Nome do Haras (sufixo)<span id="seloSufixo" style="color:#047857;font-weight:600;margin-left:.4rem;white-space:nowrap" @if (! $haras->sufixo_confirmado) hidden @endif>✓ Confirmado<span id="codigoAssocInline">{{ $haras->sufixo_confirmado && $haras->sufixo_codigo ? ' · '.$haras->sufixo_codigo : '' }}</span></span></span>
                     <div class="campo-com-botao">
-                        <input name="sufixo" id="campoSufixoNome" value="{{ $v('sufixo') }}" maxlength="120" placeholder="Ex.: MINHA TROPA" autocomplete="off">
+                        <input name="sufixo" id="campoSufixoNome" value="{{ $v('sufixo') }}" maxlength="120" placeholder="Ex.: MINHA TROPA" autocomplete="off" @if ($haras->sufixo_confirmado) readonly @endif>
                         <button type="button" class="botao botao--contorno botao--pequeno" id="btnVerificarSufixo" @if ($haras->sufixo_confirmado) hidden @endif>Verificar sufixo</button>
                     </div>
-                    <small>O "sobrenome" dos animais na associação.</small>
+                    <small>O "sobrenome" dos animais na associação.@if ($haras->sufixo_confirmado) 🔒 Nome da fazenda e sufixo ficam travados após a confirmação; a alteração é feita apenas pela administração, mediante abertura de chamado no suporte.@endif</small>
                     <div id="statusSufixo" style="margin-top:.5rem;font-size:.82rem;@if ($haras->sufixo && ! $haras->sufixo_confirmado && $haras->sufixo_codigo) color:#b45309 @elseif ($haras->sufixo && ! $haras->sufixo_confirmado) color:#6b7280 @else display:none @endif">
                         @if ($haras->sufixo && ! $haras->sufixo_confirmado && $haras->sufixo_codigo)
                             ⏳ Pendente — código {{ $haras->sufixo_codigo }}. Confira nome, cidade e UF.

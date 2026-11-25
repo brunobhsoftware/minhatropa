@@ -131,6 +131,13 @@ class PainelController extends Controller
         ] + Geografia::regras($request, '', true) + Geografia::regras($request, 'corresp_') + PaginaPropriedade::regras($empresa),
             Geografia::mensagens() + Geografia::mensagens('corresp_') + PaginaPropriedade::mensagens() + ['site_url.url' => 'Informe o endereço completo do site, começando com https://.']);
 
+        // Sufixo aprovado: "Nome da fazenda" e "Sufixo" ficam travados no painel. Só a Administração altera
+        // (mediante chamado no suporte); aqui qualquer envio desses campos é ignorado, mesmo em POST forjado.
+        if ($empresa->sufixo_confirmado) {
+            $dados['nome'] = $empresa->nome;
+            unset($dados['sufixo'], $dados['sufixo_codigo'], $dados['sufixo_associacao_id']);
+        }
+
         $titular = $empresa->titular;
         if ($titular) { // nome do responsável (e do proprietário PF) vem sempre do cadastro de Profissional
             $dados['responsavel_nome'] = $titular->nome;
