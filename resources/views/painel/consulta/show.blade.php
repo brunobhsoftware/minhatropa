@@ -87,6 +87,7 @@
             <dl class="dados">
                 <div><dt>Registro</dt><dd>{{ $animal->registro ?: '—' }}</dd></div>
                 @if ($animal->registro_associacao)<div><dt>Associação</dt><dd>{{ \App\Models\Animal::ASSOCIACOES[$animal->registro_associacao] ?? $animal->registro_associacao }}</dd></div>@endif
+                @if ($animal->id_associacao)<div><dt>ID na associação</dt><dd>{{ $animal->id_associacao }}</dd></div>@endif
                 <div><dt>Registro definitivo</dt><dd>{{ $animal->registro_definitivo ? 'Sim' : 'Não' }}</dd></div>
                 <div><dt>Microchip</dt><dd>{{ $animal->microchip ?: '—' }}</dd></div>
                 <div><dt>DNA coletado</dt><dd>{{ $animal->dna_coletado ? 'Sim' : 'Não' }}</dd></div>
@@ -96,6 +97,17 @@
             </dl>
         </section>
     </div>
+
+    @if ($animal->local_nascimento || $animal->criador_nome || $animal->proprietario_nome)
+    <section class="cartao">
+        <h2>Trilha da vida</h2>
+        <dl class="dados">
+            @if ($animal->local_nascimento)<div><dt>Local de nascimento</dt><dd>{{ $animal->local_nascimento }}</dd></div>@endif
+            @if ($animal->criador_nome)<div><dt>Criador</dt><dd>{{ $animal->criador_nome }}@if ($animal->criador_cidade) · {{ $animal->criador_cidade }}@if ($animal->criador_uf)/{{ $animal->criador_uf }}@endif @endif</dd></div>@endif
+            @if ($animal->proprietario_nome)<div><dt>Proprietário atual</dt><dd>{{ $animal->proprietario_nome }}@if ($animal->proprietario_cidade) · {{ $animal->proprietario_cidade }}@if ($animal->proprietario_uf)/{{ $animal->proprietario_uf }}@endif @endif</dd></div>@endif
+        </dl>
+    </section>
+    @endif
 
     @if ($proprio)
     <div class="grade-2">
