@@ -21,6 +21,7 @@
         <button type="button" class="aba-cadastro" data-aba="endereco">Endereço</button>
         <button type="button" class="aba-cadastro" data-aba="correspondencia">Correspondência</button>
         <button type="button" class="aba-cadastro" data-aba="criacao">Criação</button>
+        <button type="button" class="aba-cadastro" data-aba="outros">Outros dados</button>
         @if ($temPagina)<button type="button" class="aba-cadastro" data-aba="pagina">Página e marca</button>@endif
     </nav>
 
@@ -46,9 +47,7 @@
                 </div>
                 <label class="campo"><span>Titularidade</span><input value="{{ \App\Models\Empresa::TITULARIDADES[$haras->tipo_documento] ?? 'Não informada' }}" disabled></label>
                 <label class="campo"><span>{{ $pf ? 'CPF do proprietário' : 'CNPJ' }}</span><input value="{{ $haras->documentoFormatado() }}" disabled><small>É a identificação única da propriedade. Para alterar, fale com o atendimento.</small></label>
-                <label class="campo"><span>{{ $pf ? 'Proprietário' : 'Razão social' }}</span><input name="razao_social" value="{{ $v('razao_social') }}" maxlength="190" @if ($pf && $titular) readonly @endif></label>
-                <label class="campo"><span>Inscrição estadual / produtor rural</span><input name="inscricao_estadual" value="{{ $v('inscricao_estadual') }}" maxlength="30"></label>
-                <label class="campo"><span>Área (hectares)</span><input name="area_hectares" value="{{ old('area_hectares', $haras->area_hectares !== null ? number_format((float) $haras->area_hectares, 2, ',', '.') : '') }}" inputmode="decimal"></label>
+                <label class="campo"><span>{{ $pf ? 'Proprietário' : 'Razão social' }}</span><input name="razao_social" value="{{ $v('razao_social') }}" maxlength="190" readonly><small>Dado de titularidade. Para alterar, fale com o atendimento.</small></label>
                 <label class="campo"><span>Quantidade de animais</span><select name="quantidade_animais_estimada"><option value=""></option>@foreach (\App\Models\Empresa::QUANTIDADES as $q)<option @selected($v('quantidade_animais_estimada') === $q)>{{ $q }}</option>@endforeach</select></label>
             </div>
             @if ($titular)
@@ -126,6 +125,15 @@
         <section class="cartao"><h2>Finalidade da criação</h2>
             <div class="grade-opcoes">
                 @foreach (\App\Models\Empresa::FINALIDADES as $valor => $texto)<label class="opcao-check"><input type="checkbox" name="finalidades[]" value="{{ $valor }}" @checked(in_array($valor, (array) old('finalidades', $haras->finalidadesArray())))> {{ $texto }}</label>@endforeach
+            </div>
+        </section>
+    </div>
+
+    <div class="painel-aba painel-aba--oculto" id="aba-outros">
+        <section class="cartao"><h2>Outros dados</h2>
+            <div class="grade-2">
+                <label class="campo"><span>Inscrição estadual / produtor rural</span><input name="inscricao_estadual" value="{{ $v('inscricao_estadual') }}" maxlength="30"></label>
+                <label class="campo"><span>Área (hectares)</span><input name="area_hectares" value="{{ old('area_hectares', $haras->area_hectares !== null ? number_format((float) $haras->area_hectares, 2, ',', '.') : '') }}" inputmode="decimal"></label>
             </div>
         </section>
     </div>
