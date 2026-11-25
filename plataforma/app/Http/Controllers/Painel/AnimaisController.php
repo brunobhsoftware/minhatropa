@@ -139,6 +139,10 @@ class AnimaisController extends Controller
     {
         $empresa = $request->attributes->get('haras');
         $dados = $this->validar($request);
+        // Morte só pela baixa (óbito): não se define 'morto' pelo cadastro (natimorto vem pelo nascimento).
+        if (($dados['situacao'] ?? null) === 'morto') {
+            $dados['situacao'] = 'ativo';
+        }
         $request->validate(FotosAnimal::regras(), FotosAnimal::mensagens());
         $socios = Sociedade::validar($request, $empresa);
         // Só animal que entra no plantel ativo conta para a faixa (vendido, transferido e morto ficam de fora).
@@ -193,6 +197,10 @@ class AnimaisController extends Controller
         $this->doHaras($request, $animal);
         $antes = $animal->getAttributes();
         $dados = $this->validar($request);
+        // Morte só pela baixa (óbito): o cadastro não transforma um animal vivo em 'morto'.
+        if (($dados['situacao'] ?? null) === 'morto' && $animal->situacao !== 'morto') {
+            unset($dados['situacao']);
+        }
         $request->validate(FotosAnimal::regras(), FotosAnimal::mensagens());
         $socios = Sociedade::validar($request, $request->attributes->get('haras'));
         // Voltar um animal ao plantel ativo também respeita o limite da faixa.
@@ -295,6 +303,12 @@ class AnimaisController extends Controller
     public function destroy(Request $request, Animal $animal)
     {
         $this->doHaras($request, $animal);
+        // Qualquer interligação (filhos, cobrições, nascimentos, transferências) impede a exclusão.
+        $motivos = \App\Support\Vinculos::impedimentos($animal);
+        if ($motivos) {
+            return redirect()->route('painel.animais.show', $animal)
+                ->with('aviso', "{$animal->nome} não pode ser excluído(a) porque ".implode(', ', $motivos).'. Para tirá-lo(a) do plantel, registre a baixa (óbito, venda ou transferência).');
+        }
         $antes = $animal->getAttributes();
         $animal->excluido_em = now('UTC');
         $animal->save();
@@ -315,7 +329,13 @@ class AnimaisController extends Controller
         $animais = Animal::where('empresa_id', $empresa->id)->whereNull('excluido_em')
             ->whereIn('uuid', $request->input('uuids'))->get();
         $n = 0;
+        $bloqueados = 0;
         foreach ($animais as $animal) {
+            // Interligados (filhos, cobrições, nascimentos, transferências) não são excluídos.
+            if (! \App\Support\Vinculos::podeExcluir($animal)) {
+                $bloqueados++;
+                continue;
+            }
             $antes = $animal->getAttributes();
             $animal->excluido_em = now('UTC');
             $animal->save();
@@ -325,6 +345,11 @@ class AnimaisController extends Controller
         Licenca::esquecerFaixas();
 
         $msg = $n === 0 ? 'Nenhum animal foi excluído.' : ($n === 1 ? '1 animal excluído do plantel.' : "{$n} animais excluídos do plantel.");
+        if ($bloqueados > 0) {
+            $msg .= $bloqueados === 1
+                ? ' 1 animal não pôde ser excluído por ter interligações (baixa, não exclusão).'
+                : " {$bloqueados} animais não puderam ser excluídos por terem interligações (baixa, não exclusão).";
+        }
 
         return redirect()->route('painel.animais')->with($n > 0 ? 'ok' : 'aviso', $msg);
     }
