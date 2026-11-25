@@ -225,11 +225,20 @@
                 <label class="campo"><span>Data de aquisição</span><input type="date" name="data_aquisicao" id="campoDataAquisicao" value="{{ old('data_aquisicao', $animal->data_aquisicao?->format('Y-m-d')) }}"></label>
                 <label class="campo"><span>Valor de aquisição (R$)</span><input type="number" step="0.01" name="valor_aquisicao" value="{{ $v('valor_aquisicao') }}" min="0"></label>
                 <label class="campo"><span>Situação atual</span>
-                    <select name="situacao">
-                        @foreach (\App\Models\Animal::SITUACOES as $k => $t)
-                        <option value="{{ $k }}" @selected(($v('situacao') ?? 'ativo') === $k)>{{ $t }}</option>
-                        @endforeach
-                    </select>
+                    @if ($animal->exists && $animal->situacao === 'morto')
+                        <input value="Morto (baixa registrada)" disabled>
+                        <input type="hidden" name="situacao" value="morto">
+                        <small class="suave">Óbito registrado. Veja a aba Óbito na ficha.</small>
+                    @else
+                        <select name="situacao">
+                            @foreach (\App\Models\Animal::SITUACOES as $k => $t)
+                                @if ($k !== 'morto')
+                                <option value="{{ $k }}" @selected(($v('situacao') ?? 'ativo') === $k)>{{ $t }}</option>
+                                @endif
+                            @endforeach
+                        </select>
+                        <small class="suave">A baixa por óbito é registrada na aba Óbito da ficha.</small>
+                    @endif
                 </label>
                 <label class="campo"><span>Data da situação</span><input type="date" name="situacao_data" id="campoSituacaoData" value="{{ old('situacao_data', $animal->situacao_data?->format('Y-m-d')) }}"></label>
                 <label class="campo"><span>Motivo / observação</span><input name="situacao_motivo" value="{{ $v('situacao_motivo') }}" maxlength="255"></label>

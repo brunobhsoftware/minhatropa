@@ -570,6 +570,7 @@ class ComposerStaticInit01491554d920b3ff2852f7e60c354b75
         'App\\Support\\Sufixo' => __DIR__ . '/../..' . '/app/Support/Sufixo.php',
         'App\\Support\\Texto' => __DIR__ . '/../..' . '/app/Support/Texto.php',
         'App\\Support\\Titular' => __DIR__ . '/../..' . '/app/Support/Titular.php',
+        'App\\Support\\Vinculos' => __DIR__ . '/../..' . '/app/Support/Vinculos.php',
         'Attribute' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/Attribute.php',
         'Brick\\Math\\BigDecimal' => __DIR__ . '/..' . '/brick/math/src/BigDecimal.php',
         'Brick\\Math\\BigInteger' => __DIR__ . '/..' . '/brick/math/src/BigInteger.php',

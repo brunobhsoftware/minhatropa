@@ -95,6 +95,7 @@ return array(
     'App\\Support\\Sufixo' => $baseDir . '/app/Support/Sufixo.php',
     'App\\Support\\Texto' => $baseDir . '/app/Support/Texto.php',
     'App\\Support\\Titular' => $baseDir . '/app/Support/Titular.php',
+    'App\\Support\\Vinculos' => $baseDir . '/app/Support/Vinculos.php',
     'Attribute' => $vendorDir . '/symfony/polyfill-php80/Resources/stubs/Attribute.php',
     'Brick\\Math\\BigDecimal' => $vendorDir . '/brick/math/src/BigDecimal.php',
     'Brick\\Math\\BigInteger' => $vendorDir . '/brick/math/src/BigInteger.php',
