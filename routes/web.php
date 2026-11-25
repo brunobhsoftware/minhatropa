@@ -94,6 +94,9 @@ Route::middleware(['auth', 'haras'])->prefix('painel')->group(function () {
             Route::get('/animais-proximo-numero', [$p.'\AnimaisController', 'proximoNumero'])->name('animais.proximo-numero');
             Route::post('/animais-cadastro-rapido', [$p.'\AnimaisController', 'cadastroRapido'])->name('animais.cadastro-rapido');
             Route::get('/animais-buscar-haras', [$p.'\AnimaisController', 'buscarHaras'])->name('animais.buscar-haras');
+            // Premiações do animal (cadastro simples: evento, data, local)
+            Route::post('/animais/{animal}/premiacoes', [$p.'\PremiacoesController', 'store'])->name('animais.premiacoes.criar');
+            Route::delete('/animais/{animal}/premiacoes/{premiacao}', [$p.'\PremiacoesController', 'destroy'])->name('animais.premiacoes.excluir');
         });
 
         Route::middleware('permissao:reproducao')->group(function () use ($p) {

@@ -88,11 +88,23 @@ class ConsultaController extends Controller
             $socios = \App\Support\Sociedade::doAnimal($animal);
         }
 
+        $premiacoes = collect();
+        if (Esquema::temTabela('premiacao')) {
+            $premiacoes = DB::table('premiacao')->where('animal_id', $animal->id)->whereNull('excluido_em')
+                ->orderByDesc('data')->orderByDesc('id')->get();
+        }
+
+        $eventosSaude = collect();
+        if (Esquema::temV012()) {
+            $eventosSaude = DB::table('evento_saude')->where('animal_id', $animal->id)->whereNull('excluido_em')
+                ->orderByDesc('data_evento')->limit(50)->get();
+        }
+
         $arvore = $animal->arvoreGenealogica(3);
 
         return view('painel.consulta.show', compact(
             'animal', 'proprio', 'aba', 'cobricoes', 'nascimentos',
-            'transferencias', 'filhos', 'socios', 'arvore'
+            'transferencias', 'filhos', 'socios', 'premiacoes', 'eventosSaude', 'arvore'
         ));
     }
 }
