@@ -92,6 +92,7 @@ Projeto irmão (mesma estrutura, mesma conta Hostinger): **foradafila.com.br** (
 | `plataforma/database/atualizacoes/V0xx__*.sql` | Scripts versionados do banco (idempotentes). Aplicados pela tela `/admin/banco` |
 | `plataforma/tests/e2e/` | Testes de ponta a ponta (Playwright) contra banco limpo + `php artisan serve`: `fluxo-admin.js` (57), `fluxo-cadastro.js` (94) e `fluxo-profissional.js` (102), nessa ordem; apoio em `apoio.js` |
 | `docs/identidade-visual/` | Logos recortadas (PNG transparente) e o kit original enviado pelo Bruno em `kit-original/` |
+| `docs/abccmm-registro-e-roadmap.md` | Estudo da lógica de registro da ABCCMM (cobrição → nascimento → resenha/provisório → definitivo) e roteiro de implementação por fases |
 | `.github/workflows/build-plataforma.yml` | Publicação: `composer install --no-dev` e grava em `publicacao` |
 | `.hostinger/site.json` | Alvo da publicação na Hostinger |
 
